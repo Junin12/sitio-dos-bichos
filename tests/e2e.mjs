@@ -155,6 +155,12 @@ try {
   ok(await p.evaluate(() => ON.ativo), 'modo online ativo');
   ok(consulta(db, `select count(*)::int n from eventos_app where user_id='${uid}' and nome='sessao'`)[0].n === 1, 'métrica de sessão enviada');
   await p.evaluate(() => { ACOES.aba('guilda'); ACOES.subG('ranking'); }); await p.waitForTimeout(1500);
+  ok(await p.isVisible('[data-act="rkCat"][data-arg="moedas"]'), 'abas da classificação aparecem');
+  await p.evaluate(() => enviarExtra()); await p.waitForTimeout(500);
+  ok(consulta(db, `select n_roupas::int n from perfis where id='${uid}'`)[0].n >= 1, 'fantasias e aparência enviadas ao servidor');
+  await p.click('[data-act="rkCat"][data-arg="fantasias"]'); await p.waitForTimeout(1500);
+  ok(await p.evaluate(() => ON.rank && ON.rank.categoria === 'fantasias' && ON.rank.servidor >= 1 && ON.rank.top.some(x => x.voce && x.avatar && x.avatar.roupa)), 'classificação de fantasias por servidor, com aparência');
+  await p.click('[data-act="rkCat"][data-arg="poder"]'); await p.waitForTimeout(1500);
   await p.click('text=Visitar'); await p.waitForTimeout(800);
   ok(await p.isVisible('text=Visita ao sítio'), 'visita abre');
   ok(!(await p.content()).includes('<b>Rex</b>'), 'nome do bicho do outro jogador sai escapado');

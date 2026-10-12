@@ -78,7 +78,7 @@ Inspiradas em jogos idle com coleção: sorteio em lote com ingressos, oficina (
 
 ## Próximos passos
 
-1. Rodar as migrações `20261012000400_novidades.sql` e `20261012000500_mecanicas.sql` no projeto Supabase, nessa ordem (veja backend/README.md).
+1. Rodar as migrações `20261012000400_novidades.sql`, `20261012000500_mecanicas.sql` e `20261012000600_servidores.sql` no projeto Supabase, nessa ordem (veja backend/README.md).
 2. Empacotar com Capacitor e trocar os anúncios e as compras simulados por AdMob e Google Play Billing.
 3. Seguir o `PLAY_STORE.md`.
 

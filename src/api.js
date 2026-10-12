@@ -37,6 +37,7 @@ export const MENSAGENS = {
   motivo_invalido: 'Motivo de pontos inválido.',
   pontos_invalidos: 'Quantidade de pontos inválida.',
   valor_invalido: 'Valor inválido.',
+  categoria_invalida: 'Categoria inválida.',
   alvo_invalido: 'Esse jogador não pode receber ajuda.',
   ja_ajudou_hoje: 'Você já ajudou esse colega hoje.',
   indice_invalido: 'Baú inválido.',
@@ -153,5 +154,7 @@ export function criarApi(sb) {
       premio: () => chamar('jogo_premio_guilda_resgatar'),
     },
     ranking: (limite = 50) => chamar('jogo_ranking', { p_limite: inteiro(limite, 1, 100) }),
+    classificacao: (cat = 'poder', servidor = null, limite = 30) => chamar('jogo_classificacao', { p_cat: String(cat), p_servidor: servidor == null ? null : inteiro(servidor, 1, 999), p_limite: inteiro(limite, 1, 100) }),
+    perfilExtra: o => chamar('jogo_perfil_extra', { p_moedas: inteiro(o.moedas, 0, Number.MAX_SAFE_INTEGER), p_bichos: inteiro(o.bichos, 0, 500), p_roupas: inteiro(o.roupas, 0, 100), p_sexo: o.sexo === 'f' ? 'f' : 'm', p_pele: inteiro(o.pele, 0, 3), p_roupa: String(o.roupa), p_bicho: o.bicho || null, p_est: inteiro(o.est, 0, 3) }),
   };
 }

@@ -2,7 +2,7 @@
    Entra no mesmo script do jogo (veja build.py --online). Se algo falhar, o jogo continua no modo offline
    com jogadores simulados. Depende de: criarApi (src/api.js), window.SITIO_CONFIG e window.supabase. */
 const ONLINE_ID = 1000;               // marca em S.guilda.id: "estou numa guilda real"
-var ON = window.ON = { ativo: false, e: null, guildas: null, rank: null, gr: null, convite: null, ch: null, cr: null, msg: '', tE: 0, tR: 0, tG: 0, tGR: 0, tC: 0, tCh: 0, tCr: 0, busy: false, confirmaSair: false };
+var ON = window.ON = { ativo: false, e: null, guildas: null, rank: null, gr: null, convite: null, rkCat: 'poder', rkSrv: null, ch: null, cr: null, msg: '', tE: 0, tR: 0, tG: 0, tGR: 0, tC: 0, tCh: 0, tCr: 0, busy: false, confirmaSair: false };
 let pendCorr = 0;
 let prestServ = 0;
 let sbCli = null, api = null, versaoSave = 0, nivelServ = 1, pend = {}, ultNivel = 0, ultSafra = 0, tPerfil = 0, tSave = 0, saveRodando = false;
@@ -68,7 +68,7 @@ async function onLista() {
   if (r.ok) { ON.guildas = r.guildas; ON.tG = Date.now(); }
 }
 async function onRanking() {
-  const r = await api.ranking(30);
+  const r = await api.classificacao(ON.rkCat, ON.rkSrv, 30);
   if (r.ok) { ON.rank = r; ON.tR = Date.now(); }
 }
 async function enviarPontos() {
@@ -110,6 +110,18 @@ async function atualizarPerfil() {
   const nv = Math.min(S.nivel, nivelServ + 5);
   const r = await api.perfilAtualizar({ nivel: nv, poder: Math.min(poderJogador(S), tetoPoder(nv, pr)), prestigio: pr });
   if (r.ok) { nivelServ = nv; prestServ = pr; }
+  await enviarExtra();
+}
+/* fortuna, bichos, fantasias e aparência para as classificações (a cada 3 min ou quando mudar) */
+let extraAss = '', extraT = 0;
+async function enviarExtra() {
+  if (!ON.ativo) return;
+  ajustarAvatar(S);
+  const id = bichoDestaque(S), A = S.avatar;
+  const o = { moedas: Math.floor(S.stats.coletado || 0), bichos: Object.keys(S.pets).length, roupas: Object.keys(S.roupas).length, sexo: A.sexo, pele: A.pele, roupa: A.roupa.replace(/[^a-z:]/g, ''), bicho: id, est: id ? estagio(S, id) : 0 };
+  const ass = [o.bichos, o.roupas, o.sexo, o.pele, o.roupa, o.bicho, o.est].join('|'), agora = Date.now();
+  if (ass === extraAss && agora - extraT < 180000) return;
+  const r = await api.perfilExtra(o); if (r.ok) { extraAss = ass; extraT = agora; }
 }
 async function salvarNuvem() {
   if (saveRodando || !ON.ativo) return; saveRodando = true;
@@ -205,15 +217,24 @@ function viewGuildasRankOn() {
       <p class="muted">Para entrar na disputa a guilda precisa ter 3 ou mais membros pontuando na semana, e você precisa de 30 pontos para receber o prêmio.</p></section>
     <section class="card">${r.top.length ? r.top.map(linha).join('') : '<p class="muted">Nenhuma guilda pontuou ainda. Seja a primeira!</p>'}</section>`;
 }
+const CATS_RK = [['poder', 'Poder'], ['moedas', 'Fortuna'], ['bichos', 'Bichos'], ['fantasias', 'Fantasias'], ['prestigio', 'Prestígio']];
+const RK_TXT = { poder: ['Ranking dos sítios', 'O poder soma produção, nível do fazendeiro, bichos descobertos e safras.'], moedas: ['Maiores fortunas', 'Total de moedas que cada fazendeiro já coletou na vida, mesmo depois de prestígios.'], bichos: ['Mais bichos', 'Quem descobriu mais bichos diferentes.'], fantasias: ['Mais fantasias', 'Quem tem mais roupas de evento, de pacote e de conquistas.'], prestigio: ['Mais prestígios', 'Quem recomeçou o sítio mais vezes.'] };
+const fmtRk = (cat, v) => cat === 'fantasias' ? v + ' 👕' : cat === 'bichos' ? v + ' 🐾' : cat === 'prestigio' ? '⭐' + v : fmt(v);
 function viewRankingOn() {
   const r = ON.rank;
-  if (!r) return faixa() + '<section class="card"><p class="muted">Carregando o ranking…</p></section>';
-  const acima = r.eu.pos && r.eu.pos > 1 ? r.top.find(x => x.pos === r.eu.pos - 1) : null;
-  const linha = x => `<div class="mrow ${x.voce ? 'eu' : ''}"><span class="pos">${x.pos}</span><span class="who"><b>${esc(x.nome)}</b><small>Nv ${x.nivel}${x.prestigio ? ' · ⭐' + x.prestigio : ''}</small></span><span class="pts num">${fmt(x.poder)}</span>${x.voce ? '<span></span>' : `<button class="btn mini ghost" data-act="visitarSitio" data-arg="${esc(x.id)}">Visitar</button>`}</div>`;
-  return faixa() + `<section class="card"><div class="between"><h2>Ranking dos sítios</h2><span class="badge on">${r.eu.pos ? r.eu.pos + 'º de ' + r.total : 'sem posição'}</span></div>
-      <p class="muted">Poder do seu sítio: <b>${fmt(poderJogador(S))}</b>${acima ? `. Faltam ${fmt(acima.poder - r.eu.poder + 1)} para passar ${esc(acima.nome)}.` : r.eu.pos === 1 ? '. Você lidera o ranking.' : '.'}</p>
-      <p class="muted">O poder soma produção, nível do fazendeiro, bichos descobertos e safras. Seu poder é enviado ao servidor a cada minuto.</p></section>
-    <section class="card">${r.top.map(linha).join('')}</section>`;
+  const segs = `<div class="seg n5">${CATS_RK.map(c => `<button class="${ON.rkCat === c[0] ? 'on' : ''}" data-act="rkCat" data-arg="${c[0]}">${c[1]}</button>`).join('')}</div>`;
+  if (!r) return faixa() + `<section class="card">${segs}<p class="muted">Carregando a classificação…</p></section>`;
+  const srvs = (r.servidores && r.servidores.length ? r.servidores : [{ n: r.servidor, total: 0 }]).map(x => `<button class="chipbicho ${x.n === r.servidor ? 'on' : ''}" data-act="rkSrv" data-arg="${x.n}" style="font-size:13px">Servidor ${x.n}${x.n === r.meu_servidor ? ' ★' : ''}</button>`).join('');
+  const cat = r.categoria, acima = r.eu.pos && r.eu.pos > 1 ? r.top.find(x => x.pos === r.eu.pos - 1) : null;
+  const linha = x => {
+    const a = x.avatar || {}, pet = a.bicho && PET_POR_ID[a.bicho] ? PET_POR_ID[a.bicho].em : '', est = a.est ? '<small class="estr">' + '★'.repeat(a.est) + '</small>' : '';
+    const roupa = ROUPAS[a.roupa] ? a.roupa : 'padrao', medalha = x.pos <= 3 ? ['🥇', '🥈', '🥉'][x.pos - 1] : x.pos;
+    return `<div class="mrow rk ${x.voce ? 'eu' : ''}"><span class="pos">${medalha}</span><span class="rkav">${avatarSVG(a.sexo === 'f' ? 'f' : 'm', a.pele >= 0 && a.pele < 4 ? a.pele : 1, roupa, { tier: 0 })}<i>${pet}</i></span><span class="who"><b>${esc(x.nome)}</b><small>Nv ${x.nivel}${x.prestigio ? ' · ⭐' + x.prestigio : ''} ${est}</small></span><span class="pts num">${fmtRk(cat, x.valor)}</span>${x.voce ? '<span></span>' : `<button class="btn mini ghost" data-act="visitarSitio" data-arg="${esc(x.id)}">Visitar</button>`}</div>`;
+  };
+  return faixa() + `<section class="card">${segs}<div class="between"><h2>${RK_TXT[cat][0]}</h2><span class="badge on">${r.eu.pos ? r.eu.pos + 'º de ' + r.total : 'sem posição'}</span></div>
+      <p class="muted">${RK_TXT[cat][1]}${cat === 'poder' ? ` Seu poder: <b>${fmt(poderJogador(S))}</b>${acima ? `. Faltam ${fmt(acima.valor - r.eu.valor + 1)} para passar ${esc(acima.nome)}.` : r.eu.pos === 1 ? '. Você lidera.' : '.'}` : ''} Seus números são enviados ao servidor a cada poucos minutos.</p>
+      <div class="chipsbicho">${srvs}</div></section>
+    <section class="card">${r.top.length ? r.top.map(linha).join('') : '<p class="muted">Ninguém nesta classificação ainda neste servidor.</p>'}</section>`;
 }
 function onBauPronto() {
   const e = ON.e; if (!e || !e.guilda) return false;
@@ -228,6 +249,8 @@ async function agir(fn) {
 }
 const falhou = r => { toast(r.mensagem || 'Não foi possível'); return false; };
 Object.assign(ACOES, {
+  async rkCat(c) { ON.rkCat = c; ON.rank = null; render(); await onRanking(); render(); },
+  async rkSrv(n) { ON.rkSrv = +n; ON.rank = null; render(); await onRanking(); render(); },
   gEntrar: id => agir(async () => { const r = await api.guilda.entrar(id); if (!r.ok) return falhou(r); receber(ganharXP(S, 40)); await onGuilda(); toast('Bem-vindo à guilda!'); }),
   gCriar: () => agir(async () => { const r = await api.guilda.criar($('#gNome').value, $('#gLema').value); if (!r.ok) return falhou(r); receber(ganharXP(S, 40)); await onGuilda(); toast('Guilda criada!'); }),
   gSair: () => { if (!ON.confirmaSair) { ON.confirmaSair = true; render(); setTimeout(() => { ON.confirmaSair = false; if (aba === 'guilda') render(); }, 4000); return; }

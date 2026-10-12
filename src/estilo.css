@@ -362,3 +362,13 @@ button.lvring{border:0;padding:0;cursor:pointer}
 /* brilho do botão fica no fundo (abaixo do texto), só no topo e discreto */
 .btn{background:linear-gradient(180deg,rgba(255,255,255,.3) 0,rgba(255,255,255,0) 42%),linear-gradient(180deg,var(--c1),var(--c2))}
 .btn:disabled{background:linear-gradient(180deg,var(--c1),var(--c2))}
+
+/* classificações com aparência */
+.mrow.rk{align-items:center}
+.rkav{position:relative;display:inline-block;width:38px;height:48px;flex:none;margin-right:6px}
+.rkav svg{width:100%;height:100%}
+.rkav i{position:absolute;right:-10px;bottom:-2px;font-style:normal;font-size:20px;line-height:1;filter:drop-shadow(0 2px 1px rgba(0,30,20,.4))}
+.estr{color:#e0a000;letter-spacing:1px}
+.mrow.rk{grid-template-columns:26px 46px minmax(0,1fr) auto auto;gap:6px}
+.mrow.rk .btn.mini{min-height:34px;padding:4px 10px;font-size:13px}
+.mrow.rk .pos{font-size:18px}

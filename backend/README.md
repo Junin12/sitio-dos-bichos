@@ -20,6 +20,7 @@ Tudo vive no Postgres do Supabase; o jogo conversa só com funções `jogo_*` (R
    - ou colando cada arquivo no **SQL Editor**.
    - A migração 4 (`20261012000400_novidades.sql`) traz prestígio, convites, visitas e curtidas, reações no mural, ranking e prêmio de guilda contra guilda, métricas e exclusão de conta. Quem já aplicou as migrações 1 a 3 só precisa colar e rodar a 4 (uma vez; ela não é repetível).
    - A migração 5 (`20261012000500_mecanicas.sql`) traz o chefe da guilda, a corrida de 48 horas e os códigos promocionais. Rode depois da 4, uma vez só.
+   - A migração 6 (`20261012000600_servidores.sql`) traz os servidores (300 jogadores cada) e as classificações por poder, fortuna em moedas, bichos, fantasias e prestígio, com a aparência de cada fazendeiro. Rode depois da 5, uma única vez.
 
    Para criar um código promocional (ex.: para divulgação), rode no SQL Editor:
 
