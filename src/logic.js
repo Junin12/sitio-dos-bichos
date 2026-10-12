@@ -128,13 +128,14 @@ function recSafra(n) { return { coins: Math.round(metaSafra(n) * 0.25), xp: 8 + 
 function prodPet(id, lvl) { return RARIDADES[PET_POR_ID[id].r].prod * (1 + 0.3 * (lvl - 1)); }
 function ativos(S) {
   return Object.keys(S.pets)
-    .map(id => ({ id, lvl: S.pets[id].lvl, prod: prodPet(id, S.pets[id].lvl) * (1 + 0.15 * felicidade(S, id)) * (1 + 0.5 * (S.pets[id].est || 0)) }))
+    .map(id => ({ id, lvl: S.pets[id].lvl, prod: prodPet(id, S.pets[id].lvl) * (1 + 0.15 * felicidade(S, id)) * (1 + 0.5 * (S.pets[id].est || 0)) * (S.pets[id].dourado ? 1.25 : 1) }))
     .sort((a, b) => b.prod - a.prod)
     .slice(0, S.slots);
 }
 function setsCompletos(S) { return RARIDADES.map((_, r) => PETS.filter(p => p.r === r).every(p => S.pets[p.id])); }
 function bonusSets(S) { const c = setsCompletos(S); return c.reduce((a, ok, r) => a + (ok ? SET_BONUS[r] : 0), 0); }
-function bonusGuildaProd(S) { return S.guilda.id >= 0 ? 0.04 * (S.guilda.nivel - 1) : 0; }
+function bonusGuildaProd(S) { return S.guilda.id >= 0 ? 0.04 * (S.guilda.nivel - 1) + (S.guilda.passeAte > (S.ts || Date.now()) ? BONUS_PASSE_GUILDA : 0) : 0; }
+const BONUS_PASSE_GUILDA = 0.10;
 function prodBase(S) { return ativos(S).reduce((a, p) => a + p.prod, 0); }
 function multProd(S) { return multMoinho(S.obras.moinho) * (1 + bonusSets(S)) * (1 + bonusGuildaProd(S)) * (1 + 0.25 * (S.prest || 0)) * (1 + bonusDecor(S)) * (S.premium && S.premium.passe ? 1.25 : 1) * (1 + 0.05 * pq(S, 'prod')) * (1 + bonusCombos(S)) * (1 + bonusAreas(S)) * (1 + bonusFest(S, 'prod')); }
 function prodTotal(S) { return prodBase(S) * multProd(S); }
@@ -395,6 +396,7 @@ function abrirOvo(S, i, now, rng) {
   S.eggs[i] = null; S.summons++; S.stats.chocados++;
   S.pity = r.r >= 3 ? 0 : S.pity + 1;
   const res = aplicarPet(S, r.pet.id);
+  if (!rng && Math.random() < DOURADO_CHANCE && !S.pets[r.pet.id].dourado) { S.pets[r.pet.id].dourado = true; res.dourado = true; }
   evento(S, 'chocar', 1); evento(S, 'melhor', 1, r.r);
   addPontos(S, 10, 'ovo'); pontoEvento(S, 3);
   if (HOOK_CHOQUE && r.r >= 2) HOOK_CHOQUE(r.pet.id);
@@ -440,7 +442,7 @@ function resgatarDiario(S, hoje, dobro) {
 }
 
 
-function anuncioVisto(S, tipo) { S.ads[tipo] = (S.ads[tipo] || 0) + 1; evento(S, 'anuncio', 1); }
+function anuncioVisto(S, tipo) { S.ads[tipo] = (S.ads[tipo] || 0) + 1; evento(S, 'anuncio', 1); contarBau(S, Date.now()); }
 
 /* ===== Cuidar dos bichos ===== */
 const CUIDADO_H = 36, CARINHO_CD = 4 * HORA;
@@ -477,7 +479,7 @@ const CULTIVOS = {   // rende: unidades por colheita; valor: quanto cada unidade
   tomate:   { nome: 'Tomate',   em: '🍅', tempo: 3600,  nivel: 10, semente: 900,  rende: 2, valor: 12 },
   abobora:  { nome: 'Abóbora',  em: '🎃', tempo: 14400, nivel: 14, semente: 3000, rende: 2, valor: 36 }
 };
-const rendeHorta = (S, id) => CULTIVOS[id].rende + (S.obras.estufa >= 5 ? 1 : 0) + (S.obras.estufa >= 10 ? 1 : 0) + bonusFest(S, 'horta');
+const rendeHorta = (S, id) => CULTIVOS[id].rende + (S.obras.estufa >= 5 ? 1 : 0) + (S.obras.estufa >= 10 ? 1 : 0) + bonusFest(S, 'horta') + (estacaoInfo(S.ts || Date.now()).cultivo === id ? 1 : 0);
 const HORTA_NIVEL = [4, 4, 8, 12, 16];
 const parcelasHorta = n => HORTA_NIVEL.filter(l => n >= l).length;
 function ajustarHorta(S) { const n = parcelasHorta(S.nivel); while (S.horta.length < n) S.horta.push(null); }
@@ -651,7 +653,7 @@ function podePrestigiar(S) { return S.nivel >= NIVEL_PRESTIGIO; }
 function prestigiar(S, now) {
   if (!podePrestigiar(S)) return { erro: 'nivel' };
   const g = prestigioGemas(S), n = (S.prest || 0) + 1;
-  const keep = { avatar: S.avatar, roupas: S.roupas, passe: S.passe, marcos: S.marcos, areas: S.areas, torre: S.torre, cal: S.cal, correio: S.correio, pets: S.pets, gems: S.gems + g, ads: S.ads, dev: S.dev, guilda: S.guilda, stats: S.stats, premium: S.premium, decor: S.decor, tema: S.tema, tut: S.tut, cfg: S.cfg, metr: S.metr, visto: S.visto, nome: S.nome, convUsado: S.convUsado, diario: S.diario, bau: S.bau, brilho: S.brilho, evt: S.evt, colheita: {}, ing: S.ing, pesq: { n: S.pesq.n, at: null }, conq: S.conq, chefe: S.chefe, corrida: S.corrida, codigos: S.codigos };
+  const keep = { avatar: S.avatar, roupas: S.roupas, passe: S.passe, marcos: S.marcos, areas: S.areas, torre: S.torre, cal: S.cal, correio: S.correio, selos: S.selos, oferta: S.oferta, npc: S.npc, cesta: S.cesta, pets: S.pets, gems: S.gems + g, ads: S.ads, dev: S.dev, guilda: S.guilda, stats: S.stats, premium: S.premium, decor: S.decor, tema: S.tema, tut: S.tut, cfg: S.cfg, metr: S.metr, visto: S.visto, nome: S.nome, convUsado: S.convUsado, diario: S.diario, bau: S.bau, brilho: S.brilho, evt: S.evt, colheita: {}, ing: S.ing, pesq: { n: S.pesq.n, at: null }, conq: S.conq, chefe: S.chefe, corrida: S.corrida, codigos: S.codigos };
   const N = novoEstado(now);
   Object.assign(N, keep, { prest: n, criadoDia: S.criadoDia });
   for (const k of Object.keys(S)) delete S[k];
@@ -1030,6 +1032,7 @@ function ajustarNovidades(S, now) {
   const f = festivalAtivo(now);
   if (!S.cal) S.cal = { id: '', ano: 0, pts: 0, res: [0, 0, 0, 0] };
   if (f && (S.cal.id !== f.def.id || S.cal.ano !== f.ano)) S.cal = { id: f.def.id, ano: f.ano, pts: 0, res: [0, 0, 0, 0] };
+  ajustarNovidades3(S, now);
 }
 
 /* ----- passe da temporada: trilha de 30 níveis; a faixa premium vem com o Passe da Temporada (assinatura) ----- */
@@ -1187,3 +1190,111 @@ function enviarPresenteLocal(S, now) {
   ajustarNovidades(S, now); if (S.correio.enviou >= CORREIO_MAX) return { erro: 'limite' };
   S.correio.enviou++; if (S.passe) S.passe.xp += 8; return { ok: true };
 }
+
+
+/* ===== Novidades III: estações, selos, vizinhos (NPC), oferta de iniciante, baú de anúncios ===== */
+const DOURADO_CHANCE = 0.03;
+function ajustarNovidades3(S, now) {
+  const hoje = diaDe(now), sem = Math.floor(hoje / 7);
+  if (!S.npc || typeof S.npc !== 'object') S.npc = { sem, feitos: [], total: 0 };
+  if (S.npc.sem !== sem) { S.npc.sem = sem; S.npc.feitos = []; }
+  if (!S.cesta) S.cesta = { dia: -1 };
+  if (!S.selos) S.selos = { res: [] };
+  if (!S.oferta) S.oferta = { ini: 0, comprou: false };
+  if (!S.oferta.ini && S.nivel >= OFERTA_NIVEL) S.oferta.ini = now;
+  if (!S.bauAd || S.bauAd.dia !== hoje) S.bauAd = { dia: hoje, n: 0, res: [0, 0] };
+}
+
+/* ----- estações (hemisfério sul): a safra da estação rende mais e há uma cesta diária ----- */
+const ESTACOES = [
+  { id: 'verao',     nome: 'Verão',     em: '☀️', meses: [11, 0, 1], cultivo: 'morango' },
+  { id: 'outono',    nome: 'Outono',    em: '🍂', meses: [2, 3, 4],  cultivo: 'abobora' },
+  { id: 'inverno',   nome: 'Inverno',   em: '❄️', meses: [5, 6, 7],  cultivo: 'cenoura' },
+  { id: 'primavera', nome: 'Primavera', em: '🌸', meses: [8, 9, 10], cultivo: 'milho' }
+];
+const estacaoInfo = now => ESTACOES.find(e => e.id === estacaoDe(now));
+const cestaPronta = (S, now) => { ajustarNovidades(S, now); return S.cesta.dia !== diaDe(now); };
+function pegarCesta(S, now) {
+  if (!cestaPronta(S, now)) return { erro: 'ja' };
+  const e = estacaoInfo(now), c = CULTIVOS[e.cultivo];
+  const coins = Math.round(Math.max(300, prodTotal(S) * 900)), qtd = 3;
+  S.cesta.dia = diaDe(now); S.coins += coins; S.colheita[e.cultivo] = (S.colheita[e.cultivo] || 0) + qtd;
+  if (S.passe) S.passe.xp += 6;
+  return { ok: true, coins, qtd, cultivo: c, est: e };
+}
+
+/* ----- selos e bichos dourados ----- */
+const SELOS_META = [{ n: 10, gems: 10 }, { n: 25, gems: 25, ing: 3 }, { n: 50, gems: 60, ing: 8 }, { n: 80, gems: 120, ing: 15 }];
+const custoPolir = id => 40 * (PET_POR_ID[id].r + 1);
+function selosDe(S, id) { const o = S.pets[id]; if (!o) return []; const r = []; if (o.lvl >= LVL_MAX) r.push('max'); if ((o.est || 0) >= 3) r.push('est'); if (o.dourado) r.push('ouro'); return r; }
+const totalSelos = S => Object.keys(S.pets).reduce((a, id) => a + selosDe(S, id).length, 0);
+function polirPet(S, id) {
+  const o = S.pets[id]; if (!o) return { erro: 'sem_bicho' }; if (o.dourado) return { erro: 'ja' };
+  if (o.lvl < LVL_MAX) return { erro: 'nivel_bicho' }; const c = custoPolir(id); if (S.gems < c) return { erro: 'gemas' };
+  S.gems -= c; o.dourado = true; return { ok: true, custo: c };
+}
+function resgatarSelos(S, i) {
+  ajustarNovidades(S, Date.now()); const m = SELOS_META[i]; if (!m) return { erro: 'tipo' };
+  if (S.selos.res.includes(i)) return { erro: 'ja' }; if (totalSelos(S) < m.n) return { erro: 'falta' };
+  S.selos.res.push(i); S.gems += m.gems; ganharIng(S, m.ing || 0); return { ok: true, m };
+}
+
+/* ----- vizinhos pedem para ver seus bichos (não gasta nada, só exige que você os tenha) ----- */
+const NPCS = [{ id: 'marta', nome: 'Dona Marta', em: '👵' }, { id: 'ze', nome: 'Seu Zé', em: '👨‍🌾' }, { id: 'bia', nome: 'Tia Bia', em: '👩‍🍳' }];
+const NPC_PEDIDOS = [
+  [{ r: 0, n: 5, lvl: 2 }, { r: 1, n: 3, lvl: 2 }, { r: 1, n: 4, lvl: 3 }, { r: 0, n: 6, lvl: 3 }],
+  [{ r: 2, n: 2, lvl: 2 }, { r: 2, n: 3, lvl: 3 }, { r: 1, n: 5, lvl: 5 }, { r: 2, n: 2, lvl: 5 }],
+  [{ r: 3, n: 1, lvl: 2 }, { r: 3, n: 2, lvl: 3 }, { r: 4, n: 1, lvl: 1 }, { r: 3, n: 1, lvl: 6 }]
+];
+const NPC_REC = [{ coins: 1, gems: 4 }, { gems: 8, ing: 2 }, { gems: 12, ovo: 'dourado' }];
+function npcDaSemana(S, now) {
+  ajustarNovidades(S, now); const sem = S.npc.sem;
+  return NPCS.map((n, k) => { const p = NPC_PEDIDOS[k][(sem * 7 + k * 3) % NPC_PEDIDOS[k].length]; return { npc: n, k, ped: p, rec: NPC_REC[k], feito: S.npc.feitos.includes(k) }; });
+}
+const npcTem = (S, p) => Object.keys(S.pets).filter(id => PET_POR_ID[id].r >= p.r && S.pets[id].lvl >= p.lvl).length;
+function entregarNpc(S, k, now) {
+  const L = npcDaSemana(S, now), x = L[k]; if (!x) return { erro: 'tipo' }; if (x.feito) return { erro: 'ja' };
+  if (npcTem(S, x.ped) < x.ped.n) return { erro: 'falta' };
+  let ovoI = -1; if (x.rec.ovo) { ovoI = S.eggs.findIndex(e => !e); if (ovoI < 0) return { erro: 'cheio' }; }
+  const coins = x.rec.coins ? Math.round(Math.max(400, prodTotal(S) * 1200)) : 0;
+  S.npc.feitos.push(k); S.coins += coins; S.gems += x.rec.gems || 0; ganharIng(S, x.rec.ing || 0);
+  if (ovoI >= 0) S.eggs[ovoI] = { tipo: x.rec.ovo, pronto: now + tempoOvo(S, x.rec.ovo) * 1000 };
+  if (S.passe) S.passe.xp += 10;
+  let roupa = null; if (S.npc.feitos.length === 3) { S.npc.total++; if (ganharRoupa(S, 'vizinho')) roupa = 'vizinho'; }
+  return { ok: true, coins, rec: x.rec, roupa };
+}
+Object.assign(ROUPAS, {
+  vizinho:  { nome: 'Avental da vizinhança', fonte: 'npc', cam: '#e8a23a', cam2: '#fff', calca: '#5a4a2a', chapeu: 'palha', hc: '#f4d97a', acess: 'remendo' },
+  aprendiz: { nome: 'Aprendiz do sítio',     fonte: 'oferta', cam: '#3a8fe0', cam2: '#ffd23f', calca: '#2f4f8a', chapeu: 'gorro', hc: '#ffd23f', acess: 'cachecol' }
+});
+
+/* ----- oferta de iniciante (compra simulada; no app vira compra do Google Play) ----- */
+const OFERTA_NIVEL = 3, OFERTA_H = 72, OFERTA_PRECO = 'R$ 4,90';
+const OFERTA_REC = { gems: 60, coins: 5000, roupa: 'aprendiz', ovo: 'dourado' };
+function ofertaResta(S, now) { ajustarNovidades(S, now); if (S.oferta.comprou || !S.oferta.ini) return 0; return Math.max(0, S.oferta.ini + OFERTA_H * HORA - now); }
+function comprarOferta(S, now) {
+  if (S.oferta && S.oferta.comprou) return { erro: 'ja' }; if (!ofertaResta(S, now)) return { erro: 'expirou' };
+  const i = S.eggs.findIndex(e => !e); if (i < 0) return { erro: 'cheio' };
+  S.oferta.comprou = true; S.gems += OFERTA_REC.gems; S.coins += OFERTA_REC.coins; ganharRoupa(S, OFERTA_REC.roupa);
+  S.eggs[i] = { tipo: OFERTA_REC.ovo, pronto: now + tempoOvo(S, OFERTA_REC.ovo) * 1000 };
+  return { ok: true };
+}
+
+/* ----- baú acumulativo de anúncios do dia: 5 e 10 anúncios ----- */
+const BAU_AD = [{ n: 5, mult: 1800, gems: 3, ing: 2 }, { n: 10, mult: 4500, gems: 6, ing: 4 }];
+function contarBau(S, now) { ajustarNovidades(S, now); S.bauAd.n = Math.min(99, S.bauAd.n + 1); }
+function resgatarBauAd(S, i, now) {
+  ajustarNovidades(S, now); const b = BAU_AD[i]; if (!b) return { erro: 'tipo' }; if (S.bauAd.res[i]) return { erro: 'ja' }; if (S.bauAd.n < b.n) return { erro: 'falta' };
+  const coins = Math.round(Math.max(800, prodTotal(S) * b.mult)); S.bauAd.res[i] = 1; S.coins += coins; S.gems += b.gems; ganharIng(S, b.ing);
+  if (S.passe) S.passe.xp += 8; return { ok: true, coins, b };
+}
+
+
+/* ===== Novidades IV: liga, passe de guilda, troca de bichos e chat por frases ===== */
+const LIGAS = [{ nome: 'Bronze', em: '🥉', gems: 15 }, { nome: 'Prata', em: '🥈', gems: 30 }, { nome: 'Ouro', em: '🥇', gems: 60 }];
+const FRASES = ['👋 Oi, pessoal!', '👏 Parabéns!', '💪 Bora, guilda!', '🙏 Valeu!', '😮 Uau!', '🌾 Colhendo aqui', '🥚 Chocando ovos', '🎁 Mandei presente',
+  '⏰ Falta pouco p/ a meta', '🔥 Vamos subir de liga', '😴 Voltei já', '🐾 Que bichos lindos!', '🏆 Liga ouro é nossa', '🤝 Quem troca bicho?', '🧺 Boa colheita', '😂 Hahaha'];
+const TROCA_RAR_MAX = 3;
+function podeTrocar(S, id) { const o = S.pets[id], p = PET_POR_ID[id]; if (!o || !p || p.ev || p.r > TROCA_RAR_MAX) return { erro: 'bicho_invalido' }; if (o.lvl < 2) return { erro: 'nivel_baixo_troca' }; return { ok: true }; }
+function trocaEnviarLocal(S, id) { const c = podeTrocar(S, id); if (!c.ok) return c; S.pets[id].lvl--; return { ok: true }; }          // quem envia perde um nível
+function trocaReceberLocal(S, id) { const p = PET_POR_ID[id]; if (!p || p.ev || p.r > TROCA_RAR_MAX) return { erro: 'bicho_invalido' }; return { ok: true, res: aplicarPet(S, id) }; }

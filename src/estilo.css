@@ -388,3 +388,14 @@ button.lvring{border:0;padding:0;cursor:pointer}
 .pbtn.prem:not(.ok):not(.pronto){background:color-mix(in srgb,#b69bff 18%,var(--surface2))}
 
 .acoes2{display:flex;gap:4px}
+.cell .em{position:relative}.cell .ouro{position:absolute;right:-8px;top:-6px;font-size:13px;font-style:normal}.cell small{display:block;font-size:10px;line-height:1}.card.oferta{border:2px solid var(--yolk,#ffc21a);background:linear-gradient(135deg,var(--card,#fff),rgba(255,194,26,.18))}
+
+.campo{position:relative;height:70px;margin:8px 0;border-radius:14px;background:linear-gradient(#cfeaff,#d9f0c8 60%,#8fcf7a);overflow:hidden}
+.andante{position:absolute;bottom:var(--y);left:var(--x);font-size:26px;animation:anda var(--d) ease-in-out var(--a) infinite alternate}
+@keyframes anda{from{transform:translateX(0)}to{transform:translateX(230px) scaleX(-1)}}
+@media (prefers-reduced-motion:reduce){.andante{animation:none}}
+.chat{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow:auto}
+.bolha{align-self:flex-start;max-width:85%;background:var(--card2,rgba(0,0,0,.06));border-radius:14px;padding:6px 10px}
+.bolha.meu{align-self:flex-end;background:rgba(61,187,107,.22)}
+.bolha small{display:block;opacity:.65;font-size:11px}
+.frases .btn{white-space:nowrap}

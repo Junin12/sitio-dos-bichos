@@ -13,7 +13,7 @@ const fimSemanaMs = now => (semanaDe(now) * 7 - 3 + 7) * DIA + TZ_OFF * 60000;
 /* ---------- revelar bicho (evento, pedido etc.) ---------- */
 function revelarPet(pet, res, topo) {
   const r = pet.r, cor = COR_RAR[r];
-  const msg = res.tipo === 'novo' ? 'Novo bicho na coleção!' : res.tipo === 'nivel' ? 'Repetido: subiu para o nível ' + res.lvl : 'Nível máximo: +' + fmt(res.reembolso) + ' moedas';
+  const msg = (res.dourado ? '✨ Versão dourada! +25% de produção · ' : '') + (res.tipo === 'novo' ? 'Novo bicho na coleção!' : res.tipo === 'nivel' ? 'Repetido: subiu para o nível ' + res.lvl : 'Nível máximo: +' + fmt(res.reembolso) + ' moedas');
   abrirModal(`<div class="sheet" style="--rc:var(--r${r})"><div class="reveal pop"><div class="rays"></div><div class="face">${pet.em}</div>${res.tipo === 'novo' ? '<span class="novo">NOVO!</span>' : ''}<p class="rlabel">${topo || RARIDADES[r].nome}</p><h2>${esc(pet.nome)}</h2><p class="muted">${msg}</p></div><button class="btn primary xl" data-act="fechar">Continuar</button></div>`);
   Som.play(['comum', 'comum', 'raro', 'epico', 'lendario'][r]); Som.vibrar([30, 30, 80]);
   Fx.brilhos(innerWidth / 2, innerHeight * 0.42, 14, cor); Fx.confete(innerWidth / 2, innerHeight * 0.42, 70, [cor, '#FFC21A', '#fff', '#FF7AB6']);
@@ -30,6 +30,7 @@ function modalBicho(id) {
     <div class="row"><button class="btn primary" data-act="carinho" data-arg="${id}" ${esp ? 'disabled' : ''}>${esp ? 'Carinho em ' + duracao(esp / 1000) : 'Fazer carinho'}</button>
       <button class="btn ghost" data-act="racao" data-arg="${id}">Ração · ${fmt(custoRacao(S))}</button></div>
  ${blocoEvolucao(id)}
+    <p class="muted">Selos: ${selosHTML(id) || 'nenhum ainda'}</p>${o.lvl >= LVL_MAX && !o.dourado ? `<button class="btn ad" data-act="polir" data-arg="${id}">✨ Polir (dourado +25%) · ${custoPolir(id)} 💎</button>` : ''}
     <input id="petNome" class="inp" maxlength="14" placeholder="Dar um nome" value="${esc(o.nome || '')}" aria-label="Nome do bicho">
     <div class="row"><button class="btn ghost" data-act="renomear" data-arg="${id}">Salvar nome</button><button class="btn ghost" data-act="fechar">Fechar</button></div></div>`);
 }
@@ -168,7 +169,9 @@ function abrirVisita(s) {
   abrirModal(`<div class="sheet"><p class="eyebrow">Visita ao sítio</p><h2>${esc(s.nome)}</h2>
     <p class="muted">Nível ${s.nivel}${s.prestigio ? ' · Prestígio ' + s.prestigio : ''} · Poder ${fmt(s.poder)} · ♥ ${s.curtidas}</p>
     ${dec ? `<p style="font-size:24px">${dec}</p>` : ''}
+    <div class="campo" aria-hidden="true">${ids.slice(0, 8).map((id, k) => `<span class="andante" style="--d:${(7 + (k * 37) % 6)}s;--a:${-(k * 1.7)}s;--y:${10 + (k * 23) % 40}px;--x:${6 + (k * 11) % 20}%">${PET_POR_ID[id].em}</span>`).join('')}</div>
     <div class="cgrid">${bichos || '<p class="muted">Ainda sem bichos.</p>'}</div>${ids.length > 24 ? `<p class="muted">e mais ${ids.length - 24} bichos</p>` : ''}
+    ${window.ON && ON.ativo ? `<button class="btn ad" style="width:100%" data-act="trocaMenu" data-arg="${esc(s.id)}|${esc(String(s.nome).replace(/\|/g, ' '))}">🔁 Enviar bicho</button>` : ''}
     <div class="row"><button class="btn primary" data-act="curtirSitio" data-arg="${esc(s.id)}" ${s.curtiu_hoje ? 'disabled' : ''}>${s.curtiu_hoje ? 'Curtido hoje' : '♥ Curtir (+moedas)'}</button><button class="btn ghost" data-act="fechar">Fechar</button></div></div>`);
 }
 
@@ -290,7 +293,7 @@ function oficinaPronta() { const now = Date.now(); return S.oficina.some(o => o 
 function cruzPronto() { return !!(S.cruz && Date.now() >= S.cruz.pronto); }
 function temPendenciaMetas() {
   const now = Date.now();
-  return conqProntas(S) > 0 || corridaPronta() || S.pedidos.some(p => p && podeEntregar(S, p) && now <= p.ate) || EVT_METAS.some((m, k) => !S.evt.res[k] && S.evt.pts >= m && S.nivel >= 3) || passePendentes(S) > 0 || marcosPendentes(S).length > 0 || festPronto() || correioCaixa() > 0;
+  return conqProntas(S) > 0 || corridaPronta() || S.pedidos.some(p => p && podeEntregar(S, p) && now <= p.ate) || EVT_METAS.some((m, k) => !S.evt.res[k] && S.evt.pts >= m && S.nivel >= 3) || passePendentes(S) > 0 || (window.trocaPendente && trocaPendente()) || (window.ligaPendente && ligaPendente()) || npcPronto() || SELOS_META.some((x, i) => totalSelos(S) >= x.n && !S.selos.res.includes(i)) || BAU_AD.some((x, i) => S.bauAd.n >= x.n && !S.bauAd.res[i]) || marcosPendentes(S).length > 0 || festPronto() || correioCaixa() > 0;
 }
 function hortaPronta() { const now = Date.now(); return S.horta.some(p => p && now >= p.pronto); }
 
@@ -626,7 +629,7 @@ function palcoPerfil(big) {
   return `<div class="palco ${big ? 'big' : ''}">${avatarSVG(S.avatar.sexo, S.avatar.pele, S.avatar.roupa, { tier: tierDe(S.nivel) })}${pet}</div>`;
 }
 function fonteRoupa(id) {
-  const r = ROUPAS[id];
+  const r = ROUPAS[id]; if (r.fonte === 'npc') return 'Vizinhos pedem: semana completa'; if (r.fonte === 'oferta') return 'Oferta de iniciante';
   return r.fonte === 'nivel' ? 'Nível ' + r.nivel : r.fonte === 'prest' ? 'Fazer o prestígio' : r.fonte === 'evento' ? 'Prêmio final: ' + EVENTOS.find(e => e.id === r.ev).nome : r.fonte === 'corrida' ? 'Prêmio final da corrida' : r.fonte === 'pacote' ? PACOTES_ROUPA[r.pacote].nome : r.fonte === 'passe' ? 'Passe: nível ' + r.passe + ' (premium)' : r.fonte === 'marco' ? r.marco + ' dias seguidos' : r.fonte === 'torre' ? 'Torre: andar ' + r.andar : r.fonte === 'cal' ? 'Prêmio de festival' : '';
 }
 function modalPerfil() {
@@ -697,6 +700,54 @@ async function compartilharCartao() {
   setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast('Cartão salvo como imagem'); metrica('cartao');
 }
 Object.assign(ACOES, { cartao() { compartilharCartao(); } });
+
+
+/* ===== Novidades III: estação, oferta, baú de anúncios, vizinhos, selos ===== */
+function cardEstacao() {
+  const now = Date.now(), e = estacaoInfo(now), c = CULTIVOS[e.cultivo], pr = cestaPronta(S, now);
+  return `<section class="card"><div class="between"><h3>${e.em} ${e.nome} no sítio</h3><span class="badge on">${c.em} +1 ${c.nome}</span></div>
+    <p class="muted">${c.nome} rende uma unidade a mais por colheita nesta estação.${S.nivel < 4 ? ' A horta abre no nível 4.' : ''}</p>
+    <button class="btn ${pr ? 'primary' : 'ghost'}" data-act="cesta" ${pr ? '' : 'disabled'}>${pr ? '🧺 Pegar a cesta da estação' : 'Cesta de hoje já coletada'}</button></section>`;
+}
+function cardOferta() {
+  const r = ofertaResta(S, Date.now()); if (!r) return '';
+  return `<section class="card oferta"><div class="between"><h3>🎁 Oferta de iniciante</h3><span class="badge on num" data-oferta="${Date.now() + r}">${duracao(r / 1000)}</span></div>
+    <p class="muted">${OFERTA_REC.gems} 💎 · ${fmt(OFERTA_REC.coins)} 🪙 · ovo dourado · roupa “${ROUPAS.aprendiz.nome}”. Só uma vez, por tempo limitado.</p>
+    <button class="btn ad" data-act="oferta">Quero · ${OFERTA_PRECO} <span class="tag">Simulação</span></button></section>`;
+}
+function cardBauAd() {
+  ajustarNovidades(S, Date.now()); const b = S.bauAd, prox = BAU_AD.find((x, i) => !b.res[i]);
+  const linhas = BAU_AD.map((x, i) => { const ok = b.n >= x.n, feito = b.res[i]; return `<button class="btn ${ok && !feito ? 'primary' : 'ghost'}" data-act="bauAdResg" data-arg="${i}" ${ok && !feito ? '' : 'disabled'}>${feito ? '✔ ' : '🎁 '}${x.n} anúncios</button>`; }).join('');
+  return `<section class="card"><div class="between"><h3>Baú dos anúncios</h3><span class="muted num">${Math.min(b.n, BAU_AD[1].n)}/${prox ? prox.n : BAU_AD[1].n} hoje</span></div>
+    <div class="bar"><i style="width:${Math.min(100, b.n / BAU_AD[1].n * 100)}%"></i></div><p class="muted">Cada anúncio assistido hoje conta. Aos 5 e aos 10 você abre um baú com moedas, gemas e ingressos.</p><div class="row">${linhas}</div></section>`;
+}
+function cardSitioNovo() { return cardOferta() + cardEstacao() + cardBauAd(); }
+function cardVizinhos() {
+  const L = npcDaSemana(S, Date.now());
+  const itens = L.map(x => { const tem = npcTem(S, x.ped), ok = tem >= x.ped.n;
+    return `<div class="mrow"><span class="pos" style="font-size:26px">${x.npc.em}</span><span class="who"><b>${x.npc.nome}</b><small>Mostre ${x.ped.n} bicho${x.ped.n > 1 ? 's' : ''} ${RARIDADES[x.ped.r].nome}+ no nível ${x.ped.lvl}+ (${Math.min(tem, x.ped.n)}/${x.ped.n}) · ${txtRecG({ coins: x.rec.coins ? 1 : 0, gems: x.rec.gems, ing: x.rec.ing }).replace(/^1 🪙/, 'moedas')}${x.rec.ovo ? ' · 🥚 ovo dourado' : ''}</small></span>
+      <button class="btn mini ${ok && !x.feito ? 'primary' : 'ghost'}" data-act="npcEntregar" data-arg="${x.k}" ${ok && !x.feito ? '' : 'disabled'}>${x.feito ? '✔' : 'Mostrar'}</button></div>`; }).join('');
+  return `<section class="card"><div class="between"><h3>Vizinhos pedem</h3><span class="muted">${S.npc.feitos.length}/3 na semana</span></div><p class="muted">Eles só querem ver seus bichos: nada é gasto. Fechando os três, você ganha o ${ROUPAS.vizinho.nome}.</p>${itens}</section>`;
+}
+const npcPronto = () => npcDaSemana(S, Date.now()).some(x => !x.feito && npcTem(S, x.ped) >= x.ped.n);
+function cardSelos() {
+  ajustarNovidades(S, Date.now()); const t = totalSelos(S);
+  const m = SELOS_META.map((x, i) => { const ok = t >= x.n, feito = S.selos.res.includes(i); return `<button class="btn mini ${ok && !feito ? 'primary' : 'ghost'}" data-act="selosResg" data-arg="${i}" ${ok && !feito ? '' : 'disabled'}>${feito ? '✔' : x.n} ${feito ? '' : '→ ' + x.gems + '💎'}</button>`; }).join('');
+  return `<section class="card"><div class="between"><h3>Selos do álbum <span class="muted num">${t}</span></h3></div><p class="muted">🥉 nível máximo · ⭐ 3 estrelas · ✨ dourado (+25% de produção). Ganhe dourados ao chocar (3%) ou polindo um bicho no nível máximo com gemas.</p><div class="row wrap">${m}</div></section>`;
+}
+function selosHTML(id) { const r = selosDe(S, id); return r.length ? `<small>${r.includes('max') ? '🥉' : ''}${r.includes('est') ? '⭐' : ''}${r.includes('ouro') ? '✨' : ''}</small>` : ''; }
+Object.assign(ACOES, {
+  cesta() { const r = pegarCesta(S, Date.now()); if (!r.ok) return toast(erroMsg(r)); salvar(); render(); Som.play('coin'); toast('Cesta: +' + fmt(r.coins) + ' moedas e ' + r.qtd + ' ' + r.cultivo.em); },
+  oferta() {
+    abrirModal(`<div class="sheet"><p class="eyebrow">Compra simulada</p><h2>Oferta de iniciante</h2><p class="muted">${OFERTA_REC.gems} 💎 · ${fmt(OFERTA_REC.coins)} 🪙 · ovo dourado · ${ROUPAS.aprendiz.nome}</p>
+      <div class="row"><button class="btn ghost" data-act="fechar">Agora não</button><button class="btn primary" data-act="ofertaOk">Confirmar ${OFERTA_PRECO}</button></div></div>`);
+  },
+  ofertaOk() { const r = comprarOferta(S, Date.now()); fecharModal(); if (!r.ok) return toast(erroMsg(r)); metrica('compra_simulada'); salvar(); render(); Som.play('bau'); toast('Oferta recebida (simulação)!'); },
+  bauAdResg(i) { const r = resgatarBauAd(S, +i, Date.now()); if (!r.ok) return toast(erroMsg(r)); salvar(); render(); Som.play('bau'); toast('Baú: +' + fmt(r.coins) + ' moedas, ' + r.b.gems + ' 💎 e ' + r.b.ing + ' 🎟️'); },
+  npcEntregar(k) { const r = entregarNpc(S, +k, Date.now()); if (!r.ok) return toast(erroMsg(r)); salvar(); render(); Som.play('bau'); toast('Obrigado! ' + txtRecG({ coins: r.coins, gems: r.rec.gems, ing: r.rec.ing }) + (r.roupa ? ' · novo traje!' : '')); },
+  polir(id) { const r = polirPet(S, id); if (!r.ok) return toast(erroMsg(r)); salvar(); render(); modalBicho(id); Som.play('lendario'); toast('Bicho dourado! ✨'); },
+  selosResg(i) { const r = resgatarSelos(S, +i); if (!r.ok) return toast(erroMsg(r)); salvar(); render(); Som.play('bau'); toast('Selos: +' + r.m.gems + ' 💎'); }
+});
 
 /* ===== Novidades II: passe, marcos, correio, mapa, festivais ===== */
 const ingFalta = id => Object.keys(RECEITAS[id].usa || {}).some(k => (S.colheita[k] || 0) < RECEITAS[id].usa[k]);

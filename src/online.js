@@ -144,6 +144,7 @@ async function ciclo() {
     await postarEventos();
     if (agora - tPerfil > 60000) { tPerfil = agora; await atualizarPerfil(); }
     if (agora - tSave > 45000) { tSave = agora; await salvarNuvem(); }
+    if (agora - (ON.tTr || 0) > 60000) { ON.tTr = agora; const t = await api.troca.caixa(); if (t.ok) ON.trocas = t.itens; }
     if (agora - (ON.tCx || 0) > 30000) { ON.tCx = agora; const c = await api.presentes.caixa(); if (c.ok) ON.caixa = c.n; }
     if (aba === 'guilda' || aba === 'metas') await visitar(false);
   } catch (e) {}
@@ -157,6 +158,8 @@ async function visitar(forcar) {
   if (aba === 'guilda' && subG === 'guildas' && (forcar || agora - ON.tGR > 60000)) { const r = await api.guildas.ranking(20); if (r.ok) { ON.gr = r; ON.tGR = Date.now(); mudou = true; } }
   if (aba === 'guilda' && subG === 'chefe' && (forcar || agora - ON.tCh > 20000)) { const r = await api.chefe.estado(); if (r.ok) { ON.ch = r; ON.tCh = Date.now(); mudou = true; } else if (r.erro === 'sem_guilda') { ON.ch = null; } }
   if (aba === 'metas' && subM === 'evento' && (forcar || agora - ON.tCr > 45000)) { const r = await api.corrida.ranking(10); if (r.ok) { ON.cr = r; ON.tCr = Date.now(); mudou = true; } }
+  if (aba === 'guilda' && subG === 'liga' && (forcar || agora - (ON.tLg || 0) > 60000)) { await carregarLiga(); mudou = true; }
+  if (aba === 'guilda' && subG === 'papo' && (forcar || agora - (ON.tChat || 0) > 6000)) { await carregarChat(); mudou = true; }
   const campo = document.activeElement && document.activeElement.tagName === 'INPUT';
   if (mudou && (aba === 'guilda' || aba === 'metas') && !campo) render();
 }
@@ -236,6 +239,44 @@ function viewRankingOn() {
       <p class="muted">${RK_TXT[cat][1]}${cat === 'poder' ? ` Seu poder: <b>${fmt(poderJogador(S))}</b>${acima ? `. Faltam ${fmt(acima.valor - r.eu.valor + 1)} para passar ${esc(acima.nome)}.` : r.eu.pos === 1 ? '. Você lidera.' : '.'}` : ''} Seus números são enviados ao servidor a cada poucos minutos.</p>
       <div class="chipsbicho">${srvs}</div></section>
     <section class="card">${r.top.length ? r.top.map(linha).join('') : '<p class="muted">Ninguém nesta classificação ainda neste servidor.</p>'}</section>`;
+}
+
+/* ---------- liga, papo, passe de guilda e troca de bichos ---------- */
+const soOnline = nome => `<section class="card"><h2>${nome}</h2><p class="muted">Este recurso usa jogadores reais e só funciona no modo online (entre com sua conta nos Ajustes).</p></section>`;
+function ligaPendente() { const l = ON.lg; return !!(l && l.passada && l.passada.premio_pendente); }
+function viewLigaOn() {
+  const l = ON.lg; if (!l) return faixa() + '<section class="card"><p class="muted">Carregando a liga…</p></section>';
+  if (l.erro) return faixa() + `<section class="card"><h2>Liga de guildas</h2><p class="muted">Entre numa guilda para disputar a liga.</p></section>`;
+  const L = LIGAS[l.liga], now = Date.now(), resto = Math.max(0, l.termina_em - (now - ON.tLg) / 1000), passe = Math.max(0, l.passe_resta - (now - ON.tLg) / 1000);
+  const ps = l.passada, movTxt = ps ? (ps.mov > 0 ? '⬆ subiu de liga' : ps.mov < 0 ? '⬇ desceu de liga' : 'ficou na mesma liga') : '';
+  const lista = l.top.length ? l.top.map(x => `<div class="mrow ${x.minha ? 'eu' : ''}"><span class="pos">${x.pos}</span><span class="who"><b>${esc(x.nome)}</b></span><span class="pts num">${fmt(x.pontos)}</span></div>`).join('') : '<p class="muted">Nenhuma guilda pontuou ainda nesta liga. Guildas precisam de 3 membros pontuando.</p>';
+  return faixa() + `<section class="card"><div class="between"><h2>${L.em} Liga ${L.nome}</h2><span class="badge on">${l.minha_pos ? l.minha_pos + 'º de ' + l.total : 'fora do placar'}</span></div>
+      <p class="muted">As 3 melhores guildas de cada liga sobem na segunda-feira; as 3 piores descem (a liga precisa ter 8 guildas). Termina em ${duracao(resto)}.</p>${lista}</section>
+    ${ps ? `<section class="card"><div class="between"><h3>Semana passada</h3><span class="badge ${ps.premio_pendente ? 'on' : ''}">${ps.pos}º · ${movTxt}</span></div>
+      <button class="btn ${ps.premio_pendente ? 'primary' : 'ghost'}" data-act="ligaResg" ${ps.premio_pendente ? '' : 'disabled'}>${ps.premio_pendente ? 'Pegar prêmio da liga ' + LIGAS[ps.liga].nome + ' · ' + LIGAS[ps.liga].gems + ' 💎' : ps.pos <= 3 ? 'Prêmio já resgatado (ou faltaram 30 pontos)' : 'Só os 3 primeiros ganham prêmio'}</button></section>` : ''}
+    <section class="card"><div class="between"><h3>Passe da guilda</h3><span class="badge ${passe > 0 ? 'on' : ''}">${passe > 0 ? duracao(passe) : 'inativo'}</span></div>
+      <p class="muted">+${Math.round(BONUS_PASSE_GUILDA * 100)}% de moedas para todos os membros por 7 dias. Quando um membro compra, a guilda inteira aproveita.</p>
+      <button class="btn ad" data-act="guildaPasse">Ativar por 7 dias · R$ 9,90 <span class="tag">Simulação</span></button></section>`;
+}
+function viewPapoOn() {
+  const c = ON.chat; if (!c) return faixa() + '<section class="card"><p class="muted">Carregando o papo…</p></section>';
+  if (c.erro) return faixa() + '<section class="card"><h2>Papo da guilda</h2><p class="muted">Entre numa guilda para conversar.</p></section>';
+  const now = Date.now();
+  const msgs = c.msgs.length ? c.msgs.map(m => `<div class="bolha ${m.meu ? 'meu' : ''}"><small>${m.meu ? 'Você' : esc(m.nome)} · ${relSeg(m.segundos + (now - ON.tChat) / 1000)}</small><span>${FRASES[m.cod] || ''}</span></div>`).join('') : '<p class="muted">Ainda ninguém falou. Mande a primeira frase!</p>';
+  return faixa() + `<section class="card"><h2>Papo da guilda</h2><p class="muted">Só frases prontas, para ficar sempre amigável. As mensagens somem em 3 dias.</p><div class="chat">${msgs}</div></section>
+    <section class="card"><h3>Responder</h3><div class="row wrap frases">${FRASES.map((f, i) => `<button class="btn mini ghost" data-act="chatEnviar" data-arg="${i}">${f}</button>`).join('')}</div></section>`;
+}
+function trocaPendente() { return !!(ON.trocas && ON.trocas.length); }
+function cardTroca() {
+  const itens = (ON.trocas || []).map(t => { const p = PET_POR_ID[t.pet]; return p ? `<div class="mrow"><span class="pos" style="font-size:26px">${p.em}</span><span class="who"><b>${esc(p.nome)}</b><small>de ${esc(t.de)}</small></span><button class="btn mini primary" data-act="trocaPegar" data-arg="${t.id}">Receber</button></div>` : ''; }).join('');
+  return `<section class="card"><div class="between"><h3>🔁 Troca de bichos</h3><span class="muted">1 envio e 1 recebimento por dia</span></div>
+    <p class="muted">Abra o sítio de um vizinho (Guilda → Sítios → Visitar) e toque em “Enviar bicho”. Quem envia perde 1 nível do bicho; quem recebe ganha o bicho ou sobe o nível dele. Só até raridade ${RARIDADES[TROCA_RAR_MAX].nome}.</p>${itens || '<p class="muted">Nada na caixa de trocas.</p>'}</section>`;
+}
+function modalTroca(alvo, nome) {
+  const ids = Object.keys(S.pets).filter(id => podeTrocar(S, id).ok).sort((a, b) => S.pets[b].lvl - S.pets[a].lvl);
+  abrirModal(`<div class="sheet"><p class="eyebrow">Troca de bichos</p><h2>Enviar para ${esc(nome)}</h2><p class="muted">Você perde 1 nível do bicho enviado. Limite: 1 por dia.</p>
+    <div class="chipsbicho">${ids.length ? ids.map(id => `<button class="chipbicho" data-act="trocaEnviar" data-arg="${alvo}|${id}" style="--rc:var(--r${PET_POR_ID[id].r})">${PET_POR_ID[id].em} Nv ${S.pets[id].lvl}</button>`).join('') : '<p class="muted">Você ainda não tem bichos no nível 2+ (até raridade ' + RARIDADES[TROCA_RAR_MAX].nome + ').</p>'}</div>
+    <button class="btn ghost" data-act="fechar">Fechar</button></div>`);
 }
 function onBauPronto() {
   const e = ON.e; if (!e || !e.guilda) return false;
@@ -330,3 +371,21 @@ Object.assign(ACOES, {
   const subM0 = ACOES.subM; ACOES.subM = x => { subM0(x); visitar(true); }; }
 
 onlineIniciar();
+
+Object.assign(ACOES, {
+  ligaResg: () => agir(async () => { const r = await api.liga.resgatar(); if (!r.ok) return falhou(r); S.gems += LIGAS[r.liga].gems; if (S.passe) S.passe.xp += 15; ON.lg = null; ON.tLg = 0; Som.play('bau'); toast('Prêmio da liga: +' + LIGAS[r.liga].gems + ' gemas'); }),
+  guildaPasse: () => agir(async () => { const r = await api.liga.passe(); if (!r.ok) return falhou(r); ON.metrica('compra_simulada'); ON.lg = null; ON.tLg = 0; await carregarLiga(); Som.play('bau'); toast('Passe da guilda ativo (simulação)!'); }),
+  chatEnviar: c => agir(async () => { const r = await api.chat.enviar(+c); if (!r.ok) return falhou(r); await carregarChat(); }),
+  trocaPegar: id => agir(async () => {
+    const t = (ON.trocas || []).find(x => String(x.id) === String(id)); if (!t) return; const v = trocaReceberLocal(S, t.pet); if (!v.ok) return toast(erroMsg(v));
+    const r = await api.troca.pegar(id); if (!r.ok) { return falhou(r); } ON.trocas = ON.trocas.filter(x => x !== t);
+    const rr = trocaReceberLocal(S, t.pet); Som.play('bau'); toast(PET_POR_ID[t.pet].nome + ' recebido!' + (rr.res.tipo === 'nivel' ? ' (subiu de nível)' : ''));
+  }),
+  trocaMenu: a => { const [id, nome] = String(a).split('|'); modalTroca(id, nome || 'vizinho'); },
+  trocaEnviar: a => agir(async () => {
+    const [alvo, pet] = String(a).split('|'); const c = podeTrocar(S, pet); if (!c.ok) return toast(erroMsg(c));
+    const r = await api.troca.enviar(alvo, pet); if (!r.ok) return falhou(r); trocaEnviarLocal(S, pet); fecharModal(); if (S.passe) S.passe.xp += 8; Som.play('pop'); toast('Bicho enviado!'); ON.metrica('presente');
+  })
+});
+async function carregarLiga() { const r = await api.liga.estado(); ON.tLg = Date.now(); if (r.ok) { ON.lg = r; S.guilda.passeAte = r.passe_resta > 0 ? Date.now() + r.passe_resta * 1000 : 0; } else if (r.erro === 'sem_guilda') ON.lg = { erro: 'sem_guilda' }; }
+async function carregarChat() { const r = await api.chat.listar(); ON.tChat = Date.now(); if (r.ok) ON.chat = r; else if (r.erro === 'sem_guilda') ON.chat = { erro: 'sem_guilda' }; }

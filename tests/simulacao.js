@@ -232,7 +232,8 @@ resumo(40,72); resumo(180,720); resumo(480,1440);
   // horta: cada cultura rende e vale conforme o tempo de cultivo
   S = novoEstado(t0); S.ts = t0; S.nivel = 14; ajustarTudo(S, t0, rng); S.coins = 1e9;
   const rd = {}; for (const id of Object.keys(CULTIVOS)) { S.horta[0] = null; plantar(S, 0, id, t0); rd[id] = colherHorta(S, 0, t0 + CULTIVOS[id].tempo * 1000 + 1).qtd; }
-  assert(rd.cenoura === 4 && rd.milho === 3 && rd.tomate === 2 && rd.abobora === 2, 'rendimento por cultura');
+  const es0 = estacaoInfo(t0).cultivo, bs = { cenoura: 4, milho: 3, tomate: 2, abobora: 2, morango: 3 }; bs[es0]++;
+  assert(rd.cenoura === bs.cenoura && rd.milho === bs.milho && rd.tomate === bs.tomate && rd.abobora === bs.abobora, 'rendimento por cultura (+1 na safra da estação)');
   S.obras.estufa = 10; assert(rendeHorta(S, 'tomate') === 4, 'estufa soma ao rendimento');
   const vals = Object.keys(CULTIVOS).map(id => { for (let k = 0; k < 400; k++) { const q = novoPedido(S, t0, rng); if (q.t === 'colheita' && q.id === id) return q.rec.coins / q.qtd; } return 0; });
   assert(vals.every((v, i) => i === 0 || v > vals[i - 1]), 'valor por unidade cresce com o tempo de cultivo: ' + vals.join(','));
@@ -292,4 +293,42 @@ resumo(40,72); resumo(180,720); resumo(480,1440);
   // prestígio mantém
   S = novoEstado(T); S.ts = T; S.nivel = 25; S.areas.praia = 1; S.marcos[14] = 1; S.torre.andar = 7; S.passe.xp = 77; prestigiar(S, T); assert(S.areas.praia && S.marcos[14] && S.torre.andar === 7 && S.passe.xp === 77, 'prestígio mantém áreas, marcos, torre e passe');
   console.log('novidades II: ok');
+})();
+
+/* ===== Novidades III ===== */
+(() => {
+  const assert = (c, m) => { if (!c) { console.log('FALHOU:', m); process.exitCode = 1; } };
+  const rng = mulberry(11), T = Date.UTC(2026, 9, 12, 15);
+  let S = novoEstado(T); S.ts = T; S.nivel = 10; ajustarTudo(S, T, rng);
+  // estações (hemisfério sul)
+  assert(estacaoDe(Date.UTC(2026, 9, 12)) === 'primavera' && estacaoDe(Date.UTC(2026, 11, 25)) === 'verao' && estacaoDe(Date.UTC(2026, 6, 1)) === 'inverno', 'estações do Brasil');
+  S.ts = T; const r0 = CULTIVOS.milho.rende + bonusFest(S, 'horta'); assert(rendeHorta(S, 'milho') === r0 + 1 && rendeHorta(S, 'tomate') === CULTIVOS.tomate.rende + bonusFest(S, 'horta'), 'safra da estação rende +1');
+  assert(cestaPronta(S, T) && pegarCesta(S, T).ok && pegarCesta(S, T).erro === 'ja' && S.colheita.milho === 3, 'cesta da estação 1x ao dia'); assert(cestaPronta(S, T + DIA), 'cesta volta no dia seguinte');
+  // dourado e selos
+  aplicarPet(S, 'coelho'); for (let i = 0; i < 12; i++) aplicarPet(S, 'coelho'); assert(S.pets.coelho.lvl === LVL_MAX && selosDe(S, 'coelho').includes('max'), 'selo de nível máximo');
+  S.gems = 0; assert(polirPet(S, 'coelho').erro === 'gemas'); S.gems = 500; const g0 = ativos(S).find(a => a.id === 'coelho').prod; assert(polirPet(S, 'coelho').ok && S.pets.coelho.dourado && polirPet(S, 'coelho').erro === 'ja', 'polir vira dourado');
+  assert(Math.abs(ativos(S).find(a => a.id === 'coelho').prod / g0 - 1.25) < 1e-9 && selosDe(S, 'coelho').includes('ouro'), 'dourado rende +25%');
+  aplicarPet(S, 'gato'); assert(polirPet(S, 'gato').erro === 'nivel_bicho', 'só polir no nível máximo');
+  S.pets.a1 = null; delete S.pets.a1; assert(resgatarSelos(S, 0).erro === 'falta', 'selos insuficientes');
+  const ids = PETS.map(p => p.id).slice(0, 12); ids.forEach(id => { S.pets[id] = { lvl: LVL_MAX, dourado: true }; }); assert(totalSelos(S) >= 10 && resgatarSelos(S, 0).ok && resgatarSelos(S, 0).erro === 'ja', 'marco de selos');
+  // vizinhos
+  S = novoEstado(T); S.ts = T; S.nivel = 12; ajustarTudo(S, T, rng); const L = npcDaSemana(S, T); assert(L.length === 3 && L.every(x => x.ped && x.rec), 'três pedidos por semana');
+  assert(entregarNpc(S, 0, T).erro === 'falta', 'pedido exige os bichos');
+  PETS.forEach(p => { S.pets[p.id] = { lvl: 8 }; }); S.eggs = [null, null]; const gem0 = S.gems;
+  assert(entregarNpc(S, 0, T).ok && entregarNpc(S, 0, T).erro === 'ja' && S.gems > gem0, 'entregar 1º pedido'); assert(entregarNpc(S, 1, T).ok, '2º pedido');
+  const e3 = entregarNpc(S, 2, T); assert(e3.ok && e3.roupa === 'vizinho' && S.roupas.vizinho && S.eggs.some(e => e && e.tipo === 'dourado'), 'semana completa dá roupa e ovo dourado');
+  ajustarNovidades(S, T + 7 * DIA); assert(S.npc.feitos.length === 0 && S.npc.total === 1, 'pedidos renovam por semana');
+  // oferta de iniciante
+  S = novoEstado(T); S.ts = T; S.nivel = 2; ajustarTudo(S, T, rng); assert(ofertaResta(S, T) === 0, 'oferta só a partir do nível 3');
+  S.nivel = 3; assert(ofertaResta(S, T) === OFERTA_H * HORA, 'oferta começa'); assert(ofertaResta(S, T + 73 * HORA) === 0 && comprarOferta(S, T + 73 * HORA).erro === 'expirou', 'oferta expira em 72h');
+  S.eggs = [{ tipo: 'palha', pronto: T }, { tipo: 'palha', pronto: T }]; assert(comprarOferta(S, T + HORA).erro === 'cheio', 'oferta precisa de incubadora livre'); S.eggs[1] = null;
+  const gm = S.gems; assert(comprarOferta(S, T + HORA).ok && S.gems === gm + 60 && S.roupas.aprendiz && S.eggs[1].tipo === 'dourado' && comprarOferta(S, T + HORA).erro === 'ja' && ofertaResta(S, T + HORA) === 0, 'comprar oferta');
+  // baú de anúncios
+  S = novoEstado(T); S.ts = T; ajustarTudo(S, T, rng); S.ads = S.ads || {}; for (let i = 0; i < 4; i++) { const n = S.bauAd.n; contarBau(S, T); assert(S.bauAd.n === n + 1, 'conta anúncio'); }
+  assert(resgatarBauAd(S, 0, T).erro === 'falta'); contarBau(S, T); const cb = S.coins; assert(resgatarBauAd(S, 0, T).ok && S.coins > cb && resgatarBauAd(S, 0, T).erro === 'ja', 'baú dos 5 anúncios');
+  ajustarNovidades(S, T + DIA); assert(S.bauAd.n === 0, 'baú zera por dia');
+  S = novoEstado(T); S.ts = T; S.ads = S.ads || {}; anuncioVisto(S, 'dobro'); assert(S.ads.dobro === 1, 'anúncio visto segue contando');
+  // prestígio mantém selos e oferta
+  S = novoEstado(T); S.ts = T; S.nivel = 25; ajustarTudo(S, T, rng); S.oferta.comprou = true; S.selos.res = [0]; prestigiar(S, T); assert(S.oferta.comprou && S.selos.res.includes(0), 'prestígio mantém oferta e selos');
+  console.log('novidades III: ok');
 })();

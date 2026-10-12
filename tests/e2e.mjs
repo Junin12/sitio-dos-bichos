@@ -188,6 +188,22 @@ try {
   await p.evaluate(() => { ACOES.aba('guilda'); ACOES.subG('chefe'); }); await p.waitForTimeout(1500);
   await p.click('[data-act="chefeGolpe"]'); await p.waitForTimeout(1500);
   ok(consulta(db, `select coalesce(sum(dano),0)::int n from chefe_dano where user_id='${uid}'`)[0].n > 0, 'golpe no chefe gravado no servidor');
+  // liga, papo, passe de guilda e troca de bichos
+  await p.evaluate(() => { ACOES.aba('guilda'); ACOES.subG('liga'); }); await p.waitForTimeout(1500);
+  ok(await p.isVisible('text=Liga Bronze'), 'tela da liga online');
+  await p.click('[data-act="guildaPasse"]'); await p.waitForTimeout(1500);
+  ok(await p.evaluate(() => S.guilda.passeAte > Date.now() + 6 * 86400e3) && consulta(db, `select count(*)::int n from guildas where passe_ate > now()`)[0].n === 1, 'passe da guilda ativo e valendo bônus');
+  ok(await p.evaluate(() => { const a = multProd(S); S.guilda.passeAte = 0; const b = multProd(S); S.guilda.passeAte = Date.now() + 1e9; return Math.abs(a / b - (1 + 0.04 * (S.guilda.nivel - 1) + 0.10) / (1 + 0.04 * (S.guilda.nivel - 1))) < 1e-9; }), 'bônus de +10% entra na produção');
+  await p.evaluate(() => { ACOES.subG('papo'); }); await p.waitForTimeout(1500);
+  await p.click('[data-act="chatEnviar"][data-arg="2"]'); await p.waitForTimeout(1500);
+  ok(await p.isVisible('text=Bora, guilda!') && consulta(db, `select count(*)::int n from guilda_chat`)[0].n === 1, 'frase enviada e exibida no papo');
+  const viz2 = consulta(db, `select id from perfis where id <> '${uid}' limit 1`)[0];
+  await p.evaluate(() => { S.pets.coelho = { lvl: 4 }; });
+  await p.evaluate(id => { ACOES.trocaMenu(id + '|Vizinho'); }, viz2 && viz2.id); await p.waitForTimeout(300);
+  if (viz2) { await p.click('[data-act="trocaEnviar"]'); await p.waitForTimeout(1500);
+    ok(await p.evaluate(() => S.pets.coelho.lvl === 3) && consulta(db, `select count(*)::int n from trocas_bicho`)[0].n === 1, 'troca enviada: perde 1 nível e grava no servidor'); }
+  await p.evaluate(() => { fecharModal(); ACOES.aba('guilda'); ACOES.subG('ranking'); }); await p.waitForTimeout(1000);
+  await bom(p, 'liga/papo/troca');
   await bom(p, 'online');
   removerBanco(db);
 } catch (e) { falhas++; console.log('FALHOU (online):', e.message); }
