@@ -307,7 +307,6 @@ a{color:var(--sky-d)}
 
 /* ===== Visual 3D: volume, brilho e profundidade ===== */
 .btn{position:relative;box-shadow:0 5px 0 var(--cd),0 12px 18px -8px rgba(0,0,0,.45),inset 0 2px 0 rgba(255,255,255,.55),inset 0 -3px 0 rgba(0,0,0,.08)}
-.btn::before{content:'';position:absolute;left:8%;right:8%;top:3px;height:42%;border-radius:12px 12px 40% 40%;background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0));pointer-events:none}
 .btn:active:not(:disabled){box-shadow:0 1px 0 var(--cd),inset 0 2px 6px rgba(0,0,0,.18)}
 .btn.mini{box-shadow:0 4px 0 var(--cd),inset 0 2px 0 rgba(255,255,255,.5)}
 .btn.good,.btn.ad{border:1px solid rgba(255,255,255,.18)}
@@ -369,6 +368,10 @@ button.lvring{border:0;padding:0;cursor:pointer}
 .chipbicho.on{box-shadow:0 3px 0 var(--green-d),inset 0 0 0 3px var(--green)}
 .seg.n2 button{font-size:14px}
 .sheet.perfil>*{flex-shrink:0}
+
+/* brilho do botão fica no fundo (abaixo do texto), só no topo e discreto */
+.btn{background:linear-gradient(180deg,rgba(255,255,255,.3) 0,rgba(255,255,255,0) 42%),linear-gradient(180deg,var(--c1),var(--c2))}
+.btn:disabled{background:linear-gradient(180deg,var(--c1),var(--c2))}
 
 </style>
 
@@ -867,13 +870,14 @@ function cuidar(S, id, now, tipo) {
 }
 
 /* ===== Horta ===== */
-const CULTIVOS = {
-  cenoura:  { nome: 'Cenoura',  em: '🥕', tempo: 120,   nivel: 4,  semente: 40 },
-  milho:    { nome: 'Milho',    em: '🌽', tempo: 600,   nivel: 4,  semente: 120 },
-  morango:  { nome: 'Morango',  em: '🍓', tempo: 1800,  nivel: 7,  semente: 400 },
-  tomate:   { nome: 'Tomate',   em: '🍅', tempo: 3600,  nivel: 10, semente: 900 },
-  abobora:  { nome: 'Abóbora',  em: '🎃', tempo: 14400, nivel: 14, semente: 3000 }
+const CULTIVOS = {   // rende: unidades por colheita; valor: quanto cada unidade vale nos pedidos (acompanha o tempo de cultivo)
+  cenoura:  { nome: 'Cenoura',  em: '🥕', tempo: 120,   nivel: 4,  semente: 40,   rende: 4, valor: 1 },
+  milho:    { nome: 'Milho',    em: '🌽', tempo: 600,   nivel: 4,  semente: 120,  rende: 3, valor: 3 },
+  morango:  { nome: 'Morango',  em: '🍓', tempo: 1800,  nivel: 7,  semente: 400,  rende: 3, valor: 6 },
+  tomate:   { nome: 'Tomate',   em: '🍅', tempo: 3600,  nivel: 10, semente: 900,  rende: 2, valor: 12 },
+  abobora:  { nome: 'Abóbora',  em: '🎃', tempo: 14400, nivel: 14, semente: 3000, rende: 2, valor: 36 }
 };
+const rendeHorta = (S, id) => CULTIVOS[id].rende + (S.obras.estufa >= 5 ? 1 : 0) + (S.obras.estufa >= 10 ? 1 : 0);
 const HORTA_NIVEL = [4, 4, 8, 12, 16];
 const parcelasHorta = n => HORTA_NIVEL.filter(l => n >= l).length;
 function ajustarHorta(S) { const n = parcelasHorta(S.nivel); while (S.horta.length < n) S.horta.push(null); }
@@ -894,7 +898,7 @@ function adubar(S, i, now) {   // anúncio: corta o que falta pela metade
 function colherHorta(S, i, now) {
   const p = S.horta[i]; if (!p) return { erro: 'vazia' };
   if (now < p.pronto) return { erro: 'cedo', falta: p.pronto - now };
-  const qtd = 2 + (S.obras.estufa >= 5 ? 1 : 0) + (S.obras.estufa >= 10 ? 1 : 0);
+  const qtd = rendeHorta(S, p.id);
   S.colheita[p.id] = (S.colheita[p.id] || 0) + qtd; S.horta[i] = null;
   pontoEvento(S, 2); addPontos(S, 3, 'horta'); S.stats.colhidas = (S.stats.colhidas || 0) + 1;
   return { ok: true, id: p.id, qtd, ups: ganharXP(S, 6 + 2 * CULTIVOS[p.id].nivel) };
@@ -913,9 +917,8 @@ function novoPedido(S, now, rng) {
     const r = Math.min(3, Math.floor(rng() * (1 + L / 8))), lv = 2 + Math.floor(rng() * 3);
     p = { t: 'bicho', r, lvl: lv, rec: { coins: Math.round(prod * 900 * (1 + r)), xp: 25 + 10 * r, gems: 1 + r }, ate: now + 24 * HORA };
   } else {
-    const id = disp[Math.floor(rng() * disp.length)], qtd = 2 + Math.floor(rng() * 4);
-    const c = CULTIVOS[id];
-    p = { t: 'colheita', id, qtd, rec: { coins: Math.round(Math.max(60, prod * 120) * qtd * (1 + c.nivel / 6)), xp: 10 + 2 * qtd + c.nivel, gems: qtd >= 5 ? 1 : 0 }, ate: now + 12 * HORA };
+    const id = disp[Math.floor(rng() * disp.length)], c = CULTIVOS[id], qtd = (c.valor >= 12 ? 1 : 2) + Math.floor(rng() * (c.valor >= 12 ? 3 : 4));
+    p = { t: 'colheita', id, qtd, rec: { coins: Math.round(Math.max(120, prod * 120) * qtd * c.valor), xp: 10 + 2 * qtd + c.nivel + Math.round(c.valor / 2), gems: qtd * c.valor >= 12 ? 1 + Math.floor(c.valor / 12) : 0 }, ate: now + 12 * HORA };
   }
   p.cliente = cl[0]; p.em = cl[1]; return p;
 }
@@ -2259,9 +2262,9 @@ function viewHorta() {
   const now = Date.now();
   const disp = Object.keys(CULTIVOS).filter(id => CULTIVOS[id].nivel <= S.nivel);
   const parcelas = S.horta.map((p, i) => {
-    if (!p) return `<div class="card parcela"><div class="between"><h3>Canteiro ${i + 1}</h3><span class="muted">livre</span></div><div class="row wrap">${disp.map(id => { const c = CULTIVOS[id], custo = custoSemente(S, id); return `<button class="btn mini ghost" data-act="plantar" data-arg="${i}:${id}" ${S.coins < custo ? 'disabled' : ''}>${c.em} ${fmt(custo)}</button>`; }).join('')}</div><p class="muted">Escolha o que plantar. ${disp.map(id => CULTIVOS[id].em + ' ' + duracao(CULTIVOS[id].tempo)).join(' · ')}</p></div>`;
+    if (!p) return `<div class="card parcela"><div class="between"><h3>Canteiro ${i + 1}</h3><span class="muted">livre</span></div><div class="row wrap">${disp.map(id => { const c = CULTIVOS[id], custo = custoSemente(S, id); return `<button class="btn mini ghost" data-act="plantar" data-arg="${i}:${id}" ${S.coins < custo ? 'disabled' : ''}>${c.em} ${fmt(custo)}</button>`; }).join('')}</div><p class="muted">Escolha o que plantar. ${disp.map(id => CULTIVOS[id].em + ' ' + duracao(CULTIVOS[id].tempo) + ' → ' + rendeHorta(S, id) + ' un.').join(' · ')}</p></div>`;
     const c = CULTIVOS[p.id], pronto = now >= p.pronto;
-    return `<div class="card parcela ${pronto ? 'pronto' : ''}"><div class="between"><h3>${c.em} ${c.nome}</h3><span class="muted num"><span data-hort="${i}" data-ready="${pronto ? 1 : 0}">${pronto ? 'Pronto!' : mmss(p.pronto - now)}</span></span></div>
+    return `<div class="card parcela ${pronto ? 'pronto' : ''}"><div class="between"><h3>${c.em} ${c.nome}</h3><span class="muted num">rende ${rendeHorta(S, p.id)} · <span data-hort="${i}" data-ready="${pronto ? 1 : 0}">${pronto ? 'Pronto!' : mmss(p.pronto - now)}</span></span></div>
       <div class="bar green"><i data-hortbar="${i}" style="width:${Math.min(100, (1 - (p.pronto - now) / (c.tempo * 1000)) * 100)}%"></i></div>
       <div class="row">${pronto ? `<button class="btn primary" data-act="colher" data-arg="${i}">Colher</button>` : `<button class="btn ad" data-act="adubar" data-arg="${i}">${PLAY}Adubar <span class="tag">${semAnuncios(S) ? 'Passe' : 'Anúncio'}</span></button>`}</div></div>`;
   }).join('');

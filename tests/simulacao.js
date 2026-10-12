@@ -229,5 +229,12 @@ resumo(40,72); resumo(180,720); resumo(480,1440);
   assert(rv.ok && rv.roupa === 'evt:' + eventoDaSemana(t0).id && S.roupas[rv.roupa], 'prêmio final do evento dá a roupa do tema');
   S.nivel = 25; S.avatar.roupa = 'astro'; const rp = prestigiar(S, t0); assert(rp.ok && S.roupas.astro && S.avatar.roupa === 'astro' && S.roupas.lenda, 'prestígio mantém roupas e libera o manto');
   S = novoEstado(t0); delete S.avatar; delete S.roupas; ajustarTudo(S, t0, rng); assert(S.avatar.sexo === 'm' && S.roupas.padrao, 'save antigo ganha perfil');
+  // horta: cada cultura rende e vale conforme o tempo de cultivo
+  S = novoEstado(t0); S.ts = t0; S.nivel = 14; ajustarTudo(S, t0, rng); S.coins = 1e9;
+  const rd = {}; for (const id of Object.keys(CULTIVOS)) { S.horta[0] = null; plantar(S, 0, id, t0); rd[id] = colherHorta(S, 0, t0 + CULTIVOS[id].tempo * 1000 + 1).qtd; }
+  assert(rd.cenoura === 4 && rd.milho === 3 && rd.tomate === 2 && rd.abobora === 2, 'rendimento por cultura');
+  S.obras.estufa = 10; assert(rendeHorta(S, 'tomate') === 4, 'estufa soma ao rendimento');
+  const vals = Object.keys(CULTIVOS).map(id => { for (let k = 0; k < 400; k++) { const q = novoPedido(S, t0, rng); if (q.t === 'colheita' && q.id === id) return q.rec.coins / q.qtd; } return 0; });
+  assert(vals.every((v, i) => i === 0 || v > vals[i - 1]), 'valor por unidade cresce com o tempo de cultivo: ' + vals.join(','));
   console.log('perfil e roupas: ok');
 })();

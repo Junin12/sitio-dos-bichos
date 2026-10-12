@@ -466,13 +466,14 @@ function cuidar(S, id, now, tipo) {
 }
 
 /* ===== Horta ===== */
-const CULTIVOS = {
-  cenoura:  { nome: 'Cenoura',  em: '🥕', tempo: 120,   nivel: 4,  semente: 40 },
-  milho:    { nome: 'Milho',    em: '🌽', tempo: 600,   nivel: 4,  semente: 120 },
-  morango:  { nome: 'Morango',  em: '🍓', tempo: 1800,  nivel: 7,  semente: 400 },
-  tomate:   { nome: 'Tomate',   em: '🍅', tempo: 3600,  nivel: 10, semente: 900 },
-  abobora:  { nome: 'Abóbora',  em: '🎃', tempo: 14400, nivel: 14, semente: 3000 }
+const CULTIVOS = {   // rende: unidades por colheita; valor: quanto cada unidade vale nos pedidos (acompanha o tempo de cultivo)
+  cenoura:  { nome: 'Cenoura',  em: '🥕', tempo: 120,   nivel: 4,  semente: 40,   rende: 4, valor: 1 },
+  milho:    { nome: 'Milho',    em: '🌽', tempo: 600,   nivel: 4,  semente: 120,  rende: 3, valor: 3 },
+  morango:  { nome: 'Morango',  em: '🍓', tempo: 1800,  nivel: 7,  semente: 400,  rende: 3, valor: 6 },
+  tomate:   { nome: 'Tomate',   em: '🍅', tempo: 3600,  nivel: 10, semente: 900,  rende: 2, valor: 12 },
+  abobora:  { nome: 'Abóbora',  em: '🎃', tempo: 14400, nivel: 14, semente: 3000, rende: 2, valor: 36 }
 };
+const rendeHorta = (S, id) => CULTIVOS[id].rende + (S.obras.estufa >= 5 ? 1 : 0) + (S.obras.estufa >= 10 ? 1 : 0);
 const HORTA_NIVEL = [4, 4, 8, 12, 16];
 const parcelasHorta = n => HORTA_NIVEL.filter(l => n >= l).length;
 function ajustarHorta(S) { const n = parcelasHorta(S.nivel); while (S.horta.length < n) S.horta.push(null); }
@@ -493,7 +494,7 @@ function adubar(S, i, now) {   // anúncio: corta o que falta pela metade
 function colherHorta(S, i, now) {
   const p = S.horta[i]; if (!p) return { erro: 'vazia' };
   if (now < p.pronto) return { erro: 'cedo', falta: p.pronto - now };
-  const qtd = 2 + (S.obras.estufa >= 5 ? 1 : 0) + (S.obras.estufa >= 10 ? 1 : 0);
+  const qtd = rendeHorta(S, p.id);
   S.colheita[p.id] = (S.colheita[p.id] || 0) + qtd; S.horta[i] = null;
   pontoEvento(S, 2); addPontos(S, 3, 'horta'); S.stats.colhidas = (S.stats.colhidas || 0) + 1;
   return { ok: true, id: p.id, qtd, ups: ganharXP(S, 6 + 2 * CULTIVOS[p.id].nivel) };
@@ -512,9 +513,8 @@ function novoPedido(S, now, rng) {
     const r = Math.min(3, Math.floor(rng() * (1 + L / 8))), lv = 2 + Math.floor(rng() * 3);
     p = { t: 'bicho', r, lvl: lv, rec: { coins: Math.round(prod * 900 * (1 + r)), xp: 25 + 10 * r, gems: 1 + r }, ate: now + 24 * HORA };
   } else {
-    const id = disp[Math.floor(rng() * disp.length)], qtd = 2 + Math.floor(rng() * 4);
-    const c = CULTIVOS[id];
-    p = { t: 'colheita', id, qtd, rec: { coins: Math.round(Math.max(60, prod * 120) * qtd * (1 + c.nivel / 6)), xp: 10 + 2 * qtd + c.nivel, gems: qtd >= 5 ? 1 : 0 }, ate: now + 12 * HORA };
+    const id = disp[Math.floor(rng() * disp.length)], c = CULTIVOS[id], qtd = (c.valor >= 12 ? 1 : 2) + Math.floor(rng() * (c.valor >= 12 ? 3 : 4));
+    p = { t: 'colheita', id, qtd, rec: { coins: Math.round(Math.max(120, prod * 120) * qtd * c.valor), xp: 10 + 2 * qtd + c.nivel + Math.round(c.valor / 2), gems: qtd * c.valor >= 12 ? 1 + Math.floor(c.valor / 12) : 0 }, ate: now + 12 * HORA };
   }
   p.cliente = cl[0]; p.em = cl[1]; return p;
 }

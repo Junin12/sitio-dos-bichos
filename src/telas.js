@@ -66,9 +66,9 @@ function viewHorta() {
   const now = Date.now();
   const disp = Object.keys(CULTIVOS).filter(id => CULTIVOS[id].nivel <= S.nivel);
   const parcelas = S.horta.map((p, i) => {
-    if (!p) return `<div class="card parcela"><div class="between"><h3>Canteiro ${i + 1}</h3><span class="muted">livre</span></div><div class="row wrap">${disp.map(id => { const c = CULTIVOS[id], custo = custoSemente(S, id); return `<button class="btn mini ghost" data-act="plantar" data-arg="${i}:${id}" ${S.coins < custo ? 'disabled' : ''}>${c.em} ${fmt(custo)}</button>`; }).join('')}</div><p class="muted">Escolha o que plantar. ${disp.map(id => CULTIVOS[id].em + ' ' + duracao(CULTIVOS[id].tempo)).join(' · ')}</p></div>`;
+    if (!p) return `<div class="card parcela"><div class="between"><h3>Canteiro ${i + 1}</h3><span class="muted">livre</span></div><div class="row wrap">${disp.map(id => { const c = CULTIVOS[id], custo = custoSemente(S, id); return `<button class="btn mini ghost" data-act="plantar" data-arg="${i}:${id}" ${S.coins < custo ? 'disabled' : ''}>${c.em} ${fmt(custo)}</button>`; }).join('')}</div><p class="muted">Escolha o que plantar. ${disp.map(id => CULTIVOS[id].em + ' ' + duracao(CULTIVOS[id].tempo) + ' → ' + rendeHorta(S, id) + ' un.').join(' · ')}</p></div>`;
     const c = CULTIVOS[p.id], pronto = now >= p.pronto;
-    return `<div class="card parcela ${pronto ? 'pronto' : ''}"><div class="between"><h3>${c.em} ${c.nome}</h3><span class="muted num"><span data-hort="${i}" data-ready="${pronto ? 1 : 0}">${pronto ? 'Pronto!' : mmss(p.pronto - now)}</span></span></div>
+    return `<div class="card parcela ${pronto ? 'pronto' : ''}"><div class="between"><h3>${c.em} ${c.nome}</h3><span class="muted num">rende ${rendeHorta(S, p.id)} · <span data-hort="${i}" data-ready="${pronto ? 1 : 0}">${pronto ? 'Pronto!' : mmss(p.pronto - now)}</span></span></div>
       <div class="bar green"><i data-hortbar="${i}" style="width:${Math.min(100, (1 - (p.pronto - now) / (c.tempo * 1000)) * 100)}%"></i></div>
       <div class="row">${pronto ? `<button class="btn primary" data-act="colher" data-arg="${i}">Colher</button>` : `<button class="btn ad" data-act="adubar" data-arg="${i}">${PLAY}Adubar <span class="tag">${semAnuncios(S) ? 'Passe' : 'Anúncio'}</span></button>`}</div></div>`;
   }).join('');
