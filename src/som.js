@@ -100,3 +100,19 @@ const Som = (() => {
     vibrar(ms) { if (!mudo && !this.semVibra && navigator.vibrate) try { navigator.vibrate(ms); } catch (e) {} },
   };
 })();
+
+/* ---------- Google Play (adaptador) ----------
+   No navegador não faz nada. Ao empacotar com Capacitor e instalar um plugin de Play Games
+   (com os IDs criados no Play Console), basta preencher PLAT_IDS: o jogo já chama estes ganchos. */
+const PLAT_IDS = {};                       // ex.: { 'conq_id_do_jogo': 'CgkI...' }
+const Plat = (() => {
+  const pl = () => (window.Capacitor && Capacitor.Plugins && (Capacitor.Plugins.PlayGames || Capacitor.Plugins.GamesServices)) || null;
+  const tenta = (f, ...a) => { try { const p = pl(); if (p && p[f]) p[f](...a); } catch (e) {} };
+  return {
+    disponivel: () => !!pl(),
+    entrar: () => tenta('signIn'),
+    conquista(id) { const x = PLAT_IDS[id]; if (x) tenta('unlockAchievement', { achievementID: x }); },
+    placar(pontos) { if (PLAT_IDS.placar) tenta('submitScore', { leaderboardID: PLAT_IDS.placar, totalScoreLabel: String(pontos), totalScoreValue: pontos }); },
+    aviso(titulo, texto, segundos) { try { const p = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.LocalNotifications; if (p) p.schedule({ notifications: [{ id: 1, title: titulo, body: texto, schedule: { at: new Date(Date.now() + segundos * 1000) } }] }); } catch (e) {} },
+  };
+})();

@@ -386,3 +386,5 @@ button.lvring{border:0;padding:0;cursor:pointer}
 .pbtn.pronto{background:linear-gradient(180deg,var(--yolk2),var(--yolk));color:var(--yolk-ink);box-shadow:0 3px 0 var(--yolk-d);cursor:pointer}
 .pbtn.ok{background:color-mix(in srgb,var(--green) 22%,var(--surface2));color:var(--green-d)}
 .pbtn.prem:not(.ok):not(.pronto){background:color-mix(in srgb,#b69bff 18%,var(--surface2))}
+
+.acoes2{display:flex;gap:4px}

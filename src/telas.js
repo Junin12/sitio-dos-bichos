@@ -537,7 +537,7 @@ Object.assign(ACOES, {
   cruzAcel() { if (!S.cruz) return; anuncio('acelerar', 'Acelerar o cruzamento', () => { acelerarCruz(S, Date.now()); toast('Metade do tempo'); }); },
   cruzAbrir() { const r = abrirCruz(S, Date.now(), Math.random); if (!r.ok) return; receber(r.ups); salvar(); render(); revelarPet(r.pet, r.res, 'Filhote ' + RARIDADES[r.r].nome); },
   evoluir(id) { const r = evoluir(S, id); if (!r.ok) return toast(r.erro === 'frag' ? 'Faltam ' + r.falta + ' fragmentos' : erroMsg(r)); receber(r.ups); salvar(); modalBicho(id); render(); Som.play('lendario'); Fx.confete(innerWidth / 2, innerHeight * 0.35, 60, ['#FFC21A', '#fff', '#3DBB6B']); metrica('evolucao'); toast(nomeDoBicho(S, id) + ' evoluiu: ' + EST_NOMES[r.est]); },
-  conqResg(id) { const r = resgatarConq(S, id); if (!r.ok) return; receber(r.ups); salvar(); render(); Som.play('bau'); toast('Conquista: +' + r.rec.gems + ' gemas' + (r.rec.ing ? ' e +' + r.rec.ing + ' ingressos' : '')); metrica('conquista'); },
+  conqResg(id) { const r = resgatarConq(S, id); if (!r.ok) return; receber(r.ups); salvar(); render(); Som.play('bau'); toast('Conquista: +' + r.rec.gems + ' gemas' + (r.rec.ing ? ' e +' + r.rec.ing + ' ingressos' : '')); metrica('conquista'); Plat.conquista(id); },
   corrResg(k) { const r = resgatarCorrida(S, +k, Date.now()); if (!r.ok) return toast(r.erro === 'meta' ? 'Faltam pontos' : 'Já resgatado'); receber(r.ups); salvar(); render(); Som.play('bau'); toast('Corrida: ' + textoRec({ coins: r.rec.coins, gems: r.rec.gems, xp: 0 }) + (r.rec.ing ? ' · +' + r.rec.ing + ' ingressos' : '') + (r.roupa ? ' · roupa nova: ' + ROUPAS[r.roupa].nome : '')); },
   corrPremio() { if (window.ON && ON.ativo) ACOES.corrPremioOn(); },
   chefeGolpe() {
@@ -645,6 +645,7 @@ function modalPerfil() {
     <p class="muted">${tituloDe(S.nivel)} · nível ${S.nivel} · poder ${fmt(poderJogador(S))}</p>${palcoPerfil(true)}
     <div class="row wrap"><div class="seg n2" style="flex:1">${[['m', 'Fazendeiro'], ['f', 'Fazendeira']].map(x => `<button class="${A.sexo === x[0] ? 'on' : ''}" data-act="perfilSexo" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div></div>
     <div class="peles">${PELES.map((c, i) => `<button class="pele ${A.pele === i ? 'on' : ''}" data-act="perfilPele" data-arg="${i}" style="background:${c}" aria-label="Tom de pele ${i + 1}"></button>`).join('')}</div>
+    <button class="btn primary" data-act="cartao" style="width:100%;margin-top:8px">📤 Compartilhar cartão do meu sítio</button>
     <h3>Roupas</h3><div class="roupas">${roupas}</div>
     <h3>Companheiro</h3><p class="muted">Por padrão fica o bicho mais evoluído e forte do sítio. Escolha outro se preferir.</p>
     <div class="chipsbicho"><button class="chipbicho ${A.bicho === 'auto' ? 'on' : ''}" data-act="companheiro" data-arg="auto">Auto</button>${pets}</div>
@@ -659,6 +660,43 @@ Object.assign(ACOES, {
   pacoteRoupa(id) { const r = comprarPacoteRoupa(S, id); if (!r.ok) return toast('Você já tem esse pacote'); metrica('compra_simulada'); salvar(); render(); modalPerfil(); toast('Pacote adquirido (simulação): +' + r.gemas + ' gemas'); }
 });
 
+
+/* ---------- cartão de perfil compartilhável (PNG) ---------- */
+async function gerarCartao() {
+  ajustarAvatar(S);
+  const W = 900, H = 520, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
+  const g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#2f8a4e'); g.addColorStop(1, '#1d5f78'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+  c.fillStyle = 'rgba(255,255,255,.12)'; c.beginPath(); c.arc(W - 90, 80, 150, 0, 7); c.fill(); c.beginPath(); c.arc(60, H - 40, 110, 0, 7); c.fill();
+  c.fillStyle = 'rgba(255,255,255,.94)'; c.beginPath(); c.roundRect(28, 28, W - 56, H - 56, 28); c.fill();
+  let svg = avatarSVG(S.avatar.sexo, S.avatar.pele, S.avatar.roupa, { tier: tierDe(S.nivel) });
+  if (!/xmlns=/.test(svg)) svg = svg.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+  const img = new Image(); const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+  await new Promise(ok => { img.onload = ok; img.onerror = ok; img.src = url; });
+  c.fillStyle = '#e6f3e0'; c.beginPath(); c.roundRect(60, 60, 300, 400, 22); c.fill();
+  try { c.drawImage(img, 70, 90, 280, 340); } catch (e) {}
+  URL.revokeObjectURL(url);
+  const id = bichoDestaque(S), p = id && PET_POR_ID[id];
+  if (p) { c.font = '84px serif'; c.textAlign = 'center'; c.fillText(p.em, 290, 440); }
+  c.textAlign = 'left'; c.fillStyle = '#3a2a12'; c.font = '700 44px system-ui,sans-serif'; c.fillText((S.nome || tituloDe(S.nivel)).slice(0, 18), 400, 120);
+  c.fillStyle = '#6b5a3a'; c.font = '600 24px system-ui,sans-serif'; c.fillText(tituloDe(S.nivel) + ' · nível ' + S.nivel + (S.prest ? ' · ⭐' + S.prest : ''), 400, 160);
+  const itens = [['Poder', fmt(poderJogador(S))], ['Bichos', Object.keys(S.pets).length], ['Fantasias', Object.keys(S.roupas).length], ['Sequência', (S.diario ? S.diario.seq : 0) + ' dias']];
+  itens.forEach((x, i) => { const X = 400 + (i % 2) * 240, Y = 215 + Math.floor(i / 2) * 105;
+    c.fillStyle = '#fff3c4'; c.beginPath(); c.roundRect(X, Y, 220, 88, 16); c.fill();
+    c.fillStyle = '#8a6a1a'; c.font = '600 20px system-ui,sans-serif'; c.fillText(x[0], X + 16, Y + 30);
+    c.fillStyle = '#3a2a12'; c.font = '700 34px system-ui,sans-serif'; c.fillText(String(x[1]), X + 16, Y + 70); });
+  c.fillStyle = '#2f8a4e'; c.font = '700 26px system-ui,sans-serif'; c.fillText('🌾 Sítio dos Bichos', 400, 462);
+  return new Promise(ok => cv.toBlob(ok, 'image/png'));
+}
+async function compartilharCartao() {
+  const blob = await gerarCartao(); if (!blob) return toast('Não foi possível gerar o cartão');
+  const f = new File([blob], 'meu-sitio.png', { type: 'image/png' });
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], text: 'Vem jogar Sítio dos Bichos!' }); metrica('cartao'); return; }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'meu-sitio.png'; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast('Cartão salvo como imagem'); metrica('cartao');
+}
+Object.assign(ACOES, { cartao() { compartilharCartao(); } });
 
 /* ===== Novidades II: passe, marcos, correio, mapa, festivais ===== */
 const ingFalta = id => Object.keys(RECEITAS[id].usa || {}).some(k => (S.colheita[k] || 0) < RECEITAS[id].usa[k]);
@@ -769,7 +807,7 @@ Object.assign(ACOES, {
     let n = 1; if (window.ON && ON.ativo) { const r = await api.presentes.pegar(); if (!r.ok) return toast(erroMsg(r)); n = r.n; ON.caixa = 0; }
     const r = pegarPresentes(S, n, Date.now()); if (!r.ok) return toast(erroMsg(r)); salvar(); render(); Som.play('coin'); toast('Presentes: +' + fmt(r.coins) + ' moedas');
   },
-  async presentear(id) { if (!(window.ON && ON.ativo)) return; const r = await api.presentes.enviar(id); if (!r.ok) return toast(erroMsg(r)); enviarPresenteLocal(S, Date.now()); salvar(); render(); Som.play('pop'); toast('Presente enviado!'); },
+  async presentear(id) { if (!(window.ON && ON.ativo)) return; const r = await api.presentes.enviar(id); if (!r.ok) return toast(erroMsg(r)); enviarPresenteLocal(S, Date.now()); salvar(); render(); Som.play('pop'); toast('Presente enviado!'); metrica('presente'); },
   areaComprar(id) { const r = comprarArea(S, id); if (!r.ok) return toast(erroMsg(r)); receber(r.ups); salvar(); render(); Som.play('bau'); toast(AREAS[id].nome + ' desbloqueada!'); metrica('mapa'); },
   expAbrir(i) { expSel = { i: +i, d: 'floresta', ids: [] }; modalExp(); },
   expDestino(d) { if (expSel) { expSel.d = d; modalExp(); } },

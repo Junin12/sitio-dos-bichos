@@ -144,6 +144,7 @@ async function ciclo() {
     await postarEventos();
     if (agora - tPerfil > 60000) { tPerfil = agora; await atualizarPerfil(); }
     if (agora - tSave > 45000) { tSave = agora; await salvarNuvem(); }
+    if (agora - (ON.tCx || 0) > 30000) { ON.tCx = agora; const c = await api.presentes.caixa(); if (c.ok) ON.caixa = c.n; }
     if (aba === 'guilda' || aba === 'metas') await visitar(false);
   } catch (e) {}
 }
@@ -229,7 +230,7 @@ function viewRankingOn() {
   const linha = x => {
     const a = x.avatar || {}, pet = a.bicho && PET_POR_ID[a.bicho] ? PET_POR_ID[a.bicho].em : '', est = a.est ? '<small class="estr">' + '★'.repeat(a.est) + '</small>' : '';
     const roupa = ROUPAS[a.roupa] ? a.roupa : 'padrao', medalha = x.pos <= 3 ? ['🥇', '🥈', '🥉'][x.pos - 1] : x.pos;
-    return `<div class="mrow rk ${x.voce ? 'eu' : ''}"><span class="pos">${medalha}</span><span class="rkav">${avatarSVG(a.sexo === 'f' ? 'f' : 'm', a.pele >= 0 && a.pele < 4 ? a.pele : 1, roupa, { tier: 0 })}<i>${pet}</i></span><span class="who"><b>${esc(x.nome)}</b><small>Nv ${x.nivel}${x.prestigio ? ' · ⭐' + x.prestigio : ''} ${est}</small></span><span class="pts num">${fmtRk(cat, x.valor)}</span>${x.voce ? '<span></span>' : `<button class="btn mini ghost" data-act="visitarSitio" data-arg="${esc(x.id)}">Visitar</button>`}</div>`;
+    return `<div class="mrow rk ${x.voce ? 'eu' : ''}"><span class="pos">${medalha}</span><span class="rkav">${avatarSVG(a.sexo === 'f' ? 'f' : 'm', a.pele >= 0 && a.pele < 4 ? a.pele : 1, roupa, { tier: 0 })}<i>${pet}</i></span><span class="who"><b>${esc(x.nome)}</b><small>Nv ${x.nivel}${x.prestigio ? ' · ⭐' + x.prestigio : ''} ${est}</small></span><span class="pts num">${fmtRk(cat, x.valor)}</span>${x.voce ? '<span></span>' : `<span class="acoes2"><button class="btn mini ghost" data-act="visitarSitio" data-arg="${esc(x.id)}">Visitar</button><button class="btn mini ghost" data-act="presentear" data-arg="${esc(x.id)}" title="Enviar presente">🎁</button></span>`}</div>`;
   };
   return faixa() + `<section class="card">${segs}<div class="between"><h2>${RK_TXT[cat][0]}</h2><span class="badge on">${r.eu.pos ? r.eu.pos + 'º de ' + r.total : 'sem posição'}</span></div>
       <p class="muted">${RK_TXT[cat][1]}${cat === 'poder' ? ` Seu poder: <b>${fmt(poderJogador(S))}</b>${acima ? `. Faltam ${fmt(acima.valor - r.eu.valor + 1)} para passar ${esc(acima.nome)}.` : r.eu.pos === 1 ? '. Você lidera.' : '.'}` : ''} Seus números são enviados ao servidor a cada poucos minutos.</p>
