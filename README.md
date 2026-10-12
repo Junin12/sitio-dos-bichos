@@ -72,8 +72,12 @@ Testes: `cat src/logic.js tests/simulacao.js | node` (regras), `cd backend && np
 
 Os números de balanceamento (custos, XP, metas) ficam no começo de `src/logic.js`.
 
+## Mecânicas de longo prazo
+
+Inspiradas em jogos idle com coleção: sorteio em lote com ingressos, oficina (fila de produção com tempo real), pesquisa com bônus permanentes, combos de bichos, cruzamento, evolução dos bichos (fragmentos de repetidos), conquistas, chefe da guilda (praga da semana), corrida de 48 horas e códigos promocionais (só online). Tudo funciona offline, exceto os códigos; online, chefe e corrida usam o servidor.
+
 ## Próximos passos
 
-1. Rodar a migração `backend/supabase/migrations/20261012000400_novidades.sql` no projeto Supabase (veja backend/README.md).
+1. Rodar as migrações `20261012000400_novidades.sql` e `20261012000500_mecanicas.sql` no projeto Supabase, nessa ordem (veja backend/README.md).
 2. Empacotar com Capacitor e trocar os anúncios e as compras simulados por AdMob e Google Play Billing.
 3. Seguir o `PLAY_STORE.md`.

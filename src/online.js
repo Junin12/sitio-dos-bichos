@@ -2,7 +2,8 @@
    Entra no mesmo script do jogo (veja build.py --online). Se algo falhar, o jogo continua no modo offline
    com jogadores simulados. Depende de: criarApi (src/api.js), window.SITIO_CONFIG e window.supabase. */
 const ONLINE_ID = 1000;               // marca em S.guilda.id: "estou numa guilda real"
-var ON = window.ON = { ativo: false, e: null, guildas: null, rank: null, gr: null, convite: null, msg: '', tE: 0, tR: 0, tG: 0, tGR: 0, tC: 0, busy: false, confirmaSair: false };
+var ON = window.ON = { ativo: false, e: null, guildas: null, rank: null, gr: null, convite: null, ch: null, cr: null, msg: '', tE: 0, tR: 0, tG: 0, tGR: 0, tC: 0, tCh: 0, tCr: 0, busy: false, confirmaSair: false };
+let pendCorr = 0;
 let prestServ = 0;
 let sbCli = null, api = null, versaoSave = 0, nivelServ = 1, pend = {}, ultNivel = 0, ultSafra = 0, tPerfil = 0, tSave = 0, saveRodando = false;
 const placar = s => (s.prest || 0) * 1e12 + s.nivel * 1e8 + s.safra * 1e4 + s.summons;   // quem tem mais progresso vence ao sincronizar
@@ -37,7 +38,8 @@ async function onlineIniciar() {
     }
   }
   ultNivel = S.nivel; ultSafra = Math.floor((S.safra - 1) / 10) * 10;
-  HOOK_PONTOS = (n, m) => { if (S.guilda.id >= 0) pend[m] = (pend[m] || 0) + n; };
+  HOOK_PONTOS = (n, m) => { if (S.guilda.id >= 0) { const k = TETOS[m] ? m : 'missao'; pend[k] = (pend[k] || 0) + n; } };   // horta, pedido e afins contam como 'missao'
+  HOOK_CORRIDA = n => { pendCorr += n; };
   HOOK_CHOQUE = id => { if (S.guilda.id >= 0) api.mural.postar('choque', { pet_id: id }).then(() => { ON.tE = 0; }); };
   ON.ativo = true; ON.msg = '';
   ON.metrica = n => { api.evento(n); };
@@ -80,6 +82,14 @@ async function enviarPontos() {
     }
   }
 }
+async function enviarCorrida() {
+  let guard = 0;
+  while (pendCorr > 0 && guard++ < 20) {
+    const p = Math.min(pendCorr, 60), r = await api.corrida.enviar(p);
+    if (!r.ok) { if (r.erro !== 'rede') pendCorr = 0; break; }
+    pendCorr -= p;
+  }
+}
 async function postarEventos() {
   if (S.guilda.id < 0) { ultNivel = S.nivel; return; }
   if (S.nivel > ultNivel) { const n = S.nivel; ultNivel = n; if (n >= 2) await api.mural.postar('nivel', { nivel: n }); }
@@ -118,21 +128,24 @@ async function ciclo() {
   const agora = Date.now();
   try {
     await enviarPontos();
+    await enviarCorrida();
     await postarEventos();
     if (agora - tPerfil > 60000) { tPerfil = agora; await atualizarPerfil(); }
     if (agora - tSave > 45000) { tSave = agora; await salvarNuvem(); }
-    if (aba === 'guilda') await visitar(false);
+    if (aba === 'guilda' || aba === 'metas') await visitar(false);
   } catch (e) {}
 }
 async function visitar(forcar) {
   if (!ON.ativo) return;
   const agora = Date.now(); let mudou = false;
-  if (forcar || agora - ON.tE > 30000) { await onGuilda(); mudou = true; }
-  if (ON.e && !ON.e.guilda && S.nivel >= NIVEL_GUILDA && (forcar || agora - ON.tG > 30000)) { await onLista(); mudou = true; }
-  if (subG === 'ranking' && (forcar || agora - ON.tR > 60000)) { await onRanking(); mudou = true; }
-  if (subG === 'guildas' && (forcar || agora - ON.tGR > 60000)) { const r = await api.guildas.ranking(20); if (r.ok) { ON.gr = r; ON.tGR = Date.now(); mudou = true; } }
+  if (aba !== 'metas' && (forcar || agora - ON.tE > 30000)) { await onGuilda(); mudou = true; }
+  if (aba !== 'metas' && ON.e && !ON.e.guilda && S.nivel >= NIVEL_GUILDA && (forcar || agora - ON.tG > 30000)) { await onLista(); mudou = true; }
+  if (aba === 'guilda' && subG === 'ranking' && (forcar || agora - ON.tR > 60000)) { await onRanking(); mudou = true; }
+  if (aba === 'guilda' && subG === 'guildas' && (forcar || agora - ON.tGR > 60000)) { const r = await api.guildas.ranking(20); if (r.ok) { ON.gr = r; ON.tGR = Date.now(); mudou = true; } }
+  if (aba === 'guilda' && subG === 'chefe' && (forcar || agora - ON.tCh > 20000)) { const r = await api.chefe.estado(); if (r.ok) { ON.ch = r; ON.tCh = Date.now(); mudou = true; } else if (r.erro === 'sem_guilda') { ON.ch = null; } }
+  if (aba === 'metas' && subM === 'evento' && (forcar || agora - ON.tCr > 45000)) { const r = await api.corrida.ranking(10); if (r.ok) { ON.cr = r; ON.tCr = Date.now(); mudou = true; } }
   const campo = document.activeElement && document.activeElement.tagName === 'INPUT';
-  if (mudou && aba === 'guilda' && !campo) render();
+  if (mudou && (aba === 'guilda' || aba === 'metas') && !campo) render();
 }
 setInterval(ciclo, 8000);
 document.addEventListener('visibilitychange', () => { if (document.hidden && ON.ativo) salvarNuvem(); });
@@ -252,6 +265,26 @@ Object.assign(ACOES, {
     const r = await api.convite.resgatar(); if (!r.ok) return falhou(r);
     S.gems += r.novos * 15; Som.play('bau'); toast('Convites: +' + (r.novos * 15) + ' gemas'); ON.tC = 0; carregarConvite();
   }),
+  chefeGolpeOn: () => agir(async () => {
+    const r = await api.chefe.golpear(danoGolpe(S)); if (!r.ok) return falhou(r);
+    ON.ch = r; ON.tCh = Date.now(); addPontos(S, 4, 'missao'); pontoEvento(S, 1); receber(ganharXP(S, 6));
+    Som.play('bau'); toast('Golpe certeiro: ' + fmt(r.dano_golpe) + ' de dano');
+  }),
+  chefeResgOn: () => agir(async () => {
+    const r = await api.chefe.resgatar(); if (!r.ok) return falhou({ mensagem: 'Ainda não há prêmio do chefe para você.' });
+    const x = aplicarRecChefe(S); receber(x.ups); ON.tCh = 0; Som.play('bau'); Fx.confete(innerWidth / 2, innerHeight * 0.4, 90, ['#FFC21A', '#fff', '#3DBB6B']);
+    toast('Chefe derrotado! ' + textoRec({ coins: x.rec.coins, gems: x.rec.gems, xp: 0 }) + ' · +' + x.rec.ing + ' ingressos'); await visitar(true);
+  }),
+  corrPremioOn: () => agir(async () => {
+    const x = await api.corrida.premio(); if (!x.ok) return falhou(x);
+    const g = [30, 20, 12, 8, 8, 5, 5, 5, 5, 5][x.posicao - 1] || 5, c = baseOf(S) * 10; S.gems += g; S.coins += c; ganharIng(S, x.posicao <= 3 ? 3 : 1);
+    ON.tCr = 0; Som.play('bau'); Fx.confete(innerWidth / 2, innerHeight * 0.4, 90, ['#FFC21A', '#fff', '#3DBB6B']); toast('Corrida: ' + x.posicao + 'º lugar! +' + g + ' gemas e +' + fmt(c) + ' moedas'); await visitar(true);
+  }),
+  codigoUsarOn: () => agir(async () => {
+    const v = ($('#codigoIn') || {}).value || ''; if (v.trim().length < 4) return toast('Digite o código');
+    const r = await api.codigo(v); if (!r.ok) return falhou(r);
+    S.gems += r.gemas; ganharIng(S, r.ingressos); Som.play('bau'); toast('Código aceito: +' + r.gemas + ' gemas' + (r.ingressos ? ' e +' + r.ingressos + ' ingressos' : '')); api.evento('codigo');
+  }),
   contaApagar: () => {
     if (!ON.confirmaApagar) { ON.confirmaApagar = true; render(); setTimeout(() => { ON.confirmaApagar = false; if (aba === 'ajustes') render(); }, 5000); return; }
     return agir(async () => {
@@ -268,7 +301,8 @@ Object.assign(ACOES, {
   }),
 });
 { const aba0 = ACOES.aba, sub0 = ACOES.subG;
-  ACOES.aba = a => { aba0(a); if (a === 'guilda') visitar(true); if (a === 'ajustes') carregarConvite(); };
-  ACOES.subG = x => { sub0(x); visitar(true); }; }
+  ACOES.aba = a => { aba0(a); if (a === 'guilda' || a === 'metas') visitar(true); if (a === 'ajustes') carregarConvite(); };
+  ACOES.subG = x => { sub0(x); visitar(true); };
+  const subM0 = ACOES.subM; ACOES.subM = x => { subM0(x); visitar(true); }; }
 
 onlineIniciar();

@@ -18,6 +18,7 @@
     <div class="wallet" aria-label="Saldo">
       <span class="chip" id="chipCoins" title="Moedas"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gcoin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE27A"/><stop offset="1" stop-color="#F5A300"/></linearGradient></defs><circle cx="12" cy="12" r="10.5" fill="url(#gcoin)" stroke="#D98F00" stroke-width="1.5"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="#D98F00" stroke-width="1.4" opacity=".55"/><path d="M8 8c1.5-1.2 3-1.6 4.4-1.4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" fill="none" opacity=".7"/></svg><span id="vCoins">0</span></span>
       <span class="chip" id="chipGems" title="Gemas"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="ggem" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8FD6FF"/><stop offset="1" stop-color="#1B72D8"/></linearGradient></defs><polygon points="12,1.5 21,9 12,22.5 3,9" fill="url(#ggem)" stroke="#1B5FB5" stroke-width="1.3" stroke-linejoin="round"/><polyline points="3,9 21,9" stroke="#fff" stroke-width="1.2" opacity=".6" fill="none"/><polyline points="8,9 12,1.5 16,9" stroke="#fff" stroke-width="1" opacity=".4" fill="none"/></svg><span id="vGems">0</span></span>
+ <span class="chip" id="chipIng" title="Ingressos de sorteio" hidden><span aria-hidden="true">🎟️</span><span id="vIng">0</span></span>
       <button class="iconbtn" id="btnAj" data-act="aba" data-arg="ajustes" aria-label="Ajustes"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1"/></svg></button>
       <button class="iconbtn" id="btnSom" data-act="som" aria-label="Som ligado ou desligado"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="onda" d="M16.5 9a4 4 0 010 6M19 6.5a8 8 0 010 11"/><path class="slash" d="M17 9l5 6M22 9l-5 6"/></svg></button>
     </div>
@@ -271,6 +272,13 @@ function proximoPasso() {
   const mo = melhorOferta();
   if (mo) return { ic: '🔨', t: mo.t, d: 'Custa ' + fmt(mo.custo) + ' moedas e deixa o sítio mais forte.', btn: 'Melhorar', act: mo.act, arg: mo.arg };
   if (podePrestigiar(S)) return { ic: '🌟', t: 'Prestígio disponível', d: 'Recomece com bônus permanente e mantenha seus bichos.', btn: 'Ver', act: 'aba', arg: 'ajustes' };
+  const of = S.oficina.findIndex(o => o && now >= o.fim);
+  if (of >= 0) return { ic: RECEITAS[S.oficina[of].id].em, t: 'Receita pronta na oficina', d: 'Colha o lucro e ponha outra na fila.', btn: 'Ver oficina', act: 'irObras', arg: 'oficina' };
+  if (S.cruz && now >= S.cruz.pronto) return { ic: '🥚', t: 'Seu filhote nasceu!', d: 'O cruzamento terminou. Venha conhecer.', btn: 'Ver', act: 'aba', arg: 'ovos' };
+  if (conqProntas(S) > 0) return { ic: '🏅', t: 'Conquista pronta!', d: 'Resgate gemas e ingressos.', btn: 'Ver', act: 'aba', arg: 'metas' };
+  if (corridaPronta()) return { ic: '🏁', t: 'Meta da corrida batida', d: 'Resgate o prêmio da corrida de 48 h.', btn: 'Resgatar', act: 'subMetas', arg: 'evento' };
+  if (S.nivel >= LOTE_NIVEL && (S.ing || 0) >= LOTE_N) return { ic: '🎟️', t: 'Você tem ingressos!', d: 'Use ' + LOTE_N + ' no sorteio em lote e ganhe vários bichos de uma vez.', btn: 'Sortear', act: 'aba', arg: 'ovos' };
+  if (chefeLivres(now) > 0) return { ic: chefeDaSemana(semanaDe(now)).em, t: 'A praga da semana ataca!', d: 'Você tem ' + chefeLivres(now) + ' golpes grátis hoje contra o chefe da guilda.', btn: 'Atacar', act: 'irGuilda', arg: 'chefe' };
   if (bauDisponivel(S, hoje) && !bauPrecisaAnuncio(S, hoje)) return { ic: '🎁', t: 'Baú do dia', d: 'Um presente grátis por dia, sem precisar de anúncio.', btn: 'Abrir', act: 'bauDia' };
   if (bauPronto(now)) return { ic: '🎁', t: 'Baú da guilda pronto', d: 'A guilda bateu a meta. Resgate seu prêmio.', btn: 'Ver baús', act: 'aba', arg: 'guilda' };
   if (S.nivel >= NIVEL_GUILDA && S.guilda.id < 0) return { ic: '🛡️', t: 'Entre numa guilda', d: 'Jogue com outros fazendeiros e ganhe baús toda semana.', btn: 'Ver guildas', act: 'aba', arg: 'guilda' };
@@ -337,6 +345,7 @@ function viewOvos() {
     <section class="card"><h2>Recompensas</h2><div class="row">
         <button class="btn ad" data-cd="ovo" data-label="Ovo grátis" data-act="ovoGratis">${PLAY}<span class="cdl">Ovo grátis</span> <span class="tag">Anúncio</span></button>
         <button class="btn ad" data-cd="gemas" data-label="+2 gemas" data-act="gemasGratis">${PLAY}<span class="cdl">+2 gemas</span> <span class="tag">Anúncio</span></button></div>${S.nivel >= OVOS.brilhante.nivel && brilhoDisponivel(S, diaDe(Date.now())) ? `<div class="row" style="margin-top:8px"><button class="btn ad" data-act="brilho">${PLAY}Ovo brilhante do dia <span class="tag">Anúncio</span></button></div>` : ''}</section>
+    ${cardLote()}${cardCruz()}
     <section class="card"><details><summary>Chances de cada ovo</summary>
       <div class="scroll-x"><table><thead><tr><th>Raridade</th>${Object.keys(OVOS).map(id => '<th>' + OVOS[id].nome.replace('Ovo de ', '').replace('Ovo ', '') + '</th>').join('')}<th>Produção</th></tr></thead><tbody>${linhas}</tbody></table></div>
       <p class="muted" style="margin-top:8px">Garantia: a cada ${PITY_LIMIT} invocações sem Épico ou melhor, a próxima é Épico (92%) ou Lendário (8%). Bicho repetido sobe 1 nível, até o nível ${LVL_MAX}.</p></details></section>`;
@@ -370,7 +379,8 @@ function viewObras() {
 const segHTML = (acao, atual, itens) => `<div class="seg n${itens.length}" role="tablist">${itens.map(([k, t]) => `<button role="tab" class="${atual === k ? 'on' : ''}" data-act="${acao}" data-arg="${k}" aria-selected="${atual === k}">${t}</button>`).join('')}</div>`;
 const relTempo = ms => { const m = Math.max(1, Math.round(ms / 60000)); return m < 60 ? 'há ' + m + ' min' : 'há ' + Math.floor(m / 60) + ' h'; };
 function viewGuilda() {
-  const seg = segHTML('subG', subG, [['guilda', 'Guilda'], ['ranking', 'Sítios'], ['guildas', 'Guildas']]);
+  const seg = segHTML('subG', subG, [['guilda', 'Guilda'], ['chefe', 'Chefe'], ['ranking', 'Sítios'], ['guildas', 'Guildas']]);
+  if (subG === 'chefe') return seg + viewChefe();
   if (subG === 'ranking') return seg + viewRanking();
   if (subG === 'guildas') return seg + (window.ON && ON.ativo ? viewGuildasRankOn() : viewGuildasSim());
   if (window.ON && ON.ativo) return seg + viewGuildaOn();
@@ -423,7 +433,7 @@ function missaoDesc(m) {
   return m.t === 'coletar' ? 'Colete ' + fmt(m.meta) + ' moedas' : m.t === 'chocar' ? 'Choque ' + m.meta + (m.meta > 1 ? ' ovos' : ' ovo') : m.t === 'obra' ? 'Melhore ' + m.meta + (m.meta > 1 ? ' obras' : ' obra') : m.t === 'anuncio' ? 'Assista 1 anúncio recompensado' : 'Consiga um bicho ' + RARIDADES[m.min].nome + ' ou melhor';
 }
 function viewMetas() {
-  const seg = segHTML('subM', subM, [['missoes', 'Missões'], ['pedidos', 'Pedidos'], ['evento', 'Evento'], ['album', 'Álbum']]);
+  const seg = segHTML('subM', subM, [['missoes', 'Missões'], ['pedidos', 'Pedidos'], ['evento', 'Eventos'], ['album', 'Álbum']]);
   if (subM === 'pedidos') return seg + viewPedidos();
   if (subM === 'evento') return seg + viewEvento();
   if (subM === 'album') {
@@ -435,7 +445,7 @@ function viewMetas() {
     }).join('');
     const evc = PETS_EVENTO.map(p => { const o = S.pets[p.id]; return o ? `<div class="cell" style="--rc:var(--r3)" title="${esc(p.nome)}"><span class="em">${p.em}</span><span class="nm">Nv ${o.lvl}</span></div>` : `<div class="cell off" style="--rc:var(--r3)" title="Exclusivo de evento"><span class="em">${p.em}</span><span class="nm">evento</span></div>`; }).join('');
     const grupoEv = `<section class="card" style="--rc:var(--r3)"><div class="between"><h3>🎪 Exclusivos de evento <span class="muted num">${PETS_EVENTO.filter(p => S.pets[p.id]).length}/${PETS_EVENTO.length}</span></h3></div><div class="cgrid">${evc}</div></section>`;
-    return seg + `<section class="card"><div class="between"><h2>Álbum</h2><span class="big">${tem}/${PETS.length + PETS_EVENTO.length}</span></div><div class="bar"><i style="width:${tem / (PETS.length + PETS_EVENTO.length) * 100}%"></i></div><p class="muted">Complete uma raridade inteira para ganhar um bônus permanente de moedas. Bônus atual: <b>+${Math.round(bonusSets(S) * 100)}%</b>.</p></section>${grupos}${grupoEv}`;
+    return seg + `<section class="card"><div class="between"><h2>Álbum</h2><span class="big">${tem}/${PETS.length + PETS_EVENTO.length}</span></div><div class="bar"><i style="width:${tem / (PETS.length + PETS_EVENTO.length) * 100}%"></i></div><p class="muted">Complete uma raridade inteira para ganhar um bônus permanente de moedas. Bônus atual: <b>+${Math.round(bonusSets(S) * 100)}%</b>.</p></section>${cardCombos()}${grupos}${grupoEv}`;
   }
   const hoje = diaDe(Date.now());
   const cards = S.missoes.map((m, i) => `<section class="card"><div class="between"><h3>${missaoDesc(m)}</h3></div>
@@ -443,7 +453,7 @@ function viewMetas() {
     <div class="between"><span class="muted num">${fmt(m.prog)}/${fmt(m.meta)}</span><span class="muted">${textoRec(m.rec)}</span></div>
     ${m.feita ? `<div class="row"><button class="btn primary" data-act="resgatar" data-arg="${i}">Resgatar</button><button class="btn ad" data-act="resgatar2x" data-arg="${i}">${PLAY}Em dobro <span class="tag">Anúncio</span></button></div>` : '<button class="btn ghost" disabled>Em andamento</button>'}</section>`).join('');
   const prox = []; for (let n = S.nivel + 1; n <= NIVEL_MAX && prox.length < 4; n++) { const d = desbloqueios(n); if (d.length) prox.push(`<p class="muted">Nível ${n}: <b>${d.join(', ')}</b></p>`); }
-  return seg + cardDiario(hoje) + cards + `<section class="card"><h2>Próximos desbloqueios</h2>${prox.join('') || '<p class="muted">Você liberou tudo.</p>'}</section><button class="btn ghost" data-act="aba" data-arg="dev">Painel de anúncios e dados</button>`;
+  return seg + cardDiario(hoje) + cards + cardConquistas() + `<section class="card"><h2>Próximos desbloqueios</h2>${prox.join('') || '<p class="muted">Você liberou tudo.</p>'}</section><button class="btn ghost" data-act="aba" data-arg="dev">Painel de anúncios e dados</button>`;
 }
 function viewDev() {
   const a = S.ads, tot = Object.keys(a).reduce((x, k) => x + a[k], 0);
@@ -451,7 +461,7 @@ function viewDev() {
   return `<section class="card"><h2>Painel de anúncios</h2>
       <p class="muted">Valores simulados para estimar o potencial do jogo. O eCPM real varia por país, rede de anúncios e público.</p>
       <div class="scroll-x"><table><thead><tr><th>Anúncio recompensado</th><th>Assistidos</th></tr></thead><tbody>
-        ${linha('Coletar em dobro', a.dobro)}${linha('Chocar agora', a.acelerar)}${linha('Ovo grátis', a.ovo)}${linha('+2 gemas', a.gemas)}${linha('Missão em dobro', a.missao)}${linha('Bônus diário em dobro', a.diario)}${linha('Baú extra do dia', a.bau)}${linha('Ovo brilhante', a.brilho)}${linha('Adubo da horta', a.adubo)}${linha('Pedido em dobro', a.pedido)}
+        ${linha('Coletar em dobro', a.dobro)}${linha('Chocar agora', a.acelerar)}${linha('Ovo grátis', a.ovo)}${linha('+2 gemas', a.gemas)}${linha('Missão em dobro', a.missao)}${linha('Bônus diário em dobro', a.diario)}${linha('Baú extra do dia', a.bau)}${linha('Ovo brilhante', a.brilho)}${linha('Adubo da horta', a.adubo)}${linha('Pedido em dobro', a.pedido)}${linha('Golpe extra no chefe', a.chefe || 0)}
         <tr><td><b>Total</b></td><td><b>${tot}</b></td></tr></tbody></table></div></section>
     <section class="card"><h2>Suas métricas</h2><div class="scroll-x"><table><tbody>
         ${linha('Dias jogados', Object.keys(S.metr.dias || {}).length)}${linha('Sessões', S.metr.sessoes || 0)}${linha('Ovos chocados', S.stats.chocados)}${linha('Pedidos entregues', S.stats.pedidos || 0)}${linha('Prestígios', S.prest || 0)}${linha('Compras simuladas', S.metr.compra_simulada || 0)}${linha('Convites compartilhados', S.metr.convite || 0)}</tbody></table></div>
@@ -500,9 +510,10 @@ function tick() {
   const navBtn = k => document.querySelector('#nav button[data-arg="' + k + '"]');
   const pend = S.missoes.some(m => m && m.feita) || S.diario.ultimo !== diaDe(now) || temPendenciaMetas();
   navBtn('metas').classList.toggle('has', pend);
-  navBtn('obras').classList.toggle('has', temMelhoria() || hortaPronta());
-  navBtn('guilda').classList.toggle('has', bauPronto(now));
-  navBtn('ovos').classList.toggle('has', S.eggs.some(e => e && now >= e.pronto));
+  navBtn('obras').classList.toggle('has', temMelhoria() || hortaPronta() || oficinaPronta());
+  navBtn('guilda').classList.toggle('has', bauPronto(now) || chefeLivres(now) > 0);
+  navBtn('ovos').classList.toggle('has', S.eggs.some(e => e && now >= e.pronto) || cruzPronto() || (S.nivel >= LOTE_NIVEL && (S.ing || 0) >= LOTE_N));
+  const ci = $('#chipIng'); if (ci) { const m = (S.ing || 0) > 0; if (ci.hidden === m) ci.hidden = !m; $('#vIng').textContent = S.ing || 0; }
   const cap = capCeleiro(S), q = Math.floor(S.barn), p = prodTotal(S), max = S.nivel >= NIVEL_MAX, prox = xpProx(S.nivel);
   $('#hudLv').textContent = S.nivel; $('#hudTit').textContent = tituloDe(S.nivel);
   const xpPct = max ? 100 : Math.min(100, S.xp / prox * 100);
@@ -574,8 +585,8 @@ function boasVindas() {
     if (ganhoCeleiro >= 1 || safras) {
       const cheio = S.barn >= capCeleiro(S) - 1;
       abrirModal(`<div class="sheet pop"><p class="eyebrow">Bem-vindo de volta</p><h2>Seu sítio trabalhou ${duracao(ocioso)}</h2>
-        <p class="muted">${ganhoCeleiro >= 1 ? '+' + fmt(ganhoCeleiro) + ' moedas esperando no celeiro' : ''}${safras ? '<br>' + safras + (safras > 1 ? ' safras concluídas' : ' safra concluída') + ' (+' + fmt(S.coins - coinsAntes) + ' moedas)' : ''}${cheio ? '<br>O celeiro encheu. Melhore o Celeiro para guardar mais.' : ''}</p>
-        <button class="btn primary" data-act="fechar">Continuar</button></div>`);
+        <p class="muted">${ganhoCeleiro >= 1 ? '+' + fmt(ganhoCeleiro) + ' moedas esperando no celeiro' : ''}${(() => { const n = S.oficina.filter(o => o && Date.now() >= o.fim).length, h = S.horta.filter(x => x && Date.now() >= x.pronto).length; return (n ? '<br>' + n + ' receita(s) pronta(s) na oficina' : '') + (h ? '<br>' + h + ' canteiro(s) prontos na horta' : '') + (S.cruz && Date.now() >= S.cruz.pronto ? '<br>Um filhote nasceu!' : ''); })()}${safras ? '<br>' + safras + (safras > 1 ? ' safras concluídas' : ' safra concluída') + ' (+' + fmt(S.coins - coinsAntes) + ' moedas)' : ''}${cheio ? '<br>O celeiro encheu. Melhore o Celeiro para guardar mais.' : ''}</p>
+        <div class="row">${ganhoCeleiro >= 20 ? `<button class="btn ad" data-act="voltaDobro">${PLAY}Coletar em dobro <span class="tag">${semAnuncios(S) ? 'Passe' : 'Anúncio'}</span></button>` : ''}<button class="btn primary" data-act="fechar">Continuar</button></div></div>`);
     }
   }
   drenar();

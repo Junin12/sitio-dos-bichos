@@ -135,3 +135,83 @@ resumo(40,72); resumo(180,720); resumo(480,1440);
   assert(Math.abs(multProd(S) / multMoinho(0) / (1 + bonusSets(S)) / (1 + bonusDecor(S)) - 1.25) < 1e-9, 'multiplicador permanente');
   console.log('regras novas: ok');
 })();
+
+/* ===== mecânicas de longo prazo ===== */
+(function () {
+  const assert = (c, m) => { if (!c) { console.log('FALHOU:', m); process.exitCode = 1; } };
+  const t0 = Date.UTC(2026, 9, 12, 12, 0, 0), rng = mulberry(11);
+  let S = novoEstado(t0); S.ts = t0;
+  // ingressos e lote
+  S.nivel = 4; S.ing = 10; assert(sortearLote(S, 'ingresso', rng).erro === 'nivel', 'lote exige nível');
+  S.nivel = 5; ganharIng(S, 0); S.ing = 9; assert(sortearLote(S, 'ingresso', rng).erro === 'ingressos', 'faltam ingressos');
+  S.ing = 10; const l = sortearLote(S, 'ingresso', rng);
+  assert(l.ok && l.lista.length === 10 && S.ing === 0 && S.summons === 10, 'lote de 10');
+  assert(l.lista.some(x => x.r >= 2), 'lote garante Raro'); assert(Object.keys(S.pets).length >= 3, 'lote entrega bichos');
+  S.gems = 34; assert(sortearLote(S, 'gemas', rng).erro === 'gemas', 'lote por gemas'); S.gems = 35; const gl = sortearLote(S, 'gemas', rng); assert(gl.ok && S.gems === 0 + gl.ups.reduce((a, u) => a + u.gems, 0), 'lote paga gemas');
+  let raros = 0, n = 0; for (let i = 0; i < 300; i++) { const T = novoEstado(t0); T.nivel = 5; T.ing = 10; const r = sortearLote(T, 'ingresso', rng); n += 10; raros += r.lista.filter(x => x.r >= 3).length; }
+  assert(raros / n > 0.04 && raros / n < 0.2, 'taxa de Épico+ do lote plausível: ' + (raros / n).toFixed(3));
+  // ingressos vêm de missão, diário e baú
+  S = novoEstado(t0); S.ts = t0; S.missoes[0].feita = true; resgatarMissao(S, 0, false); assert(S.ing === 1, 'missão dá ingresso');
+  S = novoEstado(t0); S.diario = { ultimo: diaDe(t0) - 1, seq: 6 }; resgatarDiario(S, diaDe(t0), false); assert(S.ing === 3, 'dia 7 dá 3 ingressos');
+  // oficina
+  S = novoEstado(t0); S.ts = t0; S.nivel = 6; S.coins = 1e6; aplicarPet(S, 'leao'); ajustarTudo(S, t0, rng);
+  assert(S.oficina.length === 1, 'uma vaga na oficina'); assert(iniciarReceita(S, 0, 'pao', t0).erro === 'nivel', 'receita exige nível');
+  const c0 = S.coins, custo = custoReceita(S, 'queijo'); assert(iniciarReceita(S, 0, 'queijo', t0).ok && S.coins === c0 - custo, 'inicia receita');
+  assert(iniciarReceita(S, 0, 'queijo', t0).erro === 'ocupada', 'vaga ocupada'); assert(colherReceita(S, 0, t0 + 1000).erro === 'cedo', 'receita no forno');
+  assert(acelerarReceita(S, 0, t0).ok && S.oficina[0].fim - t0 === 150000, 'anúncio corta pela metade');
+  const cr = colherReceita(S, 0, t0 + 150000); assert(cr.ok && cr.coins > custo, 'receita dá lucro'); assert(S.oficina[0] === null, 'vaga livre');
+  S.nivel = 14; ajustarTudo(S, t0, rng); assert(S.oficina.length === 2, 'segunda vaga no nível 14');
+  S.nivel = 20; ajustarTudo(S, t0, rng); assert(S.oficina.length === 3, 'terceira vaga no nível 20');
+  // pesquisa
+  S = novoEstado(t0); S.ts = t0; S.nivel = 8; S.coins = 1e7; aplicarPet(S, 'leao'); const prod0 = prodTotal(S), cap0 = capCeleiro(S);
+  assert(iniciarPesquisa(S, 'prod', t0).ok, 'inicia pesquisa'); assert(iniciarPesquisa(S, 'silo', t0).erro === 'ocupada', 'uma pesquisa por vez');
+  assert(ajustarPesquisa(S, t0 + 1000) === null, 'ainda pesquisando');
+  assert(acelerarPesquisa(S, t0).ok && S.pesq.at.fim - t0 === 300000, 'anúncio acelera pesquisa');
+  assert(ajustarPesquisa(S, t0 + 300000) === 'prod' && pq(S, 'prod') === 1, 'conclui pesquisa'); assert(Math.abs(prodTotal(S) / prod0 - 1.05) < 1e-9, 'pesquisa dá +5%');
+  assert(iniciarPesquisa(S, 'prod', t0 + 4e5).erro === 'cap', 'nível limita a pesquisa'); S.pesq.n.silo = 2; assert(capCeleiro(S) > cap0, 'silo aumenta o celeiro');
+  const co = custoOvo(S, 'palha'); S.pesq.n.ovos = 4; assert(custoOvo(S, 'palha') < co, 'ovos mais baratos');
+  // combos
+  S = novoEstado(t0); ['trex', 'dino'].forEach(id => aplicarPet(S, id)); assert(bonusCombos(S) === 0, 'combo incompleto');
+  aplicarPet(S, 'mamute'); assert(Math.abs(bonusCombos(S) - 0.2) < 1e-9, 'combo pré-história +20%');
+  for (const c of COMBOS) for (const id of c.ids) assert(PET_POR_ID[id], 'combo ' + c.id + ' usa bicho real ' + id);
+  // cruzamento
+  S = novoEstado(t0); S.ts = t0; S.nivel = 10; S.coins = 1e7; aplicarPet(S, 'coelho'); aplicarPet(S, 'gato');
+  assert(iniciarCruz(S, 'coelho', 'gato', t0).erro === 'lvl', 'pais precisam de nível 3');
+  S.pets.coelho.lvl = 3; S.pets.gato.lvl = 3; assert(iniciarCruz(S, 'coelho', 'coelho', t0).erro === 'par', 'precisa de dois bichos');
+  assert(iniciarCruz(S, 'coelho', 'gato', t0).ok && S.cruz, 'inicia cruzamento'); assert(abrirCruz(S, t0 + 1000, rng).erro === 'cedo', 'ainda não nasceu');
+  assert(acelerarCruz(S, t0).ok && S.cruz.pronto - t0 === 1800000, 'anúncio acelera cruzamento');
+  const ab = abrirCruz(S, t0 + 1800000, rng); assert(ab.ok && ab.r >= 0 && S.pets[ab.pet.id] && !S.cruz, 'cruzamento entrega bicho');
+  let sobe = 0; for (let i = 0; i < 400; i++) { const T = novoEstado(t0); T.nivel = 10; aplicarPet(T, 'coelho'); aplicarPet(T, 'gato'); T.cruz = { a: 'coelho', b: 'gato', pronto: t0 }; if (abrirCruz(T, t0, rng).r > 0) sobe++; }
+  assert(sobe > 20 && sobe < 120, 'chance de subir de raridade plausível: ' + sobe + '/400');
+  // evolução
+  S = novoEstado(t0); S.ts = t0; S.coins = 1e9; aplicarPet(S, 'leao'); assert(evoluir(S, 'leao').erro === 'lvl', 'evolução exige nível máximo');
+  S.pets.leao.lvl = LVL_MAX; assert(evoluir(S, 'leao').erro === 'frag', 'faltam fragmentos');
+  const p1 = prodTotal(S); for (let i = 0; i < 3; i++) assert(aplicarPet(S, 'leao').frag, 'repetido no máximo dá fragmento');
+  assert(S.pets.leao.frag === 3, 'fragmentos acumulam'); assert(evoluir(S, 'leao').ok && estagio(S, 'leao') === 1, 'evolui'); assert(Math.abs(prodTotal(S) / p1 - 1.5) < 1e-9, 'estágio 1 dá +50%');
+  S.pets.leao.frag = 99; evoluir(S, 'leao'); evoluir(S, 'leao'); assert(estagio(S, 'leao') === 3 && evoluir(S, 'leao').erro === 'max', 'estágio máximo 3');
+  // conquistas
+  S = novoEstado(t0); S.ts = t0; S.stats.chocados = 60; assert(conqProntas(S) >= 1, 'conquista pronta');
+  const g0 = S.gems; assert(resgatarConq(S, 'ovos').ok && S.conq.ovos === 1 && S.gems === g0 + 3, 'resgata a faixa 1'); assert(conqEstado(S, CONQS[0]).pronta, 'faixa 2 também (60 ≥ 50)');
+  assert(resgatarConq(S, 'ovos').ok && S.ing === 1, 'faixa 2 dá ingresso'); assert(resgatarConq(S, 'ovos').erro === 'meta', 'faixa 3 ainda não');
+  // chefe da guilda (offline)
+  S = novoEstado(t0); S.ts = t0; S.nivel = 8; ajustarTudo(S, t0, rng); assert(golpearChefeSim(S, t0).erro === 'sem_guilda', 'sem guilda sem chefe');
+  entrarGuilda(S, 0, t0); S.guilda.nivel = 1; aplicarPet(S, 'leao'); const e0 = chefeEstadoSim(S, t0);
+  assert(e0.hp === 250000 && e0.golpes_hoje === 0, 'estado do chefe'); assert(chefeGratisRest(S, t0) === 3, '3 golpes grátis');
+  for (let i = 0; i < 6; i++) assert(golpearChefeSim(S, t0).ok, 'golpe ' + i); assert(golpearChefeSim(S, t0).erro === 'limite_diario', 'limite de 6 golpes');
+  assert(golpearChefeSim(S, t0 + DIA).ok, 'golpes voltam no dia seguinte'); assert(chefeEstadoSim(S, t0).meu_dano === S.chefe.dano, 'dano acumulado');
+  S.chefe.dano = 300000; assert(chefeEstadoSim(S, t0).derrotado, 'derrotado'); const rc = resgatarChefeSim(S, t0); assert(rc.ok && S.gems >= 8, 'prêmio do chefe'); assert(resgatarChefeSim(S, t0).erro === 'ja', 'prêmio só uma vez');
+  ajustarExtras(S, t0 + 8 * DIA); assert(S.chefe.dano === 0 && !S.chefe.res, 'chefe novo na semana seguinte'); assert(chefeDaSemana(semanaDe(t0)).nome !== chefeDaSemana(semanaDe(t0) + 1).nome, 'chefe muda');
+  // corrida de 48 h
+  S = novoEstado(t0); S.ts = t0; S.nivel = 3; ajustarExtras(S, t0); pontoCorrida(S, 50); assert(S.corrida.pts === 50, 'pontos da corrida');
+  assert(resgatarCorrida(S, 0, t0).ok && resgatarCorrida(S, 0, t0).erro === 'ja' && resgatarCorrida(S, 1, t0).erro === 'meta', 'metas da corrida');
+  assert(corridaResta(t0) > 0 && corridaResta(t0) <= 2 * 86400, 'tempo restante da corrida'); ajustarExtras(S, t0 + 2 * DIA); assert(S.corrida.pts === 0, 'corrida zera a cada 48 h');
+  const rk = corridaSim(S, t0 + DIA); assert(rk.length === 13 && rk.some(x => x.voce), 'ranking simulado da corrida');
+  S.nivel = 2; S.ts = t0; pontoCorrida(S, 10); assert(S.corrida.pts === 0, 'corrida exige nível 3');
+  // pontos de evento e corrida andam juntos; prestígio mantém pesquisa e conquistas
+  S = novoEstado(t0); S.ts = t0; S.nivel = 25; S.pesq.n.prod = 3; S.conq.ovos = 2; S.ing = 4; const pr = prestigiar(S, t0);
+  assert(pr.ok && S.pesq.n.prod === 3 && S.conq.ovos === 2 && S.ing === 4, 'prestígio mantém pesquisa, conquistas e ingressos');
+  // save antigo ganha os campos novos
+  S = novoEstado(t0); delete S.oficina; delete S.pesq; delete S.conq; delete S.chefe; delete S.corrida; ajustarTudo(S, t0, rng);
+  assert(Array.isArray(S.oficina) && S.pesq.n && S.conq && S.chefe && S.corrida, 'ajustarTudo completa saves antigos');
+  console.log('mecânicas de longo prazo: ok');
+})();

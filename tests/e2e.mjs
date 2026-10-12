@@ -73,6 +73,59 @@ const bom = async (p, tag) => ok(p.erros.length === 0, tag + ' sem erros de JS '
   await p.close();
 }
 
+/* ---------- offline: mecânicas de longo prazo pela tela ---------- */
+{
+  const save = JSON.stringify({ v: 2, ts: Date.now() - 600e3, coins: 5e7, gems: 100, nivel: 22, xp: 0, slots: 5, visto: true, tut: { passo: 9, fim: true }, ing: 12,
+    pets: { coelho: { lvl: 10, frag: 3 }, gato: { lvl: 5 }, leao: { lvl: 4 }, trex: { lvl: 3 }, dino: { lvl: 2 } }, obras: { celeiro: 3, chocadeira: 2, moinho: 3, estufa: 2 }, guilda: { id: 0, entrou: Date.now() - 5 * 86400e3, doado: 0, nivel: 1, pontos: 40, semana: -1, baus: [0, 0, 0, 0], ajudou: {}, parab: {}, parabDia: { dia: -1, qtd: 0 } } });
+  const p = await abrir('sitio-dos-bichos.html', pg => pg.addInitScript(s => { localStorage.setItem('sitio-dos-bichos.v1', s); }, save));
+  await p.evaluate(() => fecharModal()); await p.waitForTimeout(200);
+  ok(await p.isVisible('#chipIng'), 'ficha de ingressos aparece no topo');
+  // sorteio em lote
+  await p.evaluate(() => ACOES.aba('ovos')); await p.waitForTimeout(200);
+  await p.click('[data-act="lote"][data-arg="ingresso"]'); await p.waitForTimeout(300);
+  ok(await p.evaluate(() => S.ing === 2 && S.stats.chocados >= 10), 'sorteio em lote gasta 10 ingressos');
+  ok((await p.locator('.cgrid .cell').count()) === 10, 'lote mostra 10 bichos'); await p.evaluate(() => fecharModal());
+  // cruzamento
+  await p.evaluate(() => { S.coins = 5e7; ACOES.aba('ovos'); }); await p.waitForTimeout(200);
+  await p.selectOption('#cruzA', 'gato'); await p.selectOption('#cruzB', 'leao'); await p.click('[data-act="cruzar"]'); await p.waitForTimeout(250);
+  ok(await p.evaluate(() => !!S.cruz && S.cruz.a === 'gato'), 'cruzamento iniciado pela tela');
+  await p.evaluate(() => { S.cruz.pronto = Date.now() - 1; render(); }); await p.click('[data-act="cruzAbrir"]'); await p.waitForTimeout(250);
+  ok(await p.evaluate(() => !S.cruz && S.stats.cruzados === 1), 'filhote do cruzamento entregue'); await p.evaluate(() => fecharModal());
+  // evolução pelo modal do bicho
+  await p.evaluate(() => { S.pets.coelho.lvl = 10; S.pets.coelho.frag = 3; modalBicho('coelho'); }); await p.waitForTimeout(200);
+  await p.click('[data-act="evoluir"]'); await p.waitForTimeout(250);
+  ok(await p.evaluate(() => S.pets.coelho.est === 1), 'bicho evoluiu pela tela'); await p.evaluate(() => fecharModal());
+  // oficina e pesquisa
+  await p.evaluate(() => { ACOES.aba('obras'); ACOES.subO('oficina'); }); await p.waitForTimeout(200);
+  await p.click('[data-act="receita"][data-arg^="0:queijo"]'); await p.waitForTimeout(200);
+  ok(await p.evaluate(() => !!S.oficina[0]), 'receita na bancada');
+  await p.evaluate(() => { S.oficina[0].fim = Date.now() - 1; render(); }); await p.waitForTimeout(300);
+  await p.click('[data-act="colherRec"]'); ok(await p.evaluate(() => S.oficina[0] === null && S.stats.receitas === 1), 'receita colhida');
+  await p.evaluate(() => ACOES.subO('pesq')); await p.waitForTimeout(200);
+  await p.click('[data-act="pesquisar"][data-arg="prod"]'); await p.waitForTimeout(200);
+  ok(await p.evaluate(() => !!S.pesq.at), 'pesquisa iniciada');
+  await p.evaluate(() => { S.pesq.at.fim = Date.now() - 1; }); await p.waitForTimeout(4600);
+  ok(await p.evaluate(() => pq(S, 'prod') === 1), 'pesquisa concluída sozinha');
+  // conquistas, combos, eventos/corrida
+  await p.evaluate(() => { S.stats.chocados = 60; ACOES.aba('metas'); ACOES.subM('missoes'); }); await p.waitForTimeout(250);
+  await p.click('[data-act="conqResg"][data-arg="ovos"]'); ok(await p.evaluate(() => S.conq.ovos === 1), 'conquista resgatada pela tela');
+  await p.evaluate(() => ACOES.subM('album')); await p.waitForTimeout(200); ok(await p.isVisible('text=Pré-história'), 'combos listados no álbum');
+  await p.evaluate(() => { S.corrida.pts = 130; ACOES.subM('evento'); }); await p.waitForTimeout(250);
+  ok(await p.isVisible('text=Corrida de 48 h'), 'corrida aparece em Eventos');
+  await p.click('[data-act="corrResg"][data-arg="1"]'); ok(await p.evaluate(() => S.corrida.res[1] === 1), 'meta da corrida resgatada');
+  // chefe da guilda
+  await p.evaluate(() => { ACOES.aba('guilda'); ACOES.subG('chefe'); }); await p.waitForTimeout(250);
+  await p.click('[data-act="chefeGolpe"]'); await p.waitForTimeout(200);
+  ok(await p.evaluate(() => S.chefe.dano > 0 && S.chefe.hoje === 1), 'golpe no chefe');
+  for (let i = 0; i < 2; i++) await p.click('[data-act="chefeGolpe"]');
+  await p.click('[data-act="chefeGolpe"]'); await p.waitForTimeout(150); ok(await p.isVisible('#adOk') || await p.isVisible('text=Anúncio simulado'), 'golpe extra pede anúncio');
+  await p.evaluate(() => fecharModal());
+  // o jogo segue sem erros em todas as abas
+  for (const [a, f] of [['sitio'], ['ovos'], ['obras', 'horta'], ['obras', 'decor'], ['guilda'], ['metas'], ['ajustes']]) { await p.evaluate(([a, f]) => { ACOES.aba(a); if (f) ACOES.subO(f); }, [a, f]); await p.waitForTimeout(120); }
+  await bom(p, 'mecânicas novas offline');
+  await p.close();
+}
+
 /* ---------- online: a página real falando com o Postgres de verdade ---------- */
 try {
   const { criarBanco, removerBanco, cliente, admin, consulta } = await import('../backend/tests/ajuda.mjs');
@@ -108,6 +161,19 @@ try {
   ok(await p.isVisible('text=Guilda contra guilda'), 'tela guilda x guilda');
   await p.evaluate(() => { ACOES.aba('ajustes'); }); await p.waitForTimeout(1200);
   ok(await p.evaluate(() => !!ON.convite && /^[0-9A-F]{7}$/.test(ON.convite.codigo)), 'código de convite carregado');
+  // código promocional, corrida e chefe falando com o servidor de verdade
+  admin(db, `insert into codigos_promo (codigo, gemas, ingressos) values ('TESTE10', 10, 2)`);
+  await p.evaluate(() => { ACOES.aba('ajustes'); }); await p.waitForTimeout(300);
+  const gemasAntes = await p.evaluate(() => S.gems);
+  await p.fill('#codigoIn', 'teste10'); await p.click('[data-act="codigoUsar"]'); await p.waitForTimeout(1200);
+  ok(await p.evaluate(g => S.gems === g + 10 && S.ing === 2, gemasAntes), 'código promocional resgatado online');
+  await p.evaluate(() => { S.nivel = 6; pontoCorrida(S, 25); }); await p.waitForTimeout(9500);
+  ok(consulta(db, `select coalesce(sum(pontos),0)::int n from corrida_pontos where user_id='${uid}'`)[0].n >= 25, 'pontos da corrida enviados ao servidor');
+  await p.evaluate(() => { ACOES.aba('metas'); ACOES.subM('evento'); }); await p.waitForTimeout(1500);
+  ok(await p.isVisible('text=Ranking'), 'ranking da corrida online');
+  await p.evaluate(() => { ACOES.aba('guilda'); ACOES.subG('chefe'); }); await p.waitForTimeout(1500);
+  await p.click('[data-act="chefeGolpe"]'); await p.waitForTimeout(1500);
+  ok(consulta(db, `select coalesce(sum(dano),0)::int n from chefe_dano where user_id='${uid}'`)[0].n > 0, 'golpe no chefe gravado no servidor');
   await bom(p, 'online');
   removerBanco(db);
 } catch (e) { falhas++; console.log('FALHOU (online):', e.message); }

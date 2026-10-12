@@ -19,6 +19,14 @@ Tudo vive no Postgres do Supabase; o jogo conversa só com funções `jogo_*` (R
    - com a CLI: `supabase link --project-ref SEU_REF && supabase db push`
    - ou colando cada arquivo no **SQL Editor**.
    - A migração 4 (`20261012000400_novidades.sql`) traz prestígio, convites, visitas e curtidas, reações no mural, ranking e prêmio de guilda contra guilda, métricas e exclusão de conta. Quem já aplicou as migrações 1 a 3 só precisa colar e rodar a 4 (uma vez; ela não é repetível).
+   - A migração 5 (`20261012000500_mecanicas.sql`) traz o chefe da guilda, a corrida de 48 horas e os códigos promocionais. Rode depois da 4, uma vez só.
+
+   Para criar um código promocional (ex.: para divulgação), rode no SQL Editor:
+
+   ```sql
+   insert into public.codigos_promo (codigo, gemas, ingressos, max_usos, valido_ate)
+   values ('BEMVINDO', 20, 2, 500, now() + interval '30 days');  -- código em MAIÚSCULAS; max_usos e valido_ate são opcionais
+   ```
 4. Copie a **Project URL** e a **anon key** (Settings → API) para o jogo:
 
 ```js

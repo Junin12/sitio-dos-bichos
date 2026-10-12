@@ -283,3 +283,14 @@ a{color:var(--sky-d)}
 .eco main.in>*{animation:none}
 @media (prefers-reduced-motion: reduce){.evtpet{animation:none}}
 .toast{pointer-events:none}
+.chip[hidden]{display:none}
+.seg.n5 button{font-size:12.5px;padding:8px 1px}
+.chip>span{white-space:nowrap}
+@media (max-width:440px){
+  .top{gap:6px}
+  .chip{font-size:14px;padding:4px 8px 4px 5px;gap:4px}
+  .chip svg{width:19px;height:19px}
+  .iconbtn{width:34px;height:34px}
+  .lvring{width:44px;height:44px}.lvring b{font-size:18px}
+}
+@media (max-width:440px){.top:has(#chipIng:not([hidden])) .hudwho{display:none}.top:has(#chipIng:not([hidden])){justify-content:space-between}}

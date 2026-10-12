@@ -29,6 +29,7 @@ function modalBicho(id) {
     <div><div class="bar"><i style="width:${(f * 100).toFixed(0)}%"></i></div><p class="muted" style="margin-top:6px">${humor(f)} Felicidade ${Math.round(f * 100)}%: até +15% de produção enquanto estiver feliz.</p></div>
     <div class="row"><button class="btn primary" data-act="carinho" data-arg="${id}" ${esp ? 'disabled' : ''}>${esp ? 'Carinho em ' + duracao(esp / 1000) : 'Fazer carinho'}</button>
       <button class="btn ghost" data-act="racao" data-arg="${id}">Ração · ${fmt(custoRacao(S))}</button></div>
+ ${blocoEvolucao(id)}
     <input id="petNome" class="inp" maxlength="14" placeholder="Dar um nome" value="${esc(o.nome || '')}" aria-label="Nome do bicho">
     <div class="row"><button class="btn ghost" data-act="renomear" data-arg="${id}">Salvar nome</button><button class="btn ghost" data-act="fechar">Fechar</button></div></div>`);
 }
@@ -57,8 +58,8 @@ function cardPresentes() {
 
 /* ---------- Obras: Horta e Decoração ---------- */
 function viewObrasTab() {
-  const seg = segHTML('subO', subO, [['obras', 'Obras'], ['horta', 'Horta'], ['decor', 'Decoração']]);
-  return seg + (subO === 'horta' ? viewHorta() : subO === 'decor' ? viewDecor() : viewObras());
+  const seg = segHTML('subO', subO, [['obras', 'Obras'], ['horta', 'Horta'], ['oficina', 'Oficina'], ['pesq', 'Pesquisa'], ['decor', 'Decor.']]);
+  return seg + (subO === 'horta' ? viewHorta() : subO === 'oficina' ? viewOficina() : subO === 'pesq' ? viewPesquisa() : subO === 'decor' ? viewDecor() : viewObras());
 }
 function viewHorta() {
   if (S.nivel < CULTIVOS.cenoura.nivel) return `<section class="card"><h2>Horta</h2><p class="muted">Plante legumes e frutas, colha e entregue aos clientes por moedas e gemas. Libera no nível ${CULTIVOS.cenoura.nivel}.</p></section>`;
@@ -115,7 +116,7 @@ function viewEvento() {
       <div class="evtpet ${tem ? '' : 'sombra'}">${pet.em}</div><p class="muted" style="text-align:center">Bicho exclusivo da semana: <b>${esc(pet.nome)}</b>${tem ? ' (você já tem)' : ''}</p>
       <div class="bar"><i style="width:${Math.min(100, S.evt.pts / EVT_METAS[3] * 100)}%"></i></div>
       <p class="muted num">${S.evt.pts} pontos. Ganhe pontos chocando ovos (+3), coletando, colhendo (+2) e entregando pedidos (+5).</p></section>
-    <section class="card"><h3>Prêmios</h3>${premios}</section>`;
+    <section class="card"><h3>Prêmios</h3>${premios}</section>${viewCorrida()}`;
 }
 
 /* ---------- Ajustes ---------- */
@@ -146,6 +147,7 @@ function viewAjustes() {
     <section class="card"><h2>Convidar amigos</h2><p class="muted">Quem entra pelo seu link ganha 10 gemas, e você ganha 15 gemas por amigo que chegar ao nível 3 (até 20 amigos).</p>${conv}
       <div class="row"><button class="btn primary" data-act="convidar">Compartilhar convite</button>${on ? '<button class="btn ghost" data-act="convResg">Resgatar prêmios</button>' : ''}</div>
       ${on ? '' : '<p class="muted">Entre no modo online para ter seu código pessoal.</p>'}</section>
+    ${cardCodigo()}
     <section class="card prest"><div class="between"><h2>Prestígio</h2><span class="badge ${p ? 'on' : ''}">${p ? '×' + (1 + 0.25 * p).toLocaleString('pt-BR') + ' moedas' : 'nunca feito'}</span></div>
       <p class="muted">No nível ${NIVEL_PRESTIGIO} você pode recomeçar o sítio. Você mantém todos os bichos, o álbum, a decoração e as gemas, ganha <b>${prestigioGemas(S)} gemas</b> e um bônus permanente de <b>+25% de moedas</b>. Perde o nível, as obras, as moedas e a horta.</p>
       <button class="btn ${podePrestigiar(S) ? 'primary' : 'ghost'}" data-act="prestigio" ${podePrestigiar(S) ? '' : 'disabled'}>${podePrestigiar(S) ? (confirmaPrest ? 'Toque de novo para confirmar' : 'Fazer prestígio') : 'Chegue ao nível ' + NIVEL_PRESTIGIO + ' (você: ' + S.nivel + ')'}</button></section>
@@ -189,6 +191,10 @@ const Notif = (() => {
     if (p > 0 && S.barn < cap0 - 1) l.push({ id: 2, ts: now + (cap0 - S.barn) / p * 1000, t: 'Celeiro cheio', c: 'Suas moedas estão esperando para serem coletadas.' });
     const hort = S.horta.filter(x => x && x.pronto > now).sort((a, b) => a.pronto - b.pronto)[0];
     if (hort) l.push({ id: 3, ts: hort.pronto, t: 'Hora da colheita', c: CULTIVOS[hort.id].em + ' ' + CULTIVOS[hort.id].nome + ' pronto na horta.' });
+    const of = S.oficina.filter(o => o && o.fim > now).sort((a, b) => a.fim - b.fim)[0];
+    if (of) l.push({ id: 6, ts: of.fim, t: 'Receita pronta', c: RECEITAS[of.id].em + ' ' + RECEITAS[of.id].nome + ' saiu da oficina.' });
+    if (S.pesq.at && S.pesq.at.fim > now) l.push({ id: 7, ts: S.pesq.at.fim, t: 'Pesquisa concluída', c: PESQ[S.pesq.at.id].nome + ' está pronta.' });
+    if (S.cruz && S.cruz.pronto > now) l.push({ id: 8, ts: S.cruz.pronto, t: 'Filhote nasceu', c: 'O cruzamento terminou. Venha conhecer o filhote!' });
     l.push({ id: 4, ts: proximaHora(9, now), t: 'Bônus do dia', c: 'Seu prêmio diário está esperando.' });
     const seg = fimSemanaMs(now); if (seg > now) l.push({ id: 5, ts: seg + 9 * HORA, t: 'Novo evento semanal', c: 'Tem bicho exclusivo e prêmios novos no sítio.' });
     return l.filter(n => n.ts > now + 30000);
@@ -202,7 +208,7 @@ const Notif = (() => {
   }
   function cancelar() {
     timers.forEach(clearTimeout); timers = [];
-    try { if (cap()) cap().cancel({ notifications: [1, 2, 3, 4, 5].map(id => ({ id })) }); } catch (e) {}
+    try { if (cap()) cap().cancel({ notifications: [1, 2, 3, 4, 5, 6, 7, 8].map(id => ({ id })) }); } catch (e) {}
   }
   function agendar() {
     cancelar(); if (!S.cfg.notif) return;
@@ -271,13 +277,176 @@ function tickTelas(now) {
     document.querySelectorAll('[data-hortbar]').forEach(el => { const p = S.horta[+el.dataset.hortbar]; if (p) el.style.width = Math.min(100, (1 - (p.pronto - now) / (CULTIVOS[p.id].tempo * 1000)) * 100) + '%'; });
     if (refazer) render();
   }
-  if (now - ultHort > 4000) { ultHort = now; ajustarTudo(S, now); }
+  if ((aba === 'obras' && (subO === 'oficina' || subO === 'pesq')) || aba === 'ovos') tickTempos(now);
+  if (now - ultHort > 4000) {
+    ultHort = now; const pesq = ajustarExtras(S, now); ajustarTudo(S, now);
+    if (pesq) { salvar(); toast('Pesquisa concluída: ' + PESQ[pesq].nome + ' ' + pq(S, pesq)); Som.play('bau'); if (aba === 'obras' && subO === 'pesq') render(); }
+  }
 }
+function corridaPronta() { return S.nivel >= 3 && CORR_METAS.some((m, k) => !S.corrida.res[k] && S.corrida.pts >= m); }
+function oficinaPronta() { const now = Date.now(); return S.oficina.some(o => o && now >= o.fim); }
+function cruzPronto() { return !!(S.cruz && Date.now() >= S.cruz.pronto); }
 function temPendenciaMetas() {
   const now = Date.now();
-  return S.pedidos.some(p => p && podeEntregar(S, p) && now <= p.ate) || EVT_METAS.some((m, k) => !S.evt.res[k] && S.evt.pts >= m && S.nivel >= 3);
+  return conqProntas(S) > 0 || corridaPronta() || S.pedidos.some(p => p && podeEntregar(S, p) && now <= p.ate) || EVT_METAS.some((m, k) => !S.evt.res[k] && S.evt.pts >= m && S.nivel >= 3);
 }
 function hortaPronta() { const now = Date.now(); return S.horta.some(p => p && now >= p.pronto); }
+
+/* ---------- relógios genéricos (oficina, pesquisa, cruzamento) ---------- */
+const tempoTxt = ms => ms < 3600000 ? mmss(ms) : duracao(ms / 1000);
+function relogio(fim, ini) {
+  const now = Date.now(), pronto = now >= fim;
+  return { txt: `<span data-tm="${fim}" data-ready="${pronto ? 1 : 0}">${pronto ? 'Pronto!' : tempoTxt(fim - now)}</span>`, barra: `<div class="bar green"><i data-bar="${ini}:${fim}" style="width:${Math.min(100, (now - ini) / Math.max(1, fim - ini) * 100)}%"></i></div>`, pronto };
+}
+function tickTempos(now) {
+  let refazer = false;
+  document.querySelectorAll('[data-tm]').forEach(el => {
+    const fim = +el.dataset.tm, pronto = now >= fim;
+    if ((el.dataset.ready === '1') !== pronto) refazer = true; else if (!pronto) el.textContent = tempoTxt(fim - now);
+  });
+  document.querySelectorAll('[data-bar]').forEach(el => { const [a, b] = el.dataset.bar.split(':').map(Number); el.style.width = Math.min(100, (now - a) / Math.max(1, b - a) * 100) + '%'; });
+  if (refazer) render();
+}
+const travado = (tit, txt) => `<section class="card"><h2>${tit}</h2><p class="muted">${txt}</p></section>`;
+const rotuloAd = () => semAnuncios(S) ? 'Passe' : 'Anúncio';
+
+/* ---------- oficina ---------- */
+function viewOficina() {
+  if (S.nivel < OFICINA_NIVEL) return travado('Oficina', 'Queijo, pão, geleia e bolo: ponha a produção na fila, volte depois e leve o lucro. Libera no nível ' + OFICINA_NIVEL + '.');
+  const now = Date.now(), base = baseOf(S), disp = Object.keys(RECEITAS).filter(id => RECEITAS[id].nivel <= S.nivel);
+  const lista = Object.keys(RECEITAS).map(id => { const r = RECEITAS[id]; return `<p class="muted">${r.em} <b>${r.nome}</b>: ${duracao(r.min * 60)} · custa ${fmt(custoReceita(S, id))} · rende ${fmt(base * r.rende)}${r.nivel > S.nivel ? ' (nível ' + r.nivel + ')' : ''}</p>`; }).join('');
+  const vagas = S.oficina.map((o, i) => {
+    if (!o) return `<section class="card"><div class="between"><h3>Bancada ${i + 1}</h3><span class="muted">livre</span></div><div class="row wrap">${disp.map(id => `<button class="btn mini ghost" data-act="receita" data-arg="${i}:${id}" ${S.coins < custoReceita(S, id) ? 'disabled' : ''}>${RECEITAS[id].em} ${fmt(custoReceita(S, id))}</button>`).join('')}</div></section>`;
+    const r = RECEITAS[o.id], t = relogio(o.fim, o.fim - r.min * 60000);
+    return `<section class="card parcela ${t.pronto ? 'pronto' : ''}"><div class="between"><h3>${r.em} ${r.nome}</h3><span class="muted num">${t.txt}</span></div>${t.barra}
+      <p class="muted">Rende ${fmt(o.coins)} moedas</p>
+      <div class="row">${t.pronto ? `<button class="btn primary" data-act="colherRec" data-arg="${i}">Colher</button>` : `<button class="btn ad" data-act="acelRec" data-arg="${i}">${PLAY}Acelerar <span class="tag">${rotuloAd()}</span></button>`}</div></section>`;
+  }).join('');
+  const prox = S.nivel < 14 ? 14 : S.nivel < 20 ? 20 : 0;
+  return `<section class="card"><div class="between"><h2>Oficina</h2><span class="muted">${S.oficina.length} bancada(s)</span></div><p class="muted">Gaste moedas para produzir e receba mais depois. Pode ficar com o app fechado.${prox ? ' Nova bancada no nível ' + prox + '.' : ''}</p>${lista}</section>${vagas}`;
+}
+
+/* ---------- pesquisa ---------- */
+function viewPesquisa() {
+  if (S.nivel < PESQ_NIVEL) return travado('Pesquisa', 'Estude melhorias permanentes para o sítio: mais moedas, celeiro maior, ovos mais baratos e mais XP. Libera no nível ' + PESQ_NIVEL + '.');
+  const at = S.pesq.at;
+  const ativa = at ? (() => { const t = relogio(at.fim, at.fim - tempoPesq(pq(S, at.id)) * 1000); return `<section class="card parcela ${t.pronto ? 'pronto' : ''}"><div class="between"><h3>${PESQ[at.id].em} Pesquisando: ${PESQ[at.id].nome}</h3><span class="muted num">${t.txt}</span></div>${t.barra}<div class="row"><button class="btn ad" data-act="acelPesq">${PLAY}Acelerar <span class="tag">${rotuloAd()}</span></button></div></section>`; })() : '';
+  const itens = Object.keys(PESQ).map(id => {
+    const p = PESQ[id], l = pq(S, id), cheio = l >= p.max, cap = !cheio && S.nivel < nivelPesq(l), c = cheio ? 0 : custoPesq(id, l);
+    const btn = cheio ? '<button class="btn ghost" disabled>Máximo</button>' : cap ? `<button class="btn ghost" disabled>Fazendeiro nível ${nivelPesq(l)}</button>` : `<button class="btn primary" data-act="pesquisar" data-arg="${id}" ${at || S.coins < c ? 'disabled' : ''}>Pesquisar · ${fmt(c)} · ${duracao(tempoPesq(l))}</button>`;
+    return `<section class="card"><div class="between"><h3>${p.em} ${p.nome}</h3><span class="muted num">Nv ${l}/${p.max}</span></div><p class="muted">Agora: ${l ? p.ef(l) : 'sem bônus'}${cheio ? '' : '<br>Próximo: ' + p.ef(l + 1)}</p>${btn}</section>`;
+  }).join('');
+  return `<section class="card"><h2>Pesquisa</h2><p class="muted">Uma pesquisa por vez, com tempo real. Os bônus são permanentes e sobrevivem ao prestígio.</p></section>${ativa}${itens}`;
+}
+
+/* ---------- ovos: sorteio em lote e cruzamento ---------- */
+function cardLote() {
+  if (S.nivel < LOTE_NIVEL) return '';
+  const ing = S.ing || 0;
+  return `<section class="card"><div class="between"><h2>Sorteio em lote</h2><span class="badge on">🎟️ ${ing}</span></div>
+    <p class="muted">${LOTE_N} bichos de uma vez, com pelo menos um Raro garantido. Ingressos vêm de missões, do bônus do 7º dia, de baús, de conquistas e de eventos.</p>
+    <div class="chips">${chancesChips(PESOS_LOTE)}</div>
+    <div class="row" style="margin-top:8px"><button class="btn primary" data-act="lote" data-arg="ingresso" ${ing < LOTE_N ? 'disabled' : ''}>Usar ${LOTE_N} ingressos</button>
+      <button class="btn ghost" data-act="lote" data-arg="gemas" ${S.gems < LOTE_GEMAS ? 'disabled' : ''}>${LOTE_GEMAS} gemas</button></div></section>`;
+}
+function cardCruz() {
+  if (S.nivel < CRUZ_NIVEL) return travado('Cruzamento', 'Dois bichos geram um filhote, com chance de raridade maior. Libera no nível ' + CRUZ_NIVEL + '.');
+  if (S.cruz) {
+    const a = PET_POR_ID[S.cruz.a], b = PET_POR_ID[S.cruz.b], t = relogio(S.cruz.pronto, S.cruz.pronto - CRUZ_TEMPO * 1000);
+    return `<section class="card parcela ${t.pronto ? 'pronto' : ''}"><div class="between"><h2>Cruzamento</h2><span class="muted num">${t.txt}</span></div>
+      <p style="font-size:30px;text-align:center">${a.em} + ${b.em} = 🥚</p>${t.barra}
+      <div class="row">${t.pronto ? '<button class="btn primary" data-act="cruzAbrir">Ver o filhote</button>' : `<button class="btn ad" data-act="cruzAcel">${PLAY}Acelerar <span class="tag">${rotuloAd()}</span></button>`}</div></section>`;
+  }
+  const el = Object.keys(S.pets).filter(id => podeCruzar(S, id)).sort((x, y) => PET_POR_ID[y].r - PET_POR_ID[x].r || S.pets[y].lvl - S.pets[x].lvl);
+  const opt = el.map(id => `<option value="${id}">${PET_POR_ID[id].em} ${esc(nomeDoBicho(S, id))} (Nv ${S.pets[id].lvl})</option>`).join('');
+  const custo = [0, 4].map(r => fmt(baseOf(S) * (4 + 6 * r)));
+  return `<section class="card"><h2>Cruzamento</h2><p class="muted">Escolha dois bichos de nível ${CRUZ_LV} ou mais. Em 1 hora nasce um filhote da raridade do melhor pai, com 15% de chance de subir um degrau, ou igual a um dos pais. Os pais ficam com você. Custo de ${custo[0]} (Comuns) a ${custo[1]} moedas (Lendários).</p>
+    ${el.length < 2 ? '<p class="muted">Você ainda não tem dois bichos de nível ' + CRUZ_LV + '.</p>' : `<select id="cruzA" class="inp" aria-label="Primeiro bicho">${opt}</select><select id="cruzB" class="inp" aria-label="Segundo bicho">${opt}</select><button class="btn primary" data-act="cruzar">Cruzar</button>`}</section>`;
+}
+
+/* ---------- evolução (no modal do bicho) ---------- */
+function blocoEvolucao(id) {
+  const o = S.pets[id], e = estagio(S, id), c = custoEvolucao(S, id);
+  const nome = e ? EST_NOMES[e] + ' (+' + (e * 50) + '% de produção)' : 'Filhote';
+  if (o.lvl < LVL_MAX) return `<div><b>Evolução: ${nome}</b><p class="muted">No nível ${LVL_MAX} ele pode evoluir. Cada repetido a partir daí vira um fragmento.</p></div>`;
+  if (!c) return `<div><b>Evolução: ${nome}</b><p class="muted">Estágio máximo!</p></div>`;
+  const ok = (o.frag || 0) >= c.frag && S.coins >= c.coins;
+  return `<div><b>Evolução: ${nome}</b><p class="muted">Para ${EST_NOMES[e + 1]} (+${(e + 1) * 50}%): ${o.frag || 0}/${c.frag} fragmentos e ${fmt(c.coins)} moedas.</p><button class="btn ${ok ? 'primary' : 'ghost'}" data-act="evoluir" data-arg="${id}" ${ok ? '' : 'disabled'}>Evoluir</button></div>`;
+}
+function cardCombos() {
+  const itens = COMBOS.map(c => {
+    const tem = c.ids.filter(id => S.pets[id]).length, ok = tem === c.ids.length;
+    return `<div class="evtrew ${ok ? 'ok' : ''}"><span style="font-size:22px">${c.em}</span><span><b>${c.nome}</b> <span class="muted">${c.ids.map(id => PET_POR_ID[id].em).join(' ')}</span><br><span class="muted">${ok ? 'Ativo' : tem + '/' + c.ids.length + ' bichos'} · +${Math.round(c.b * 100)}% de moedas</span></span><span class="badge ${ok ? 'on' : ''}">${ok ? 'Ativo' : '+' + Math.round(c.b * 100) + '%'}</span></div>`;
+  }).join('');
+  return `<section class="card"><div class="between"><h2>Combos</h2><span class="badge on">+${Math.round(bonusCombos(S) * 100)}%</span></div><p class="muted">Junte os bichos de cada grupo na coleção (não precisam estar no pasto) para um bônus permanente de moedas.</p>${itens}</section>`;
+}
+
+/* ---------- conquistas ---------- */
+function cardConquistas() {
+  const linhas = CONQS.map(c => {
+    const e = conqEstado(S, c), r = e.t < 4 ? CONQ_REC[e.t] : null;
+    return `<div class="evtrew ${e.pronta ? 'pronto' : ''} ${e.t >= 4 ? 'ok' : ''}"><span class="num">${e.t}/4</span><span><b>${c.nome}</b><br><span class="muted">${e.meta ? c.d(e.meta) + ' (' + fmt(Math.min(e.v, e.meta)) + ')' : 'Tudo concluído'}${r ? ' · ' + r.gems + ' gemas' + (r.ing ? ' + ' + r.ing + ' 🎟️' : '') : ''}</span></span>
+      <button class="btn mini ${e.pronta ? 'primary' : 'ghost'}" data-act="conqResg" data-arg="${c.id}" ${e.pronta ? '' : 'disabled'}>${e.t >= 4 ? 'Pego' : e.pronta ? 'Resgatar' : 'Trava'}</button></div>`;
+  }).join('');
+  return `<section class="card"><div class="between"><h2>Conquistas</h2><span class="muted">${conqProntas(S)} pronta(s)</span></div>${linhas}</section>`;
+}
+
+/* ---------- corrida de 48 horas ---------- */
+function viewCorrida() {
+  if (S.nivel < 3) return '';
+  const now = Date.now(), on = window.ON && ON.ativo, cr = on ? ON.cr : null;
+  const premios = CORR_METAS.map((m, k) => {
+    const r = recCorrida(S, k), feito = S.corrida.res[k], pronto = !feito && S.corrida.pts >= m;
+    return `<div class="evtrew ${pronto ? 'pronto' : ''} ${feito ? 'ok' : ''}"><span class="num">${m}</span><span class="muted">${textoRec({ coins: r.coins, gems: r.gems, xp: 0 })}${r.ing ? ' · ' + r.ing + ' 🎟️' : ''}</span><button class="btn mini ${pronto ? 'primary' : 'ghost'}" data-act="corrResg" data-arg="${k}" ${pronto ? '' : 'disabled'}>${feito ? 'Pego' : pronto ? 'Resgatar' : 'Trava'}</button></div>`;
+  }).join('');
+  let rank;
+  if (on) {
+    rank = !cr ? '<p class="muted">Carregando o ranking…</p>' : (cr.premio ? `<div class="guia card" style="margin:8px 0"><span class="gic">🏆</span><div class="gtx"><b>Você ficou em ${cr.premio}º na corrida passada!</b><span>Resgate seu prêmio.</span></div><button class="btn primary" data-act="corrPremio">Resgatar</button></div>` : '') +
+      (cr.top.length ? cr.top.map(x => `<div class="mrow ${x.voce ? 'eu' : ''}"><span class="pos">${x.pos}</span><span class="who"><b>${esc(x.nome)}</b><small>Nv ${x.nivel}</small></span><span class="pts num">${fmt(x.pontos)}</span><span></span></div>`).join('') : '<p class="muted">Ninguém pontuou ainda. Seja o primeiro!</p>');
+  } else {
+    const l = corridaSim(S, now), i = l.findIndex(x => x.voce);
+    rank = [...l.slice(0, 5), ...(i > 4 ? l.slice(Math.max(5, i - 1), i + 2) : [])].map(x => `<div class="mrow ${x.voce ? 'eu' : ''}"><span class="pos">${x.pos}</span><span class="who"><b>${x.nome}</b></span><span class="pts num">${fmt(x.pts)}</span><span></span></div>`).join('') + '<p class="muted">Concorrentes simulados neste modo. Online, você corre contra jogadores reais.</p>';
+  }
+  const pos = on ? (cr && cr.pos ? cr.pos + 'º lugar' : '') : corridaSim(S, now).find(x => x.voce).pos + 'º lugar';
+  return `<section class="card evthead"><div class="between"><h2>🏁 Corrida de 48 h</h2><span class="muted">termina em ${duracao(corridaResta(now))}</span></div>
+      <div class="bar"><i style="width:${Math.min(100, S.corrida.pts / CORR_METAS[3] * 100)}%"></i></div>
+      <div class="between"><span class="big num">${fmt(S.corrida.pts)} pts</span><span class="badge on">${pos || 'sem posição'}</span></div>
+      <p class="muted">Mesmos pontos do evento semanal, só que valendo 48 horas: ovos, coletas, colheitas, pedidos, oficina e golpes no chefe.</p></section>
+    <section class="card"><h3>Metas da corrida</h3>${premios}</section><section class="card"><h3>Ranking</h3>${rank}</section>`;
+}
+
+/* ---------- chefe da guilda ---------- */
+function chefeDados(now) {
+  if (window.ON && ON.ativo) return ON.ch ? Object.assign({}, ON.ch, { termina_em: Math.max(0, ON.ch.termina_em - (now - ON.tCh) / 1000) }) : null;
+  return S.guilda.id >= 0 ? chefeEstadoSim(S, now) : null;
+}
+function chefeLivres(now) { const d = chefeDados(now); return d && S.nivel >= CHEFE_NIVEL ? Math.max(0, CHEFE_GRATIS - d.golpes_hoje) : 0; }
+function viewChefe() {
+  const now = Date.now(), on = window.ON && ON.ativo, d = chefeDados(now);
+  if (S.nivel < CHEFE_NIVEL) return travado('Chefe da guilda', 'Toda semana uma praga ataca o campo e a guilda inteira precisa vencer junto. Libera no nível ' + CHEFE_NIVEL + '.');
+  if (on ? (ON.e && !ON.e.guilda) : S.guilda.id < 0) return travado('Chefe da guilda', 'Entre numa guilda para enfrentar a praga da semana com os outros membros.');
+  if (!d) return '<section class="card"><p class="muted">Carregando o chefe…</p></section>';
+  const ch = chefeDaSemana(d.semana !== undefined ? d.semana : semanaDe(now)), pct = Math.max(0, 100 - d.dano_total / d.hp * 100), livres = Math.max(0, CHEFE_GRATIS - d.golpes_hoje), resta = d.golpes_max - d.golpes_hoje;
+  const atacar = d.derrotado ? '<button class="btn ghost" disabled>Praga derrotada!</button>' : resta <= 0 ? '<button class="btn ghost" disabled>Sem golpes hoje. Volte amanhã</button>' :
+    livres > 0 ? `<button class="btn primary" data-act="chefeGolpe">⚔️ Atacar (${livres} grátis) · ${fmt(danoGolpe(S))}</button>` : `<button class="btn ad" data-act="chefeGolpe">${PLAY}Atacar mais (${resta}) <span class="tag">${rotuloAd()}</span></button>`;
+  const premio = d.derrotado && !d.premio_resgatado && d.meu_dano > 0 || d.premio_anterior;
+  const rec = recChefe(S);
+  const top = d.top.map((m, k) => `<div class="mrow ${m.voce ? 'eu' : ''}"><span class="pos">${k + 1}</span><span class="who"><b>${esc(m.nome)}</b></span><span class="pts num">${fmt(m.dano)}</span><span></span></div>`).join('');
+  return `<section class="card evthead"><div class="between"><h2>${ch.em} ${ch.nome}</h2><span class="muted">some em ${duracao(d.termina_em)}</span></div>
+      <div class="evtpet ${d.derrotado ? 'sombra' : ''}">${ch.em}</div>
+      <div class="bar"><i style="width:${pct}%;background:linear-gradient(180deg,#ff8a7a,#e5483a)"></i></div>
+      <div class="between"><span class="num">${fmt(Math.max(0, d.hp - d.dano_total))} de ${fmt(d.hp)} de vida</span><span class="muted num">seu dano: ${fmt(d.meu_dano)}</span></div>
+      <p class="muted">Cada fazendeiro tem ${d.golpes_max} golpes por dia: ${CHEFE_GRATIS} grátis e o resto com anúncio. Quem causar dano divide o prêmio quando a praga cair.</p>
+      <div class="row">${atacar}</div>
+      ${premio ? `<div class="row" style="margin-top:8px"><button class="btn primary" data-act="chefeResg">🎁 Resgatar prêmio: ${fmt(rec.coins)} moedas, ${rec.gems} gemas, ${rec.ing} 🎟️</button></div>` : d.premio_resgatado ? '<p class="muted">Prêmio da semana já resgatado.</p>' : ''}</section>
+    <section class="card"><h3>Quem mais bateu</h3>${top || '<p class="muted">Ninguém atacou ainda.</p>'}${on ? '' : '<p class="muted">Neste modo, os membros da guilda são simulados.</p>'}</section>`;
+}
+
+/* ---------- ajustes: código promocional ---------- */
+function cardCodigo() {
+  const on = window.ON && ON.ativo;
+  return `<section class="card"><h2>Código promocional</h2><p class="muted">Tem um código de presente? Digite aqui e ganhe gemas e ingressos.</p>${on ? '<input id="codigoIn" class="inp" maxlength="24" placeholder="Digite o código" autocapitalize="characters" autocomplete="off"><button class="btn primary" data-act="codigoUsar">Resgatar</button>' : '<p class="muted">Disponível no modo online.</p>'}</section>`;
+}
 
 /* ---------- ações ---------- */
 function dobroPedido(i) { return entregarPedido(S, +i, Date.now(), true); }
@@ -344,6 +513,48 @@ Object.assign(ACOES, {
     abrirModal(`<div class="sheet pop"><p class="eyebrow">Prestígio ${r.prest}</p><h2>Sítio renovado!</h2><p class="muted">+${r.gems} gemas e bônus permanente de <b>+${r.prest * 25}% de moedas</b>. Seus bichos continuam com você.</p><button class="btn primary xl" data-act="fechar">Recomeçar</button></div>`);
     Som.play('lendario'); Fx.confete(innerWidth / 2, innerHeight * 0.4, 140, ['#FFC21A', '#3DBB6B', '#2F9BE8', '#FF7AB6', '#fff']);
   },
+});
+
+Object.assign(ACOES, {
+  irObras(x) { aba = 'obras'; subO = x; render(); },
+  irGuilda(x) { aba = 'guilda'; subG = x; render(); },
+  receita(a) { const [i, id] = String(a).split(':'); const r = iniciarReceita(S, +i, id, Date.now()); if (!r.ok) return toast(erroMsg(r)); salvar(); render(); Som.play('pop'); metrica('oficina'); },
+  acelRec(i) { const o = S.oficina[+i]; if (!o) return; anuncio('acelerar', 'Acelerar a bancada', () => { acelerarReceita(S, +i, Date.now()); toast('Metade do tempo'); }); },
+  colherRec(i) { const r = colherReceita(S, +i, Date.now()); if (!r.ok) return; receber(r.ups); salvar(); render(); Som.play('coin'); Fx.glifo(innerWidth / 2, innerHeight * 0.4, RECEITAS[r.id].em + ' +' + fmt(r.coins), 28); },
+  pesquisar(id) { const r = iniciarPesquisa(S, id, Date.now()); if (!r.ok) return toast(erroMsg(r)); salvar(); render(); Som.play('pop'); metrica('pesquisa'); },
+  acelPesq() { if (!S.pesq.at) return; anuncio('acelerar', 'Acelerar a pesquisa', () => { acelerarPesquisa(S, Date.now()); toast('Metade do tempo'); }); },
+  lote(tipo) {
+    const r = sortearLote(S, tipo, Math.random); if (!r.ok) return toast(erroMsg(r));
+    receber(r.ups); salvar(); metrica('lote'); Som.play(['comum', 'comum', 'raro', 'epico', 'lendario'][r.melhor]); Som.vibrar([30, 30, 80]);
+    const cel = r.lista.map(x => `<div class="cell" style="--rc:var(--r${x.r})"><span class="em">${x.pet.em}</span><span class="nm">${x.res.tipo === 'novo' ? 'NOVO' : 'Nv ' + (S.pets[x.pet.id] ? S.pets[x.pet.id].lvl : '')}</span></div>`).join('');
+    abrirModal(`<div class="sheet pop" style="--rc:var(--r${r.melhor})"><p class="eyebrow">Sorteio em lote</p><h2>${RARIDADES[r.melhor].nome} no lote!</h2><div class="cgrid" style="grid-template-columns:repeat(5,minmax(0,1fr))">${cel}</div><button class="btn primary xl" data-act="fechar">Continuar</button></div>`);
+    const cor = COR_RAR[r.melhor]; Fx.brilhos(innerWidth / 2, innerHeight * 0.4, 12 + r.melhor * 5, cor); if (r.melhor >= 2) Fx.confete(innerWidth / 2, innerHeight * 0.4, 40 + r.melhor * 30, [cor, '#FFC21A', '#fff', '#FF7AB6']); render();
+  },
+  cruzar() { const a = ($('#cruzA') || {}).value, b = ($('#cruzB') || {}).value; const r = iniciarCruz(S, a, b, Date.now()); if (!r.ok) return toast(r.erro === 'par' ? 'Escolha dois bichos diferentes' : r.erro === 'moedas' ? 'Precisa de ' + fmt(r.custo) + ' moedas' : erroMsg(r)); salvar(); render(); Som.play('pop'); metrica('cruzamento'); },
+  cruzAcel() { if (!S.cruz) return; anuncio('acelerar', 'Acelerar o cruzamento', () => { acelerarCruz(S, Date.now()); toast('Metade do tempo'); }); },
+  cruzAbrir() { const r = abrirCruz(S, Date.now(), Math.random); if (!r.ok) return; receber(r.ups); salvar(); render(); revelarPet(r.pet, r.res, 'Filhote ' + RARIDADES[r.r].nome); },
+  evoluir(id) { const r = evoluir(S, id); if (!r.ok) return toast(r.erro === 'frag' ? 'Faltam ' + r.falta + ' fragmentos' : erroMsg(r)); receber(r.ups); salvar(); modalBicho(id); render(); Som.play('lendario'); Fx.confete(innerWidth / 2, innerHeight * 0.35, 60, ['#FFC21A', '#fff', '#3DBB6B']); metrica('evolucao'); toast(nomeDoBicho(S, id) + ' evoluiu: ' + EST_NOMES[r.est]); },
+  conqResg(id) { const r = resgatarConq(S, id); if (!r.ok) return; receber(r.ups); salvar(); render(); Som.play('bau'); toast('Conquista: +' + r.rec.gems + ' gemas' + (r.rec.ing ? ' e +' + r.rec.ing + ' ingressos' : '')); metrica('conquista'); },
+  corrResg(k) { const r = resgatarCorrida(S, +k, Date.now()); if (!r.ok) return toast(r.erro === 'meta' ? 'Faltam pontos' : 'Já resgatado'); receber(r.ups); salvar(); render(); Som.play('bau'); toast('Corrida: ' + textoRec({ coins: r.rec.coins, gems: r.rec.gems, xp: 0 }) + (r.rec.ing ? ' · +' + r.rec.ing + ' ingressos' : '')); },
+  corrPremio() { if (window.ON && ON.ativo) ACOES.corrPremioOn(); },
+  chefeGolpe() {
+    const now = Date.now(), d = chefeDados(now); if (!d || d.derrotado) return;
+    const livres = Math.max(0, CHEFE_GRATIS - d.golpes_hoje);
+    const bater = () => {
+      if (window.ON && ON.ativo) return ACOES.chefeGolpeOn();
+      const r = golpearChefeSim(S, Date.now()); if (!r.ok) return toast(r.erro === 'limite_diario' ? 'Sem golpes hoje' : erroMsg(r));
+      receber(r.ups); salvar(); render(); Som.play('bau'); Fx.glifo(innerWidth / 2, innerHeight * 0.4, '⚔️ -' + fmt(r.dano), 30); metrica('chefe');
+    };
+    if (livres > 0) bater(); else anuncio('chefe', 'Golpe extra no chefe', bater);
+  },
+  chefeResg() {
+    if (window.ON && ON.ativo) return ACOES.chefeResgOn();
+    const r = resgatarChefeSim(S, Date.now()); if (!r.ok) return toast('Ainda não há prêmio do chefe para você');
+    receber(r.ups); salvar(); render(); Som.play('bau'); Fx.confete(innerWidth / 2, innerHeight * 0.4, 90, ['#FFC21A', '#fff', '#3DBB6B']);
+    toast('Chefe derrotado! ' + textoRec({ coins: r.rec.coins, gems: r.rec.gems, xp: 0 }) + ' · +' + r.rec.ing + ' ingressos');
+  },
+  codigoUsar() { if (window.ON && ON.ativo) ACOES.codigoUsarOn(); },
+  voltaDobro() { if (Math.floor(S.barn) < 1) return toast('Já coletado'); anuncio('dobro', 'Coletar em dobro', () => { const r = coletar(S, 2); if (r) { receber(r.ups); toast('+' + fmt(r.ganho) + ' moedas (dobro)'); } fecharModal(); }); },
 });
 
 /* Guilda contra guilda no modo offline: as três guildas simuladas disputam entre si. */

@@ -57,6 +57,9 @@ export const MENSAGENS = {
   nada_a_resgatar: 'Nada para resgatar por enquanto.',
   ja_curtiu: 'Você já curtiu esse sítio hoje.',
   sem_premio: 'Sua guilda não ficou no pódio.',
+  codigo_invalido: 'Código não encontrado ou vencido.',
+  codigo_ja_usado: 'Você já usou esse código.',
+  codigo_esgotado: 'Esse código já foi usado por gente demais.',
 };
 
 const falha = (erro, extra = {}) => ({ ok: false, erro, mensagem: MENSAGENS[erro] || 'Algo deu errado.', ...extra });
@@ -100,6 +103,17 @@ export function criarApi(sb) {
       codigo: () => chamar('jogo_convite_codigo'),
       usar: codigo => chamar('jogo_convite_usar', { p_codigo: String(codigo || '').trim().slice(0, 12) }),
       resgatar: () => chamar('jogo_convites_resgatar'),
+    },
+    codigo: c => chamar('jogo_codigo_resgatar', { p_codigo: String(c || '').trim().slice(0, 24) }),
+    chefe: {
+      estado: () => chamar('jogo_chefe_estado'),
+      golpear: dano => chamar('jogo_chefe_golpear', { p_dano: inteiro(dano, 1, 2147483647) }),
+      resgatar: () => chamar('jogo_chefe_resgatar'),
+    },
+    corrida: {
+      enviar: pontos => chamar('jogo_corrida_enviar', { p_pontos: inteiro(pontos, 1, 60) }),
+      ranking: (limite = 20) => chamar('jogo_corrida_ranking', { p_limite: inteiro(limite, 1, 50) }),
+      premio: () => chamar('jogo_corrida_premio'),
     },
     visitar: alvo => chamar('jogo_visitar', { p_alvo: alvo }),
     curtir: alvo => chamar('jogo_curtir', { p_alvo: alvo }),

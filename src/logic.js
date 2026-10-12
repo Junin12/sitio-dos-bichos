@@ -117,14 +117,14 @@ const tituloDe = l => TITULOS.filter(t => l >= t[0]).pop()[1];
 const tierDe = l => Math.min(5, Math.floor((l - 1) / 5));
 const incubadoras = n => 2 + (n >= 6 ? 1 : 0) + (n >= 12 ? 1 : 0);
 const custoObra = (id, l) => Math.round(OBRAS[id].base * Math.pow(OBRAS[id].cresc, l));
-const custoOvo = (S, id) => OVOS[id].moeda === 'coins' ? Math.round(OVOS[id].base * (1 + 0.2 * (S.nivel - 1)) * Math.pow(1.03, S.summons)) : OVOS[id].base;
+const custoOvo = (S, id) => OVOS[id].moeda === 'coins' ? Math.round(OVOS[id].base * (1 + 0.2 * (S.nivel - 1)) * Math.pow(1.03, S.summons) * (1 - 0.03 * pq(S, 'ovos'))) : OVOS[id].base;
 const tempoOvo = (S, id) => Math.max(5, Math.round(OVOS[id].tempo * fatorChocar(S.obras.chocadeira)));
 const metaSafra = n => Math.round(120 * Math.pow(1.2, n - 1));
 function recSafra(n) { return { coins: Math.round(metaSafra(n) * 0.25), xp: 8 + 2 * n, gems: n % 10 === 0 ? 15 : n % 5 === 0 ? 5 : n % 3 === 0 ? 1 : 0 }; }
 function prodPet(id, lvl) { return RARIDADES[PET_POR_ID[id].r].prod * (1 + 0.3 * (lvl - 1)); }
 function ativos(S) {
   return Object.keys(S.pets)
-    .map(id => ({ id, lvl: S.pets[id].lvl, prod: prodPet(id, S.pets[id].lvl) * (1 + 0.15 * felicidade(S, id)) }))
+    .map(id => ({ id, lvl: S.pets[id].lvl, prod: prodPet(id, S.pets[id].lvl) * (1 + 0.15 * felicidade(S, id)) * (1 + 0.5 * (S.pets[id].est || 0)) }))
     .sort((a, b) => b.prod - a.prod)
     .slice(0, S.slots);
 }
@@ -132,9 +132,9 @@ function setsCompletos(S) { return RARIDADES.map((_, r) => PETS.filter(p => p.r 
 function bonusSets(S) { const c = setsCompletos(S); return c.reduce((a, ok, r) => a + (ok ? SET_BONUS[r] : 0), 0); }
 function bonusGuildaProd(S) { return S.guilda.id >= 0 ? 0.04 * (S.guilda.nivel - 1) : 0; }
 function prodBase(S) { return ativos(S).reduce((a, p) => a + p.prod, 0); }
-function multProd(S) { return multMoinho(S.obras.moinho) * (1 + bonusSets(S)) * (1 + bonusGuildaProd(S)) * (1 + 0.25 * (S.prest || 0)) * (1 + bonusDecor(S)) * (S.premium && S.premium.passe ? 1.25 : 1); }
+function multProd(S) { return multMoinho(S.obras.moinho) * (1 + bonusSets(S)) * (1 + bonusGuildaProd(S)) * (1 + 0.25 * (S.prest || 0)) * (1 + bonusDecor(S)) * (S.premium && S.premium.passe ? 1.25 : 1) * (1 + 0.05 * pq(S, 'prod')) * (1 + bonusCombos(S)); }
 function prodTotal(S) { return prodBase(S) * multProd(S); }
-function capCeleiro(S) { return Math.max(200, prodTotal(S) * 3600 * horasCeleiro(S.obras.celeiro)); }
+function capCeleiro(S) { return Math.max(200, prodTotal(S) * 3600 * (horasCeleiro(S.obras.celeiro) + 0.5 * pq(S, 'silo'))); }
 function pastoProx(S) { return S.slots < SLOTS_MAX ? { custo: PASTO_CUSTO[S.slots - SLOTS_INI], nivel: PASTO_NIVEL[S.slots - SLOTS_INI] } : null; }
 function desbloqueios(n) {
   const r = [];
@@ -276,7 +276,7 @@ function rankingSitios(S, now) {
 function ganharXP(S, n) {
   const ups = [];
   if (S.nivel >= NIVEL_MAX) return ups;
-  S.xp += Math.round(n * multXP(S.obras.estufa));
+  S.xp += Math.round(n * multXP(S.obras.estufa) * (1 + 0.04 * pq(S, 'xp')));
   while (S.nivel < NIVEL_MAX && S.xp >= xpProx(S.nivel)) {
     S.xp -= xpProx(S.nivel); S.nivel++;
     const g = S.nivel % 5 === 0 ? 10 : 3; S.gems += g;
@@ -331,6 +331,7 @@ function novoEstado(now) {
     bau: { dia: -1, qtd: 0 }, brilho: { dia: -1 }, premium: { semAnuncios: false, passe: false }, decor: {}, tema: 'auto',
     tut: { passo: 0, fim: false }, cfg: { eco: 'auto', som: true, vibra: true }, metr: { sessoes: 0, dias: {}, convites: 0 },
     dev: { ecpm: 5, dau: 1000, adsDia: 6 },
+    ing: 0, oficina: [], pesq: { n: {}, at: null }, cruz: null, conq: {}, chefe: { sem: -1, dano: 0, dia: -1, hoje: 0, res: 0 }, corrida: { j: -1, pts: 0, res: [0, 0, 0, 0] }, codigos: {},
     missoes: [null, null, null], mCont: 0, diario: { ultimo: -1, seq: 0 }, stats: { coletado: 0, chocados: 0 },
     guilda: { id: -1, entrou: 0, doado: 0, nivel: 1, pontos: 0, semana: -1, baus: [0, 0, 0, 0], ajudou: {}, parab: {}, parabDia: { dia: -1, qtd: 0 } }
   };
@@ -361,8 +362,8 @@ function aplicarPet(S, id) {
   if (!cur) { S.pets[id] = { lvl: 1 }; return { tipo: 'novo' }; }
   if (cur.lvl < LVL_MAX) { cur.lvl++; return { tipo: 'nivel', lvl: cur.lvl }; }
   const reembolso = Math.round(50 * Math.pow(3, PET_POR_ID[id].r));
-  S.coins += reembolso;
-  return { tipo: 'max', reembolso };
+  S.coins += reembolso; cur.frag = (cur.frag || 0) + 1;
+  return { tipo: 'max', reembolso, frag: true };
 }
 function coletar(S, mult) {
   const q = Math.floor(S.barn); if (q < 1) return null;
@@ -419,7 +420,7 @@ function resgatarMissao(S, i, dobro) {
   const m = S.missoes[i]; if (!m || !m.feita) return null;
   const k = dobro ? 2 : 1;
   S.coins += m.rec.coins * k; S.gems += m.rec.gems * k;
-  addPontos(S, 30, 'missao');
+  addPontos(S, 30, 'missao'); ganharIng(S, k);
   const ups = ganharXP(S, m.rec.xp * k);
   S.missoes[i] = novaMissao(S);
   return { rec: m.rec, k, ups };
@@ -430,7 +431,7 @@ function resgatarDiario(S, hoje, dobro) {
   if (S.diario.ultimo === hoje) return null;
   const seq = seqDiaria(S, hoje), r = recDiario(S, seq), k = dobro ? 2 : 1;
   S.coins += r.coins * k; S.gems += r.gems * k;
-  S.diario = { ultimo: hoje, seq };
+  S.diario = { ultimo: hoje, seq }; if ((seq - 1) % 7 === 6) ganharIng(S, 3 * k);
   return { r, k, seq, ups: ganharXP(S, 20) };
 }
 
@@ -460,7 +461,7 @@ function cuidar(S, id, now, tipo) {
     return { ok: true, custo: c, ups: ganharXP(S, 6) };
   }
   if (p.carinho && now - p.carinho < CARINHO_CD) return { erro: 'espera', falta: CARINHO_CD - (now - p.carinho) };
-  p.cuid = now; p.carinho = now;
+  p.cuid = now; p.carinho = now; S.stats.carinhos = (S.stats.carinhos || 0) + 1;
   return { ok: true, ups: ganharXP(S, 3) };
 }
 
@@ -494,7 +495,7 @@ function colherHorta(S, i, now) {
   if (now < p.pronto) return { erro: 'cedo', falta: p.pronto - now };
   const qtd = 2 + (S.obras.estufa >= 5 ? 1 : 0) + (S.obras.estufa >= 10 ? 1 : 0);
   S.colheita[p.id] = (S.colheita[p.id] || 0) + qtd; S.horta[i] = null;
-  pontoEvento(S, 2); addPontos(S, 3, 'horta');
+  pontoEvento(S, 2); addPontos(S, 3, 'horta'); S.stats.colhidas = (S.stats.colhidas || 0) + 1;
   return { ok: true, id: p.id, qtd, ups: ganharXP(S, 6 + 2 * CULTIVOS[p.id].nivel) };
 }
 
@@ -563,13 +564,13 @@ function ajustarEvento(S, now) {
   const sem = semanaDe(now);
   if (!S.evt || S.evt.sem !== sem) S.evt = { sem, pts: 0, res: [0, 0, 0, 0] };
 }
-function pontoEvento(S, n) { if (S.evt && S.evt.sem >= 0 && S.nivel >= 3) S.evt.pts += n; }
+function pontoEvento(S, n) { if (S.evt && S.evt.sem >= 0 && S.nivel >= 3) S.evt.pts += n; pontoCorrida(S, n); }
 function resgatarEvento(S, k, now) {
   ajustarEvento(S, now);
   if (S.evt.res[k]) return { erro: 'ja' };
   if (S.evt.pts < EVT_METAS[k]) return { erro: 'meta' };
   const r = evtRec(S, k); S.evt.res[k] = 1;
-  S.coins += r.coins; S.gems += r.gems;
+  S.coins += r.coins; S.gems += r.gems; if (k === 2) ganharIng(S, 1); if (k === 3) ganharIng(S, 2);
   let pet = null, res = null;
   if (r.pet) { pet = PET_POR_ID[eventoDaSemana(now).pet]; res = aplicarPet(S, pet.id); }
   return { ok: true, r, pet, res, ups: ganharXP(S, 30 + 20 * k) };
@@ -586,8 +587,8 @@ function abrirBau(S, hoje, rng) {
   S.bau.qtd++;
   const base = Math.max(200, Math.round(prodTotal(S) * 480)), k = 1 + Math.floor(rng() * 3);
   const gems = rng() < 0.35 ? 1 + Math.floor(rng() * 3) : 0;
-  S.coins += base * k; S.gems += gems;
-  return { ok: true, coins: base * k, gems, resta: BAU_DIA_MAX - S.bau.qtd, ups: ganharXP(S, 10) };
+  S.coins += base * k; S.gems += gems; const ing = rng() < 0.3 ? 1 : 0; ganharIng(S, ing);
+  return { ok: true, coins: base * k, gems, ing, resta: BAU_DIA_MAX - S.bau.qtd, ups: ganharXP(S, 10) };
 }
 OVOS.brilhante = { nome: 'Ovo Brilhante', moeda: 'anuncio', base: 0, tempo: 30, pesos: [0, 22, 46, 27, 5], nivel: 3 };
 function brilhoDisponivel(S, hoje) { return S.nivel >= OVOS.brilhante.nivel && S.brilho.dia !== hoje; }
@@ -645,7 +646,7 @@ function podePrestigiar(S) { return S.nivel >= NIVEL_PRESTIGIO; }
 function prestigiar(S, now) {
   if (!podePrestigiar(S)) return { erro: 'nivel' };
   const g = prestigioGemas(S), n = (S.prest || 0) + 1;
-  const keep = { pets: S.pets, gems: S.gems + g, ads: S.ads, dev: S.dev, guilda: S.guilda, stats: S.stats, premium: S.premium, decor: S.decor, tema: S.tema, tut: S.tut, cfg: S.cfg, metr: S.metr, visto: S.visto, nome: S.nome, convUsado: S.convUsado, diario: S.diario, bau: S.bau, brilho: S.brilho, evt: S.evt, colheita: {} };
+  const keep = { pets: S.pets, gems: S.gems + g, ads: S.ads, dev: S.dev, guilda: S.guilda, stats: S.stats, premium: S.premium, decor: S.decor, tema: S.tema, tut: S.tut, cfg: S.cfg, metr: S.metr, visto: S.visto, nome: S.nome, convUsado: S.convUsado, diario: S.diario, bau: S.bau, brilho: S.brilho, evt: S.evt, colheita: {}, ing: S.ing, pesq: { n: S.pesq.n, at: null }, conq: S.conq, chefe: S.chefe, corrida: S.corrida, codigos: S.codigos };
   const N = novoEstado(now);
   Object.assign(N, keep, { prest: n, criadoDia: S.criadoDia });
   for (const k of Object.keys(S)) delete S[k];
@@ -654,4 +655,268 @@ function prestigiar(S, now) {
 }
 
 /* ===== Pontos para a guilda semanal já existem em addPontos; rodada geral de ajustes ao carregar/avançar ===== */
-function ajustarTudo(S, now, rng) { ajustarHorta(S); ajustarPedidos(S, now, rng); ajustarEvento(S, now); }
+function ajustarTudo(S, now, rng) { ajustarHorta(S); ajustarPedidos(S, now, rng); ajustarEvento(S, now); ajustarExtras(S, now); }
+
+/* ===== Mecânicas de longo prazo =====
+   Sorteio em lote com ingressos, oficina (fila de produção), pesquisa, combos, cruzamento, evolução,
+   conquistas, chefe da guilda e corrida de 48 horas. */
+const pq = (S, id) => (S.pesq && S.pesq.n && S.pesq.n[id]) || 0;
+const baseOf = S => Math.max(150, Math.round(prodTotal(S) * 600));
+function ganharIng(S, n) { if (n > 0) S.ing = (S.ing || 0) + n; }
+function ajustarExtras(S, now) {
+  if (!Array.isArray(S.oficina)) S.oficina = [];
+  if (S.nivel >= OFICINA_NIVEL) while (S.oficina.length < oficinaSlots(S)) S.oficina.push(null);
+  if (!S.pesq || typeof S.pesq !== 'object') S.pesq = { n: {}, at: null };
+  if (!S.pesq.n) S.pesq.n = {};
+  if (!S.conq) S.conq = {};
+  if (!S.codigos) S.codigos = {};
+  if (!S.chefe || S.chefe.sem !== semanaDe(now)) S.chefe = { sem: semanaDe(now), dano: 0, dia: -1, hoje: 0, res: 0 };
+  if (!S.corrida || S.corrida.j !== janelaDe(now)) S.corrida = { j: janelaDe(now), pts: 0, res: [0, 0, 0, 0] };
+  return ajustarPesquisa(S, now);
+}
+
+/* ----- sorteio em lote ----- */
+const LOTE_N = 10, LOTE_GEMAS = 35, LOTE_NIVEL = 5, PESOS_LOTE = [26, 40, 24, 8.5, 1.5];
+function sortearLote(S, tipo, rng) {
+  rng = rng || Math.random;
+  if (S.nivel < LOTE_NIVEL) return { erro: 'nivel', nivel: LOTE_NIVEL };
+  if (tipo === 'gemas') { if (S.gems < LOTE_GEMAS) return { erro: 'gemas' }; S.gems -= LOTE_GEMAS; }
+  else { if ((S.ing || 0) < LOTE_N) return { erro: 'ingressos' }; S.ing -= LOTE_N; }
+  const lista = []; let xp = 0, melhor = 0;
+  for (let i = 0; i < LOTE_N; i++) {
+    let r = sortearRaridade(PESOS_LOTE, S.pity, rng);
+    if (i === LOTE_N - 1 && !lista.some(x => x.r >= 2)) r = Math.max(r, 2);   // todo lote traz pelo menos um Raro
+    const opc = PETS.filter(p => p.r === r), pet = opc[Math.floor(rng() * opc.length)];
+    S.pity = r >= 3 ? 0 : S.pity + 1;
+    const res = aplicarPet(S, pet.id);
+    xp += XP_OVO[r] * (res.tipo === 'novo' ? 2 : 1); if (r > melhor) melhor = r;
+    lista.push({ pet, r, res });
+    if (HOOK_CHOQUE && r >= 3) HOOK_CHOQUE(pet.id);
+  }
+  S.summons += LOTE_N; S.stats.chocados += LOTE_N; S.stats.lotes = (S.stats.lotes || 0) + 1;
+  evento(S, 'chocar', LOTE_N); evento(S, 'melhor', 1, melhor);
+  addPontos(S, 10, 'ovo'); pontoEvento(S, 6);
+  return { ok: true, lista, melhor, ups: ganharXP(S, xp) };
+}
+
+/* ----- oficina: fila de produção ----- */
+const OFICINA_NIVEL = 6;
+const RECEITAS = {
+  queijo: { nome: 'Queijo',        em: '🧀', min: 5,   custo: 0.4, rende: 0.6,  nivel: 6 },
+  pao:    { nome: 'Pão caseiro',   em: '🍞', min: 30,  custo: 1.5, rende: 2.7,  nivel: 8 },
+  geleia: { nome: 'Geleia',        em: '🍓', min: 120, custo: 5,   rende: 10,   nivel: 12 },
+  bolo:   { nome: 'Bolo de milho', em: '🌽', min: 480, custo: 16,  rende: 38,   nivel: 16 }
+};
+const oficinaSlots = S => 1 + (S.nivel >= 14 ? 1 : 0) + (S.nivel >= 20 ? 1 : 0);
+const custoReceita = (S, id) => Math.round(baseOf(S) * RECEITAS[id].custo);
+function iniciarReceita(S, i, id, now) {
+  const r = RECEITAS[id]; if (!r) return { erro: 'tipo' };
+  if (S.nivel < r.nivel) return { erro: 'nivel', nivel: r.nivel };
+  if (i < 0 || i >= S.oficina.length) return { erro: 'vaga' };
+  if (S.oficina[i]) return { erro: 'ocupada' };
+  const c = custoReceita(S, id); if (S.coins < c) return { erro: 'moedas', custo: c };
+  S.coins -= c;
+  S.oficina[i] = { id, fim: now + r.min * 60000, coins: Math.round(baseOf(S) * r.rende), xp: 6 + S.nivel };
+  return { ok: true, custo: c };
+}
+function acelerarReceita(S, i, now) {
+  const o = S.oficina[i]; if (!o || now >= o.fim) return { erro: 'nada' };
+  o.fim = now + Math.floor((o.fim - now) / 2); return { ok: true };
+}
+function colherReceita(S, i, now) {
+  const o = S.oficina[i]; if (!o) return { erro: 'vazia' };
+  if (now < o.fim) return { erro: 'cedo' };
+  S.coins += o.coins; S.oficina[i] = null; S.stats.receitas = (S.stats.receitas || 0) + 1;
+  pontoEvento(S, 2); addPontos(S, 3, 'horta');
+  return { ok: true, id: o.id, coins: o.coins, ups: ganharXP(S, o.xp) };
+}
+
+/* ----- pesquisa ----- */
+const PESQ_NIVEL = 8;
+const PESQ = {
+  prod: { nome: 'Adubação do pasto', em: '🌱', max: 10, base: 500, cresc: 1.9,  ef: l => '+' + (l * 5) + '% de moedas' },
+  silo: { nome: 'Silo reforçado',    em: '🌾', max: 8,  base: 700, cresc: 2.0,  ef: l => '+' + (l * 0.5).toLocaleString('pt-BR') + ' h no celeiro' },
+  ovos: { nome: 'Banco de sementes', em: '🥚', max: 8,  base: 600, cresc: 1.95, ef: l => 'ovos ' + (l * 3) + '% mais baratos' },
+  xp:   { nome: 'Caderno de campo',  em: '📓', max: 8,  base: 600, cresc: 1.95, ef: l => '+' + (l * 4) + '% de XP' }
+};
+const custoPesq = (id, l) => Math.round(PESQ[id].base * Math.pow(PESQ[id].cresc, l));
+const tempoPesq = l => Math.round(10 * Math.pow(1.6, l)) * 60;   // segundos: 10 min, 16 min, 26 min… até 11 h
+const nivelPesq = l => PESQ_NIVEL + l;
+function iniciarPesquisa(S, id, now) {
+  const p = PESQ[id]; if (!p) return { erro: 'tipo' };
+  if (S.nivel < PESQ_NIVEL) return { erro: 'nivel', nivel: PESQ_NIVEL };
+  if (S.pesq.at) return { erro: 'ocupada' };
+  const l = pq(S, id); if (l >= p.max) return { erro: 'max' };
+  if (S.nivel < nivelPesq(l)) return { erro: 'cap', nivel: nivelPesq(l) };
+  const c = custoPesq(id, l); if (S.coins < c) return { erro: 'moedas', custo: c };
+  S.coins -= c; S.pesq.at = { id, fim: now + tempoPesq(l) * 1000 };
+  return { ok: true, custo: c };
+}
+function acelerarPesquisa(S, now) {
+  const a = S.pesq.at; if (!a || now >= a.fim) return { erro: 'nada' };
+  a.fim = now + Math.floor((a.fim - now) / 2); return { ok: true };
+}
+function ajustarPesquisa(S, now) {
+  const a = S.pesq && S.pesq.at;
+  if (!a || now < a.fim) return null;
+  S.pesq.n[a.id] = (S.pesq.n[a.id] || 0) + 1; S.pesq.at = null; S.stats.pesquisas = (S.stats.pesquisas || 0) + 1;
+  return a.id;
+}
+
+/* ----- combos de bichos ----- */
+const COMBOS = [
+  { id: 'terreiro',  nome: 'Terreiro',        em: '🐔', ids: ['pintinho', 'galinha', 'peru'],               b: 0.06 },
+  { id: 'casa',      nome: 'Bichos de casa',  em: '🏠', ids: ['gato', 'cachorro', 'coelho'],                b: 0.06 },
+  { id: 'pasto',     nome: 'Pasto',           em: '🌾', ids: ['ovelha', 'bezerra', 'cabrito'],              b: 0.08 },
+  { id: 'lagoa',     nome: 'Lagoa',           em: '🪷', ids: ['sapo', 'patinho', 'lontra'],                 b: 0.08 },
+  { id: 'mata',      nome: 'Mata',            em: '🌲', ids: ['raposa', 'esquilo', 'gamba', 'texugo'],      b: 0.12 },
+  { id: 'nobres',    nome: 'Aves nobres',     em: '🪶', ids: ['cisne', 'pavao', 'flamingo', 'arara'],       b: 0.15 },
+  { id: 'tropical',  nome: 'Floresta tropical', em: '🌴', ids: ['macaco', 'preguica', 'onca', 'arara'],     b: 0.12 },
+  { id: 'savana',    nome: 'Savana',          em: '🦁', ids: ['zebra', 'leao', 'elefante'],                 b: 0.15 },
+  { id: 'prehist',   nome: 'Pré-história',    em: '🦖', ids: ['trex', 'dino', 'mamute'],                    b: 0.20 }
+];
+const comboAtivo = (S, c) => c.ids.every(id => S.pets[id]);
+const bonusCombos = S => COMBOS.reduce((a, c) => a + (comboAtivo(S, c) ? c.b : 0), 0);
+
+/* ----- cruzamento ----- */
+const CRUZ_NIVEL = 10, CRUZ_LV = 3, CRUZ_TEMPO = 3600;
+const custoCruz = (S, a, b) => Math.round(baseOf(S) * (4 + 6 * Math.max(PET_POR_ID[a].r, PET_POR_ID[b].r)));
+function podeCruzar(S, id) { return !!(S.pets[id] && S.pets[id].lvl >= CRUZ_LV); }
+function iniciarCruz(S, a, b, now) {
+  if (S.nivel < CRUZ_NIVEL) return { erro: 'nivel', nivel: CRUZ_NIVEL };
+  if (S.cruz) return { erro: 'ocupada' };
+  if (!a || !b || a === b) return { erro: 'par' };
+  if (!podeCruzar(S, a) || !podeCruzar(S, b)) return { erro: 'lvl' };
+  const c = custoCruz(S, a, b); if (S.coins < c) return { erro: 'moedas', custo: c };
+  S.coins -= c; S.cruz = { a, b, pronto: now + CRUZ_TEMPO * 1000 };
+  return { ok: true, custo: c };
+}
+function acelerarCruz(S, now) {
+  if (!S.cruz || now >= S.cruz.pronto) return { erro: 'nada' };
+  S.cruz.pronto = now + Math.floor((S.cruz.pronto - now) / 2); return { ok: true };
+}
+function abrirCruz(S, now, rng) {
+  rng = rng || Math.random;
+  const c = S.cruz; if (!c) return { erro: 'vazio' };
+  if (now < c.pronto) return { erro: 'cedo' };
+  const ra = PET_POR_ID[c.a].r, rb = PET_POR_ID[c.b].r;
+  let r = Math.max(ra, rb); if (r < 4 && rng() < (S.nivel >= 20 ? 0.2 : 0.15)) r++;
+  const pais = [c.a, c.b].filter(id => PET_POR_ID[id].r === r);
+  const opc = PETS.filter(p => p.r === r);
+  const pet = pais.length && rng() < 0.4 ? PET_POR_ID[pais[Math.floor(rng() * pais.length)]] : opc[Math.floor(rng() * opc.length)];
+  S.cruz = null; S.stats.cruzados = (S.stats.cruzados || 0) + 1; S.summons++; S.stats.chocados++;
+  const res = aplicarPet(S, pet.id);
+  evento(S, 'melhor', 1, r); pontoEvento(S, 4);
+  return { ok: true, pet, r, res, ups: ganharXP(S, XP_OVO[r] * (res.tipo === 'novo' ? 2 : 1)) };
+}
+
+/* ----- evolução dos bichos ----- */
+const EST_NOMES = ['', 'Crescido', 'Veterano', 'Mestre'], EST_FRAG = [3, 6, 10], EST_COINS = [8, 30, 120];
+const estagio = (S, id) => (S.pets[id] && S.pets[id].est) || 0;
+const custoEvolucao = (S, id) => { const e = estagio(S, id); return e >= 3 ? null : { frag: EST_FRAG[e], coins: Math.round(baseOf(S) * EST_COINS[e]) }; };
+function evoluir(S, id) {
+  const p = S.pets[id]; if (!p) return { erro: 'sem' };
+  if (p.lvl < LVL_MAX) return { erro: 'lvl' };
+  const c = custoEvolucao(S, id); if (!c) return { erro: 'max' };
+  if ((p.frag || 0) < c.frag) return { erro: 'frag', falta: c.frag - (p.frag || 0) };
+  if (S.coins < c.coins) return { erro: 'moedas', custo: c.coins };
+  S.coins -= c.coins; p.frag -= c.frag; p.est = estagio(S, id) + 1; S.stats.evolucoes = (S.stats.evolucoes || 0) + 1;
+  return { ok: true, est: p.est, ups: ganharXP(S, 40 * p.est) };
+}
+
+/* ----- conquistas ----- */
+const CONQS = [
+  { id: 'ovos',    nome: 'Chocador',       d: n => 'Choque ' + n + ' ovos',            v: S => S.stats.chocados,                      m: [10, 50, 200, 1000] },
+  { id: 'moedas',  nome: 'Mão na massa',   d: n => 'Colete ' + n.toLocaleString('pt-BR') + ' moedas', v: S => S.stats.coletado,        m: [10000, 1000000, 100000000, 10000000000] },
+  { id: 'pedidos', nome: 'Bom vendedor',   d: n => 'Entregue ' + n + ' pedidos',       v: S => S.stats.pedidos || 0,                  m: [5, 25, 100, 400] },
+  { id: 'safra',   nome: 'Safra farta',    d: n => 'Chegue à safra ' + n,              v: S => S.safra,                               m: [10, 30, 60, 120] },
+  { id: 'album',   nome: 'Colecionador',   d: n => 'Tenha ' + n + ' bichos',           v: S => Object.keys(S.pets).length,            m: [10, 25, 40, 48] },
+  { id: 'nivel',   nome: 'Fazendeiro',     d: n => 'Chegue ao nível ' + n,             v: S => S.nivel,                               m: [5, 10, 20, 30] },
+  { id: 'horta',   nome: 'Mão verde',      d: n => 'Faça ' + n + ' colheitas',         v: S => S.stats.colhidas || 0,                 m: [10, 50, 200, 800] },
+  { id: 'carinho', nome: 'Amigo dos bichos', d: n => 'Faça ' + n + ' carinhos',        v: S => S.stats.carinhos || 0,                 m: [10, 50, 200, 800] },
+  { id: 'oficina', nome: 'Padeiro',        d: n => 'Produza ' + n + ' receitas',       v: S => S.stats.receitas || 0,                 m: [5, 25, 100, 400] },
+  { id: 'cruz',    nome: 'Criador',        d: n => 'Faça ' + n + ' cruzamentos',       v: S => S.stats.cruzados || 0,                 m: [1, 5, 20, 60] },
+  { id: 'pesq',    nome: 'Estudioso',      d: n => 'Conclua ' + n + ' pesquisas',      v: S => S.stats.pesquisas || 0,                m: [2, 8, 20, 36] },
+  { id: 'evol',    nome: 'Treinador',      d: n => 'Evolua ' + n + ' vezes',           v: S => S.stats.evolucoes || 0,                m: [1, 4, 10, 25] }
+];
+const CONQ_REC = [{ gems: 3, ing: 0 }, { gems: 6, ing: 1 }, { gems: 12, ing: 2 }, { gems: 30, ing: 5 }];
+function conqEstado(S, c) {
+  const t = S.conq[c.id] || 0, v = c.v(S);
+  return { t, v, meta: t < 4 ? c.m[t] : null, pronta: t < 4 && v >= c.m[t] };
+}
+const conqProntas = S => CONQS.filter(c => conqEstado(S, c).pronta).length;
+function resgatarConq(S, id) {
+  const c = CONQS.find(x => x.id === id); if (!c) return { erro: 'tipo' };
+  const e = conqEstado(S, c); if (!e.pronta) return { erro: 'meta' };
+  const r = CONQ_REC[e.t]; S.conq[id] = e.t + 1; S.gems += r.gems; ganharIng(S, r.ing);
+  return { ok: true, rec: r, ups: ganharXP(S, 20 + 20 * e.t) };
+}
+
+/* ----- chefe da guilda ----- */
+const CHEFES = [
+  { nome: 'Nuvem de gafanhotos', em: '🦗' }, { nome: 'Tempestade de granizo', em: '⛈️' }, { nome: 'Bando de raposas ladras', em: '🦊' },
+  { nome: 'Geada fora de hora', em: '🥶' }, { nome: 'Enchente do rio', em: '🌊' }, { nome: 'Praga de ratos', em: '🐀' }, { nome: 'Seca braba', em: '☀️' }
+];
+const CHEFE_NIVEL = 5, CHEFE_GRATIS = 3, CHEFE_MAX = 6;
+const chefeDaSemana = n => CHEFES[((n % CHEFES.length) + CHEFES.length) % CHEFES.length];
+const danoGolpe = S => Math.round(200 + 40 * S.nivel + Math.min(prodTotal(S) * 3, 20000));
+const recChefe = S => ({ coins: baseOf(S) * 12, gems: 8, ing: 2 });
+/* Modo offline: os 14 membros simulados também atacam, ao longo da semana. */
+const chefeHPSim = S => Math.round(250000 * (1 + 0.1 * (S.guilda.nivel - 1)));
+const danoMembroSim = (gid, i, now) => Math.floor(membroTaxa(gid, i) * horasSemana(now) * 30);
+function chefeEstadoSim(S, now) {
+  const g = S.guilda, ch = S.chefe, hp = chefeHPSim(S);
+  let tot = ch.dano; const top = [{ nome: 'Você', dano: ch.dano, voce: true }];
+  for (let i = 0; i < N_MEMBROS; i++) { const d = danoMembroSim(g.id, i, now); tot += d; top.push({ nome: membroNome(g.id, i), dano: d, voce: false }); }
+  top.sort((a, b) => b.dano - a.dano);
+  return { semana: semanaDe(now), hp, dano_total: tot, meu_dano: ch.dano, golpes_hoje: ch.dia === diaDe(now) ? ch.hoje : 0, golpes_max: CHEFE_MAX,
+    termina_em: (168 - horasSemana(now)) * 3600, derrotado: tot >= hp, premio_resgatado: !!ch.res, top: top.slice(0, 8) };
+}
+function golpearChefeSim(S, now) {
+  if (S.guilda.id < 0) return { erro: 'sem_guilda' };
+  if (S.nivel < CHEFE_NIVEL) return { erro: 'nivel', nivel: CHEFE_NIVEL };
+  const ch = S.chefe, dia = diaDe(now);
+  if (ch.dia !== dia) { ch.dia = dia; ch.hoje = 0; }
+  if (ch.hoje >= CHEFE_MAX) return { erro: 'limite_diario' };
+  const d = danoGolpe(S); ch.hoje++; ch.dano += d; addPontos(S, 4, 'missao'); pontoEvento(S, 1);
+  return { ok: true, dano: d, ups: ganharXP(S, 6) };
+}
+function resgatarChefeSim(S, now) {
+  const e = chefeEstadoSim(S, now);
+  if (!e.derrotado || e.meu_dano <= 0) return { erro: 'sem_premio' };
+  if (S.chefe.res) return { erro: 'ja' };
+  S.chefe.res = 1; return aplicarRecChefe(S);
+}
+function aplicarRecChefe(S) { const r = recChefe(S); S.coins += r.coins; S.gems += r.gems; ganharIng(S, r.ing); return { ok: true, rec: r, ups: ganharXP(S, 50) }; }
+/* golpes grátis do dia que ainda sobram (os demais exigem anúncio) */
+const chefeGratisRest = (S, now) => S.guilda.id >= 0 && S.nivel >= CHEFE_NIVEL ? Math.max(0, CHEFE_GRATIS - (S.chefe.dia === diaDe(now) ? S.chefe.hoje : 0)) : 0;
+
+/* ----- corrida de 48 horas ----- */
+const CORR_METAS = [40, 120, 300, 600];
+const janelaDe = now => Math.floor((now - TZ_OFF * 60000) / (2 * DIA));
+const corridaResta = now => ((janelaDe(now) + 1) * 2 * DIA + TZ_OFF * 60000 - now) / 1000;
+let HOOK_CORRIDA = null;
+function pontoCorrida(S, n) {
+  if (!S.corrida || S.nivel < 3) return;
+  const j = janelaDe(S.ts); if (S.corrida.j !== j) S.corrida = { j, pts: 0, res: [0, 0, 0, 0] };
+  S.corrida.pts += n; if (HOOK_CORRIDA) HOOK_CORRIDA(n);
+}
+function recCorrida(S, k) {
+  const b = baseOf(S);
+  return [{ coins: b * 3, gems: 0, ing: 0 }, { coins: b * 6, gems: 2, ing: 1 }, { coins: b * 8, gems: 5, ing: 2 }, { coins: b * 12, gems: 10, ing: 3 }][k];
+}
+function resgatarCorrida(S, k, now) {
+  ajustarExtras(S, now);
+  if (S.corrida.res[k]) return { erro: 'ja' };
+  if (S.corrida.pts < CORR_METAS[k]) return { erro: 'meta' };
+  const r = recCorrida(S, k); S.corrida.res[k] = 1; S.coins += r.coins; S.gems += r.gems; ganharIng(S, r.ing);
+  return { ok: true, rec: r, ups: ganharXP(S, 25 + 15 * k) };
+}
+/* adversários simulados da corrida (offline) */
+function corridaSim(S, now) {
+  const j = janelaDe(now), dec = ((now - TZ_OFF * 60000) - j * 2 * DIA) / HORA, l = [];
+  for (let i = 0; i < 12; i++) l.push({ nome: NOMES[(i * 3 + j) % NOMES.length] + ' ' + SUFIXOS[i % 3], pts: Math.floor((1 + rnd01(i + 7, j) * 7) * dec), voce: false });
+  l.push({ nome: 'Você', pts: S.corrida.pts, voce: true });
+  l.sort((a, b) => b.pts - a.pts);
+  return l.map((x, k) => Object.assign(x, { pos: k + 1 }));
+}
