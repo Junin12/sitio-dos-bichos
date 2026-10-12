@@ -76,8 +76,8 @@ const Cena = (() => {
     const dia = h >= 6 && h <= 18, ph = dia ? (h - 6) / 12 : ((h < 6 ? h + 24 : h) - 18) / 12;
     const sx = 28 + ph * (W - 56), sy = HORIZ - 8 - Math.sin(Math.PI * clamp(ph, 0, 1)) * 92;
     if (dia) {
-      g = c.createRadialGradient(sx, sy, 4, sx, sy, 46); g.addColorStop(0, 'rgba(255,240,170,.95)'); g.addColorStop(1, 'rgba(255,240,170,0)');
-      c.fillStyle = g; c.beginPath(); c.arc(sx, sy, 46, 0, 7); c.fill();
+      g = c.createRadialGradient(sx, sy, 4, sx, sy, 90); g.addColorStop(0, 'rgba(255,240,170,.95)'); g.addColorStop(0.35, 'rgba(255,235,160,.35)'); g.addColorStop(1, 'rgba(255,240,170,0)');
+      c.fillStyle = g; c.beginPath(); c.arc(sx, sy, 90, 0, 7); c.fill();
       c.fillStyle = '#fff3b0'; c.beginPath(); c.arc(sx, sy, 15, 0, 7); c.fill();
     } else {
       g = c.createRadialGradient(sx, sy, 4, sx, sy, 38); g.addColorStop(0, 'rgba(200,215,255,.5)'); g.addColorStop(1, 'rgba(200,215,255,0)');
@@ -91,22 +91,53 @@ const Cena = (() => {
       for (let x = 0; x <= W; x += 6) c.lineTo(x, base - Math.sin(x / 58 + fase) * amp - Math.sin(x / 23 + fase * 2) * amp * 0.25);
       c.lineTo(W, H); c.closePath(); c.fill();
     };
+    // montanhas distantes enevoadas (perspectiva atmosférica)
+    const nev = mix(hex(ceuEm(h)[1].replace(/rgb\((\d+),(\d+),(\d+)\)/, (m, a, b, d) => '#' + [a, b, d].map(v => (+v).toString(16).padStart(2, '0')).join(''))), hex(pal.c1), 0.35);
+    c.fillStyle = rgb(nev); c.beginPath(); c.moveTo(0, HORIZ);
+    for (let x = 0; x <= W; x += 5) c.lineTo(x, HORIZ - 24 - Math.abs(Math.sin(x / 70 + 1)) * 26 - Math.sin(x / 19) * 3);
+    c.lineTo(W, HORIZ + 4); c.lineTo(0, HORIZ + 4); c.closePath(); c.fill();
     colina(HORIZ - 2, 14, 0.5, tom(pal.c1));
+    g = c.createLinearGradient(0, HORIZ - 30, 0, HORIZ + 6); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(255,255,255,' + (0.18 + 0.12 * L) + ')');
+    c.fillStyle = g; c.fillRect(0, HORIZ - 30, W, 36);
     colina(HORIZ + 8, 9, 2.1, tom(pal.c2));
     // pasto
     g = c.createLinearGradient(0, HORIZ + 4, 0, H); g.addColorStop(0, tom(pal.g1)); g.addColorStop(1, tom(pal.g2));
     c.fillStyle = g; c.beginPath(); c.moveTo(0, HORIZ + 12);
     for (let x = 0; x <= W; x += 8) c.lineTo(x, HORIZ + 12 + Math.sin(x / 40) * 2);
     c.lineTo(W, H); c.lineTo(0, H); c.closePath(); c.fill();
-    // trilha de terra
-    c.fillStyle = tom(pal.ter, 0.5); c.beginPath(); c.moveTo(20, H); c.quadraticCurveTo(120, 226, 300, 172); c.lineTo(312, 180); c.quadraticCurveTo(150, 250, 76, H); c.closePath(); c.fill();
+    // luz no pasto: clarão do lado do sol e sombra escura nas bordas
+    g = c.createRadialGradient(sx, HORIZ + 40, 10, sx, HORIZ + 40, 230); g.addColorStop(0, 'rgba(255,248,190,' + (dia ? 0.22 * L : 0) + ')'); g.addColorStop(1, 'rgba(255,248,190,0)');
+    c.fillStyle = g; c.fillRect(0, HORIZ + 8, W, H);
+    // listras de corte do gramado: dão profundidade (mais largas perto da câmera)
+    for (let i = 0; i < 9; i++) { const y0 = HORIZ + 14 + i * i * 2.2 + i * 6, hh = 4 + i * 1.7; c.fillStyle = i % 2 ? 'rgba(255,255,255,.045)' : 'rgba(0,40,10,.05)'; c.fillRect(0, y0, W, hh); }
+    // trilha de terra com bordas em relevo
+    c.fillStyle = 'rgba(0,0,0,.14)'; c.beginPath(); c.moveTo(18, H); c.quadraticCurveTo(120, 228, 301, 174); c.lineTo(314, 183); c.quadraticCurveTo(150, 252, 78, H); c.closePath(); c.fill();
+    g = c.createLinearGradient(0, 172, 0, H); g.addColorStop(0, tom(pal.ter, 0.5)); g.addColorStop(1, tom('#bb9a68', 0.5));
+    c.fillStyle = g; c.beginPath(); c.moveTo(20, H); c.quadraticCurveTo(120, 226, 300, 172); c.lineTo(312, 180); c.quadraticCurveTo(150, 250, 76, H); c.closePath(); c.fill();
+    c.strokeStyle = 'rgba(255,255,255,.22)'; c.lineWidth = 1; c.beginPath(); c.moveTo(20, H); c.quadraticCurveTo(120, 226, 300, 172); c.stroke();
     // flores
-    flores.forEach(f => { c.fillStyle = tom(pal.flor[f.k], 0.3); c.beginPath(); c.arc(f.x, f.y, f.r, 0, 7); c.fill(); });
+    flores.forEach(f => { const k = 0.6 + (f.y - HORIZ) / 170; c.fillStyle = 'rgba(0,30,10,.2)'; c.beginPath(); c.ellipse(f.x + 1, f.y + f.r * 0.9, f.r * k, f.r * 0.45 * k, 0, 0, 7); c.fill(); c.fillStyle = tom(pal.flor[f.k], 0.3); c.beginPath(); c.arc(f.x, f.y, f.r * k, 0, 7); c.fill(); c.fillStyle = 'rgba(255,255,255,.55)'; c.beginPath(); c.arc(f.x - f.r * 0.3 * k, f.y - f.r * 0.3 * k, f.r * 0.3 * k, 0, 7); c.fill(); });
+    // vinheta suave: foco no centro, como uma lente
+    g = c.createRadialGradient(W / 2, H * 0.55, H * 0.35, W / 2, H * 0.55, W * 0.78); g.addColorStop(0, 'rgba(0,20,30,0)'); g.addColorStop(1, 'rgba(0,20,30,' + (0.22 + 0.12 * (1 - L)) + ')');
+    c.fillStyle = g; c.fillRect(0, 0, W, H);
     bgHora = h;
   }
 
   /* ---------- construções ---------- */
-  function sombra(c, x, y, rx) { c.fillStyle = 'rgba(0,30,10,.22)'; c.beginPath(); c.ellipse(x, y, rx, rx * 0.22, 0, 0, 7); c.fill(); }
+  function sombra(c, x, y, rx) {
+    const a = 0.16 + 0.12 * L, g = c.createRadialGradient(x + rx * 0.22, y, rx * 0.1, x + rx * 0.22, y, rx * 1.15);
+    g.addColorStop(0, 'rgba(10,35,20,' + (a * 1.6) + ')'); g.addColorStop(0.55, 'rgba(10,35,20,' + a + ')'); g.addColorStop(1, 'rgba(10,35,20,0)');
+    c.save(); c.translate(x + rx * 0.22, y); c.scale(1, 0.26); c.translate(-(x + rx * 0.22), -y);
+    c.fillStyle = g; c.beginPath(); c.arc(x + rx * 0.22, y, rx * 1.15, 0, 7); c.fill(); c.restore();
+  }
+  /* esfera iluminada: luz de cima à esquerda, borda escura, brilho */
+  function esfera(c, x, y, r, cor, forca) {
+    const base = hex(cor), g = c.createRadialGradient(x - r * 0.38, y - r * 0.42, r * 0.1, x, y, r * 1.05);
+    g.addColorStop(0, tom(rgb(mix(base, [255, 255, 235], 0.42)).replace(/rgb\((\d+),(\d+),(\d+)\)/, (m, a, b, d) => '#' + [a, b, d].map(v => (+v).toString(16).padStart(2, '0')).join('')), forca));
+    g.addColorStop(0.55, tom(cor, forca));
+    g.addColorStop(1, tom(rgb(mix(base, [10, 40, 30], 0.45)).replace(/rgb\((\d+),(\d+),(\d+)\)/, (m, a, b, d) => '#' + [a, b, d].map(v => (+v).toString(16).padStart(2, '0')).join('')), forca));
+    c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+  }
   function celeiro(c, o, t) {
     const s = 0.92 + 0.03 * o.celeiro; c.save(); c.translate(62, 150); sombra(c, 0, 0, 44 * s); c.scale(s, s);
     if (o.celeiro >= 5) {                                          // silo
@@ -114,15 +145,24 @@ const Cena = (() => {
       c.fillStyle = tom('#8a979d'); c.beginPath(); c.ellipse(42.5, -62, 8.5, 6, 0, Math.PI, 0); c.fill();
       c.fillStyle = tom('#6f7c82'); for (let i = 1; i < 5; i++) c.fillRect(34, -62 + i * 12, 17, 1.2);
     }
-    let g = c.createLinearGradient(-30, 0, 30, 0); g.addColorStop(0, tom('#d2675a')); g.addColorStop(1, tom('#b24a3d'));
+    // parede lateral (na sombra) e parede da frente (iluminada): dá a quina em 3D
+    c.fillStyle = tom('#8f372d'); c.beginPath(); c.moveTo(30, -46); c.lineTo(46, -52); c.lineTo(46, -8); c.lineTo(30, 0); c.closePath(); c.fill();
+    c.fillStyle = tom('#6d6a62'); c.beginPath(); c.moveTo(30, -46); c.lineTo(46, -52); c.lineTo(34, -80 + 6); c.lineTo(0, -69); c.closePath();
+    c.fillStyle = tom('#8a3128'); c.beginPath(); c.moveTo(0, -74); c.lineTo(37, -44); c.lineTo(50, -50); c.lineTo(14, -80); c.closePath(); c.fill();   // água do telhado em sombra
+    let g = c.createLinearGradient(-30, 0, 30, 0); g.addColorStop(0, tom('#e07a6a')); g.addColorStop(0.6, tom('#c9584a')); g.addColorStop(1, tom('#b24a3d'));
+    c.fillStyle = g; c.fillRect(-30, -46, 60, 46);
+    g = c.createLinearGradient(0, -46, 0, 0); g.addColorStop(0, 'rgba(255,255,255,.1)'); g.addColorStop(0.7, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.22)');
     c.fillStyle = g; c.fillRect(-30, -46, 60, 46);
     c.fillStyle = 'rgba(0,0,0,.12)'; for (let x = -24; x < 30; x += 8) c.fillRect(x, -46, 1.4, 46);
     c.fillStyle = tom('#c4584b'); c.beginPath(); c.moveTo(-33, -44); c.lineTo(0, -69); c.lineTo(33, -44); c.closePath(); c.fill();   // frontão
     c.fillStyle = o.celeiro >= 10 ? tom('#ffc21a', 0.3) : tom('#7b3a32');                 // telhado
     c.beginPath(); c.moveTo(-37, -44); c.lineTo(0, -74); c.lineTo(37, -44); c.lineTo(32, -42); c.lineTo(0, -66); c.lineTo(-32, -42); c.closePath(); c.fill();
     c.fillStyle = tom('#8a4338'); c.beginPath(); c.moveTo(-34, -45); c.lineTo(0, -71); c.lineTo(34, -45); c.lineTo(30, -44); c.lineTo(0, -64); c.lineTo(-30, -44); c.closePath(); c.fill();
+    c.strokeStyle = 'rgba(255,230,200,.5)'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(-36, -44.5); c.lineTo(0, -73); c.stroke();
+    c.fillStyle = 'rgba(0,0,0,.28)'; c.fillRect(-10.5, -28.5, 21, 29);                         // vão da porta (profundidade)
     c.fillStyle = tom('#f6ead3'); c.fillRect(-9, -27, 18, 27);                                // porta
     c.strokeStyle = tom('#b24a3d'); c.lineWidth = 2; c.beginPath(); c.moveTo(-9, -27); c.lineTo(9, 0); c.moveTo(9, -27); c.lineTo(-9, 0); c.strokeRect(-9, -27, 18, 27);
+    c.fillStyle = 'rgba(255,255,255,.22)'; c.beginPath(); c.moveTo(-30, -46); c.lineTo(-27, -46); c.lineTo(-27, 0); c.lineTo(-30, 0); c.fill();   // luz na quina
     c.fillStyle = tom('#f6ead3'); c.beginPath(); c.arc(0, -55, 4.5, 0, 7); c.fill();         // janela do palheiro
     if (L < 0.7) { c.fillStyle = 'rgba(255,214,120,' + (0.9 - L) + ')'; c.beginPath(); c.arc(0, -55, 3.3, 0, 7); c.fill(); }
     c.restore();
@@ -132,7 +172,7 @@ const Cena = (() => {
     const s = 0.85 + 0.04 * o.chocadeira; c.save(); c.translate(150, 142); sombra(c, 0, 0, 28 * s); c.scale(s, s);
     c.fillStyle = tom('#efe5cd'); c.fillRect(-20, -24, 40, 24);
     c.fillStyle = tom('#7b3a32'); c.beginPath(); c.moveTo(-25, -23); c.lineTo(0, -45); c.lineTo(25, -23); c.closePath(); c.fill();
-    c.fillStyle = tom('#cdb98f'); c.fillRect(-5, -14, 10, 14);
+    c.fillStyle = tom('#cdb98f'); c.fillRect(-5, -14, 10, 14); c.fillStyle = 'rgba(0,0,0,.13)'; c.fillRect(8, -24, 12, 24); c.fillStyle = 'rgba(255,255,255,.25)'; c.fillRect(-20, -24, 3, 24);
     c.fillStyle = tom('#ffc21a', 0.3); c.beginPath(); c.ellipse(0, -31, 4.2, 5.5, 0, 0, 7); c.fill();
     if (L < 0.7) { c.fillStyle = 'rgba(255,200,90,' + (0.85 - L) + ')'; c.fillRect(-15, -19, 6, 6); c.fillRect(9, -19, 6, 6); }
     c.restore();
@@ -143,14 +183,14 @@ const Cena = (() => {
     c.fillStyle = 'rgba(190,235,245,.78)'; c.beginPath(); c.moveTo(-27, 0); c.lineTo(-27, -16); c.quadraticCurveTo(0, -48, 27, -16); c.lineTo(27, 0); c.closePath(); c.fill();
     c.strokeStyle = tom('#e9e1cd', 0.3); c.lineWidth = 1.4; c.stroke(); c.beginPath(); c.moveTo(0, 0); c.lineTo(0, -32); c.moveTo(-14, 0); c.lineTo(-14, -27); c.moveTo(14, 0); c.lineTo(14, -27); c.stroke();
     c.fillStyle = tom('#3fa061'); [-12, 0, 12].forEach(x => { c.beginPath(); c.arc(x, -5, 4.4, 0, 7); c.fill(); });
-    c.fillStyle = 'rgba(255,255,255,.35)'; c.beginPath(); c.ellipse(-12, -22, 6, 2.6, -0.7, 0, 7); c.fill();
+    c.fillStyle = 'rgba(255,255,255,.5)'; c.beginPath(); c.ellipse(-12, -22, 6, 2.6, -0.7, 0, 7); c.fill(); const gv = c.createLinearGradient(-27, 0, 27, 0); gv.addColorStop(0, 'rgba(255,255,255,.18)'); gv.addColorStop(1, 'rgba(0,50,70,.2)'); c.fillStyle = gv; c.beginPath(); c.moveTo(-27, 0); c.lineTo(-27, -16); c.quadraticCurveTo(0, -48, 27, -16); c.lineTo(27, 0); c.closePath(); c.fill();
     c.restore();
   }
   function moinho(c, o, t) {
     if (o.moinho < 1) return;
     const s = 0.85 + 0.04 * o.moinho; c.save(); c.translate(306, 140); sombra(c, 0, 0, 20 * s); c.scale(s, s);
     c.fillStyle = tom('#ebe3cf'); c.beginPath(); c.moveTo(-11, 0); c.lineTo(11, 0); c.lineTo(6, -48); c.lineTo(-6, -48); c.closePath(); c.fill();
-    c.fillStyle = 'rgba(0,0,0,.08)'; c.beginPath(); c.moveTo(0, 0); c.lineTo(11, 0); c.lineTo(6, -48); c.lineTo(0, -48); c.closePath(); c.fill();
+    c.fillStyle = 'rgba(0,0,0,.2)'; c.beginPath(); c.moveTo(1, 0); c.lineTo(11, 0); c.lineTo(6, -48); c.lineTo(1, -48); c.closePath(); c.fill(); c.fillStyle = 'rgba(255,255,255,.3)'; c.beginPath(); c.moveTo(-11, 0); c.lineTo(-8, 0); c.lineTo(-4, -48); c.lineTo(-6, -48); c.closePath(); c.fill();
     c.fillStyle = tom('#7b3a32'); c.beginPath(); c.moveTo(-9, -48); c.lineTo(0, -61); c.lineTo(9, -48); c.closePath(); c.fill();
     c.translate(0, -51); c.rotate(reduzido() ? 0.4 : t * (0.7 + 0.14 * o.moinho));
     for (let i = 0; i < 4; i++) {
@@ -162,9 +202,9 @@ const Cena = (() => {
   }
   function arvore(c, x, y, s, t, fase) {
     c.save(); c.translate(x, y); sombra(c, 0, 0, 16 * s); c.scale(s, s);
-    c.fillStyle = tom('#7a5636'); c.fillRect(-3, -22, 6, 22);
+    const gt = c.createLinearGradient(-3, 0, 3, 0); gt.addColorStop(0, tom('#9a7048')); gt.addColorStop(1, tom('#5e4128')); c.fillStyle = gt; c.fillRect(-3, -22, 6, 22);
     const bal = reduzido() ? 0 : Math.sin(t * 1.2 + fase) * 1.4;
-    [[pal.arv[0], 0, -34, 17], [pal.arv[1], -9, -27, 12], [pal.arv[2], 10, -28, 12], [pal.arv[3], 2, -40, 9]].forEach(a => { c.fillStyle = tom(a[0]); c.beginPath(); c.arc(a[1] + bal * (1 + (-a[2] / 40)), a[2], a[3], 0, 7); c.fill(); });
+    [[pal.arv[0], 0, -34, 17], [pal.arv[1], -9, -27, 12], [pal.arv[2], 10, -28, 12], [pal.arv[3], 2, -40, 9]].forEach(a => esfera(c, a[1] + bal * (1 + (-a[2] / 40)), a[2], a[3], a[0]));
     c.restore();
   }
   function cerca(c, x0, x1) {
@@ -237,8 +277,16 @@ const Cena = (() => {
 
   /* ---------- seres ---------- */
   function desenharBicho(c, b, t) {
-    const sc = (1 + b.r * 0.07) * (b.nasc < 1 ? 0.2 + 0.8 * (1 - Math.pow(1 - b.nasc, 3)) : 1), tam = 27 * sc;
-    sombra(c, b.x, b.y + 3, 11 * sc);
+    const persp = 0.86 + clamp((b.y - 172) / 28, 0, 1) * 0.2;                 // mais perto da câmera = maior
+    const sc = persp * (1 + b.r * 0.07) * (b.nasc < 1 ? 0.2 + 0.8 * (1 - Math.pow(1 - b.nasc, 3)) : 1), tam = 27 * sc;
+    const alto = clamp(-b.yoff / 28, 0, 1);                                    // altura do pulo: sombra encolhe e clareia
+    sombra(c, b.x, b.y + 3, 11 * sc * (1 - alto * 0.35));
+    if (b.r >= 1) {                                                            // base: disco que brilha na cor da raridade
+      const cor = ['', '110,200,255', '175,120,255', '175,120,255', '255,190,40'][b.r] || '255,255,255';
+      c.save(); c.translate(b.x, b.y + 2); c.scale(1, 0.3);
+      const gb = c.createRadialGradient(0, 0, 2, 0, 0, 17 * sc); gb.addColorStop(0, 'rgba(' + cor + ',' + (0.2 + b.r * 0.1) + ')'); gb.addColorStop(1, 'rgba(' + cor + ',0)');
+      c.fillStyle = gb; c.beginPath(); c.arc(0, 0, 17 * sc, 0, 7); c.fill(); c.restore();
+    }
     if (b.r >= 3) {
       const cor = b.r === 4 ? '255,190,40' : '175,120,255', pulso = 0.28 + 0.12 * Math.sin(t * 3 + b.fase);
       const g = c.createRadialGradient(b.x, b.y - 8, 2, b.x, b.y - 8, 28); g.addColorStop(0, 'rgba(' + cor + ',' + pulso + ')'); g.addColorStop(1, 'rgba(' + cor + ',0)');
@@ -246,8 +294,12 @@ const Cena = (() => {
     }
     const quique = b.estado === 'walk' ? Math.abs(Math.sin(b.fase * 2)) * 3.2 : Math.sin(t * 2.2 + b.fase) * 0.6;
     c.save(); c.translate(b.x, b.y - tam * 0.4 + b.yoff - quique);
-    c.scale(b.dir * (b.estado === 'walk' ? 1 : 1), 1 + (b.estado === 'idle' ? Math.sin(t * 2.2 + b.fase) * 0.025 : 0));
-    c.fillStyle = '#000'; c.font = tam + 'px ' + EMOJI; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(b.em, 0, 0);   // emoji colorido herda a opacidade do fillStyle
+    const ar = b.estado === 'idle' ? Math.sin(t * 2.2 + b.fase) * 0.025 : 0, es = b.vy < -20 ? 1.1 : (b.vy > 20 ? 1.06 : 1);   // estica no pulo
+    c.scale(b.dir * (2 - es) * (1 - ar * 0.4), es * (1 + ar));
+    if (!eco) { c.shadowColor = 'rgba(0,30,20,.35)'; c.shadowBlur = 4; c.shadowOffsetX = -b.dir * 1; c.shadowOffsetY = 2.5; }   // relevo: o bicho "descola" do chão
+    c.fillStyle = '#000'; c.font = tam + 'px ' + EMOJI; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(b.em, 0, 0);
+    c.shadowColor = 'transparent'; c.shadowBlur = 0; c.shadowOffsetX = 0; c.shadowOffsetY = 0;
+    if (!eco) { const gl = c.createRadialGradient(-tam * 0.18, -tam * 0.28, 1, -tam * 0.18, -tam * 0.28, tam * 0.5); gl.addColorStop(0, 'rgba(255,255,255,.28)'); gl.addColorStop(1, 'rgba(255,255,255,0)'); c.globalCompositeOperation = 'source-atop'; c.fillStyle = gl; c.fillRect(-tam, -tam, tam * 2, tam * 2); c.globalCompositeOperation = 'source-over'; }   // emoji colorido herda a opacidade do fillStyle
     c.restore();
   }
   function atualizarBicho(b, dt) {
@@ -265,14 +317,14 @@ const Cena = (() => {
     const andar = f.x !== f.tx ? Math.sin(f.fase * 2) * 3 : 0, resp = Math.sin(t * 2) * 0.6;
     c.save(); c.translate(f.x, f.y); c.scale(f.dir, 1); sombra(c, 0, 1, 9);
     c.fillStyle = '#3A4A63'; c.fillRect(-6, -12 + andar * 0.0, 5, 12 - andar * 0.4); c.fillRect(1.5, -12, 5, 12 + andar * 0.4);
-    c.fillStyle = tom(cam); c.beginPath(); c.roundRect ? c.roundRect(-9, -31 + resp, 18, 21, 5) : c.rect(-9, -31 + resp, 18, 21); c.fill();
+    { const gc = c.createLinearGradient(-9, 0, 9, 0); gc.addColorStop(0, tom(rgb(mix(hex(cam), [255, 255, 255], 0.22)).replace(/rgb\((\d+),(\d+),(\d+)\)/, (m, a, b, d) => '#' + [a, b, d].map(v => (+v).toString(16).padStart(2, '0')).join(''))));  gc.addColorStop(1, tom(rgb(mix(hex(cam), [0, 0, 0], 0.28)).replace(/rgb\((\d+),(\d+),(\d+)\)/, (m, a, b, d) => '#' + [a, b, d].map(v => (+v).toString(16).padStart(2, '0')).join('')))); c.fillStyle = gc; } c.beginPath(); c.roundRect ? c.roundRect(-9, -31 + resp, 18, 21, 5) : c.rect(-9, -31 + resp, 18, 21); c.fill();
     if (tier >= 2) { c.fillStyle = '#2C5E8C'; c.fillRect(-5, -31 + resp, 3, 12); c.fillRect(2, -31 + resp, 3, 12); }
     if (tier >= 4) { c.fillStyle = '#F2C94C'; c.fillRect(-9, -17, 18, 3.5); }
     c.fillStyle = tom(cam);                                                    // braços
     c.fillRect(-12, -29 + resp, 4, 12 + andar * 0.3);
     if (f.acena > 0) { c.save(); c.translate(9, -29); c.rotate(-2.2 + Math.sin(t * 14) * 0.45); c.fillRect(0, 0, 4, 12); c.fillStyle = '#F0C9A0'; c.fillRect(0, 11, 4, 3); c.restore(); }
     else c.fillRect(8, -29 + resp, 4, 12 - andar * 0.3);
-    c.fillStyle = '#F0C9A0'; c.beginPath(); c.arc(0, -39 + resp, 7.2, 0, 7); c.fill();
+    esfera(c, 0, -39 + resp, 7.2, '#F0C9A0', 0.3);
     c.fillStyle = '#2B1D00'; c.fillRect(1.2, -40.5 + resp, 1.6, 1.8); c.fillRect(-3.6, -40.5 + resp, 1.6, 1.8);
     if (tier >= 5) { c.fillStyle = '#F4B31F'; c.beginPath(); c.moveTo(-7, -45); c.lineTo(-7, -54); c.lineTo(-3.5, -49); c.lineTo(0, -56); c.lineTo(3.5, -49); c.lineTo(7, -54); c.lineTo(7, -45); c.fill(); }
     else { c.fillStyle = tom('#e8cf84'); c.beginPath(); c.ellipse(0, -45 + resp, 12, 3, 0, 0, 7); c.fill(); c.beginPath(); c.moveTo(-7, -45 + resp); c.quadraticCurveTo(0, -57 + resp, 7, -45 + resp); c.fill(); if (tier >= 1) { c.fillStyle = cam; c.fillRect(-7, -48 + resp, 14, 2.2); } }
@@ -302,8 +354,9 @@ const Cena = (() => {
     // nuvens
     nuvens.forEach(n => {
       if (!reduzido()) { n.x += n.v * dt; if (n.x > W + 50) n.x = -50; }
-      c.fillStyle = 'rgba(255,255,255,' + (0.35 + 0.55 * L) + ')'; const x = n.x, y = n.y, s = n.s;
-      c.beginPath(); c.ellipse(x, y, 22 * s, 8 * s, 0, 0, 7); c.ellipse(x - 12 * s, y + 2 * s, 14 * s, 6 * s, 0, 0, 7); c.ellipse(x + 13 * s, y + 2 * s, 15 * s, 6.5 * s, 0, 0, 7); c.ellipse(x + 2 * s, y - 6 * s, 12 * s, 7 * s, 0, 0, 7); c.fill();
+      const x = n.x, y = n.y, s = n.s, forma = () => { c.beginPath(); c.ellipse(x, y, 22 * s, 8 * s, 0, 0, 7); c.ellipse(x - 12 * s, y + 2 * s, 14 * s, 6 * s, 0, 0, 7); c.ellipse(x + 13 * s, y + 2 * s, 15 * s, 6.5 * s, 0, 0, 7); c.ellipse(x + 2 * s, y - 6 * s, 12 * s, 7 * s, 0, 0, 7); };
+      const ga = 0.35 + 0.55 * L; c.fillStyle = 'rgba(150,170,205,' + ga + ')'; forma(); c.fill();                  // base na sombra
+      c.fillStyle = 'rgba(255,255,255,' + ga + ')'; c.save(); c.translate(-1.2 * s, -2.2 * s); forma(); c.fill(); c.restore();   // topo iluminado
     });
     // capim balançando
     tufos.forEach(g => { c.strokeStyle = tom('#3d9a5b', 0.5); c.lineWidth = 1.2; const b = reduzido() ? 0 : Math.sin(t * 2 + g.a) * 1.6; c.beginPath(); c.moveTo(g.x - 1.5, g.y); c.lineTo(g.x - 1.5 + b, g.y - g.h); c.moveTo(g.x + 1.5, g.y); c.lineTo(g.x + 1.5 + b, g.y - g.h * 0.8); c.stroke(); });
@@ -322,6 +375,10 @@ const Cena = (() => {
       const bat = Math.abs(Math.sin(t * 14 + b.a)) * 4 + 1; c.fillStyle = b.cor; c.beginPath(); c.ellipse(b.x - 2, b.y, bat, 3, -0.4, 0, 7); c.ellipse(b.x + 2, b.y, bat, 3, 0.4, 0, 7); c.fill();
     });
     desenharClima(c, dt, t);
+    // capim alto na frente dos bichos (camada mais próxima da câmera)
+    if (!eco) { const bal = reduzido() ? 0 : 1; for (let x = 4; x < W; x += 9) { const hh = 9 + ((x * 7) % 5), b = Math.sin(t * 1.8 + x) * 1.6 * bal; c.fillStyle = tom(x % 18 < 9 ? '#3f9f5e' : '#2f8a4e', 0.5); c.beginPath(); c.moveTo(x - 2.5, H); c.quadraticCurveTo(x, H - hh * 0.6, x + b, H - hh); c.quadraticCurveTo(x + 1.5, H - hh * 0.6, x + 2.5, H); c.fill(); } }
+    // raios de luz atravessando o céu (só de dia)
+    if (L > 0.6 && !eco) { c.save(); c.globalCompositeOperation = 'lighter'; const sxp = 28 + ((clamp(((horaFixa == null ? horaAgora() : horaFixa) - 6) / 12, 0, 1)) * (W - 56)); for (let k = 0; k < 4; k++) { const a = 0.045 * L * (0.7 + 0.3 * Math.sin(t * 0.6 + k * 2)); const gr = c.createLinearGradient(sxp, 0, sxp + (k - 1.5) * 60, H); gr.addColorStop(0, 'rgba(255,245,190,' + a + ')'); gr.addColorStop(1, 'rgba(255,245,190,0)'); c.fillStyle = gr; c.beginPath(); c.moveTo(sxp - 4, 0); c.lineTo(sxp + 6, 0); c.lineTo(sxp + (k - 1.5) * 90 + 26, H); c.lineTo(sxp + (k - 1.5) * 90 - 26, H); c.closePath(); c.fill(); } c.restore(); }
     // véu da noite
     if (L < 0.95) { c.fillStyle = 'rgba(14,20,70,' + ((1 - L) * 0.38) + ')'; c.fillRect(0, 0, W, H); }
     if (L < 0.5 && !eco) vagas.forEach(v => {
