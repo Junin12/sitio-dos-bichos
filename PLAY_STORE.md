@@ -7,7 +7,7 @@ Este jogo hoje é um site (PWA). Para entrar na loja, ele vai dentro de um app A
 - **Excluir conta e dados**: botão em Ajustes (modo online), implementado no servidor (`jogo_conta_apagar`). A Play exige também um link público para pedir a exclusão: use a página da política (seção "Seus direitos") ou crie uma página só para isso.
 - **Instalável e funciona sem internet**: `manifest.webmanifest`, ícones e `sw.js`.
 - **Anúncios só com a escolha da pessoa** (anúncio recompensado), nunca no meio de uma ação.
-- **Sem conteúdo fantasioso, violento ou adulto**: só animais reais.
+- **Sem conteúdo fantasioso, violento ou adulto**: só animais que existem ou existiram (incluindo dinossauros e mamutes); sem dragão, unicórnio ou outros seres fantásticos.
 
 ## O que você precisa decidir ou fazer
 1. **Conta de desenvolvedor Play** (taxa única de US$ 25). Contas pessoais novas precisam de um período de teste fechado com ao menos 12 testadores por 14 dias antes de liberar a produção.

@@ -362,12 +362,15 @@ const PETS = [
   { id: 'preguica',  nome: 'Preguiça',           em: '🦥', r: 3 },
   { id: 'flamingo',  nome: 'Flamingo',           em: '🦩', r: 3 },
   { id: 'canguru',   nome: 'Canguru',            em: '🦘', r: 3 },
+  { id: 'trex',      nome: 'Tiranossauro',       em: '🦖', r: 3 },
   { id: 'arara',     nome: 'Arara-azul',         em: '🦜', r: 4 },
   { id: 'elefante',  nome: 'Elefante',           em: '🐘', r: 4 },
   { id: 'onca',      nome: 'Onça-pintada',       em: '🐆', r: 4 },
   { id: 'panda',     nome: 'Panda',              em: '🐼', r: 4 },
   { id: 'leao',      nome: 'Leão',               em: '🦁', r: 4 },
-  { id: 'zebra',     nome: 'Zebra',              em: '🦓', r: 4 }
+  { id: 'zebra',     nome: 'Zebra',              em: '🦓', r: 4 },
+  { id: 'mamute',    nome: 'Mamute-lanoso',      em: '🦣', r: 4 },
+  { id: 'dino',      nome: 'Braquiossauro',      em: '🦕', r: 4 }
 ];
 /* Bichos exclusivos dos eventos semanais: não saem dos ovos. */
 const PETS_EVENTO = [
@@ -380,8 +383,8 @@ const PETS_EVENTO = [
   { id: 'urso',     nome: 'Urso-pardo', em: '🐻', r: 3, ev: 1 },
   { id: 'tigre',    nome: 'Tigre',     em: '🐅', r: 3, ev: 1 }
 ];
-/* Saves antigos tinham bichos que não existem; viram animais reais da mesma raridade. */
-const PET_MIGRA = { unicornio: 'cisne', dragao: 'arara', mamute: 'elefante', dino: 'onca' };
+/* Saves antigos tinham unicórnio e dragão, que não existem; viram animais reais da mesma raridade. Dinossauros e mamutes existiram de verdade e ficam. */
+const PET_MIGRA = { unicornio: 'cisne', dragao: 'arara' };
 const PET_POR_ID = Object.fromEntries(PETS.concat(PETS_EVENTO).map(p => [p.id, p]));
 const OVOS = {
   palha:   { nome: 'Ovo de Palha', moeda: 'coins', base: 120, tempo: 20, pesos: [60, 28, 9, 2.6, 0.4], nivel: 1 },

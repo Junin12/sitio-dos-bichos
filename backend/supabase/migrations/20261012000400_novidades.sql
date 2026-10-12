@@ -4,7 +4,7 @@
 ----------------------------------------------------------------------------
 -- 1. Catálogo: só animais reais
 ----------------------------------------------------------------------------
-delete from public.catalogo_pets where id in ('unicornio', 'dragao', 'mamute', 'dino');
+delete from public.catalogo_pets where id in ('unicornio', 'dragao');
 insert into public.catalogo_pets (id, nome, emoji, raridade) values
   ('pintinho','Pintinho','🐥',0), ('coelho','Coelho','🐰',0), ('leitao','Leitão','🐷',0), ('patinho','Patinho','🦆',0),
   ('gato','Gato','🐱',0), ('cachorro','Cachorro','🐶',0), ('peru','Peru','🦃',0), ('sapo','Sapo','🐸',0),
@@ -13,9 +13,10 @@ insert into public.catalogo_pets (id, nome, emoji, raridade) values
   ('raposa','Raposa','🦊',2), ('potro','Potro','🐴',2), ('lhama','Lhama','🦙',2), ('lontra','Lontra','🦦',2),
   ('esquilo','Esquilo','🐿️',2), ('gamba','Gambá','🦨',2), ('texugo','Texugo','🦡',2),
   ('cisne','Cisne','🦢',3), ('pavao','Pavão','🦚',3), ('coruja','Coruja','🦉',3), ('cervo','Cervo','🦌',3),
-  ('macaco','Macaco-prego','🐒',3), ('preguica','Preguiça','🦥',3), ('flamingo','Flamingo','🦩',3), ('canguru','Canguru','🦘',3),
+  ('macaco','Macaco-prego','🐒',3), ('trex','Tiranossauro','🦖',3), ('preguica','Preguiça','🦥',3), ('flamingo','Flamingo','🦩',3), ('canguru','Canguru','🦘',3),
   ('arara','Arara-azul','🦜',4), ('elefante','Elefante','🐘',4), ('onca','Onça-pintada','🐆',4),
   ('panda','Panda','🐼',4), ('leao','Leão','🦁',4), ('zebra','Zebra','🦓',4),
+  ('mamute','Mamute-lanoso','🦣',4), ('dino','Braquiossauro','🦕',4),
   ('pinguim','Pinguim','🐧',3), ('girafa','Girafa','🦒',3), ('koala','Coala','🐨',3), ('golfinho','Golfinho','🐬',3),
   ('camelo','Camelo','🐪',3), ('lobo','Lobo-guará','🐺',3), ('urso','Urso-pardo','🐻',3), ('tigre','Tigre','🐅',3)
 on conflict (id) do update set nome = excluded.nome, emoji = excluded.emoji, raridade = excluded.raridade;

@@ -27,8 +27,8 @@ const bom = async (p, tag) => ok(p.erros.length === 0, tag + ' sem erros de JS '
   const antigo = JSON.stringify({ v: 1, ts: Date.now() - 3600e3, coins: 500, gems: 7, nivel: 8, xp: 0, slots: 4, visto: true, pets: { dragao: { lvl: 3 }, unicornio: { lvl: 2 }, coelho: { lvl: 1 }, mamute: { lvl: 5 }, bicho_falso: { lvl: 1 } }, eggs: [{ tipo: 'dourado', pronto: 0 }, null, null], obras: { celeiro: 2, chocadeira: 1, moinho: 1, estufa: 0 } });
   const p = await abrir('sitio-dos-bichos.html', pg => pg.addInitScript(s => { localStorage.setItem('sitio-dos-bichos.v1', s); }, antigo));
   const pets = await p.evaluate(() => Object.keys(S.pets).sort());
-  ok(JSON.stringify(pets) === JSON.stringify(['arara', 'cisne', 'coelho', 'elefante']), 'bichos fantasiosos migrados para reais: ' + pets);
-  ok(await p.evaluate(() => S.pets.arara.lvl === 3 && S.pets.elefante.lvl === 5), 'níveis preservados na migração');
+  ok(JSON.stringify(pets) === JSON.stringify(['arara', 'cisne', 'coelho', 'mamute']), 'unicórnio e dragão migrados para animais reais: ' + pets);
+  ok(await p.evaluate(() => S.pets.arara.lvl === 3 && S.pets.mamute.lvl === 5), 'níveis preservados na migração');
   ok(await p.evaluate(() => Array.isArray(S.horta) && S.horta.length === 3 && S.pedidos.every(x => x)), 'horta e pedidos criados no save antigo');
   await p.evaluate(() => { S.tut.fim = true; fecharModal(); });
   // cuidar do bicho pela tela

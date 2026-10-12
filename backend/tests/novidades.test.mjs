@@ -6,11 +6,11 @@ let db;
 before(() => { db = criarBanco(); });
 after(() => removerBanco(db));
 
-test('catálogo: só animais reais, sem os fantasiosos antigos', () => {
+test('catálogo: só animais que existiram (inclui pré-históricos), sem unicórnio e dragão', () => {
   const ids = consulta(db, 'select id from catalogo_pets').map(r => r.id);
-  for (const f of ['unicornio', 'dragao', 'mamute', 'dino']) assert.ok(!ids.includes(f), f);
-  for (const v of ['arara', 'elefante', 'onca', 'cisne', 'pinguim', 'tigre']) assert.ok(ids.includes(v), v);
-  assert.equal(ids.length, 45);
+  for (const f of ['unicornio', 'dragao']) assert.ok(!ids.includes(f), f);
+  for (const v of ['arara', 'elefante', 'onca', 'cisne', 'pinguim', 'tigre', 'mamute', 'dino', 'trex']) assert.ok(ids.includes(v), v);
+  assert.equal(ids.length, 48);
 });
 
 test('prestígio: só depois do nível 25, de 1 em 1, poder acompanha', async () => {

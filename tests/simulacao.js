@@ -57,10 +57,10 @@ resumo(40,72); resumo(180,720); resumo(480,1440);
   // catálogo só com animais reais e ids únicos
   const todos = PETS.concat(PETS_EVENTO), ids = new Set(todos.map(p => p.id));
   assert(ids.size === todos.length, 'ids únicos');
-  for (const f of ['unicornio', 'dragao', 'mamute', 'dino']) assert(!ids.has(f), 'sem bicho fantasioso ' + f);
+  for (const f of ['unicornio', 'dragao']) assert(!ids.has(f), 'sem bicho fantasioso ' + f);
   for (const k in PET_MIGRA) assert(PET_POR_ID[PET_MIGRA[k]], 'migração ' + k);
   for (let r = 0; r < 5; r++) assert(PETS.filter(p => p.r === r).length >= 6, 'raridade ' + r + ' com opções');
-  assert(PETS.length >= 35 && PETS_EVENTO.length === EVENTOS.length, 'tamanho do catálogo');
+  assert(ids.has('dino') && ids.has('mamute') && ids.has('trex'), 'pré-históricos reais presentes'); assert(PETS.length >= 35 && PETS_EVENTO.length === EVENTOS.length, 'tamanho do catálogo');
   EVENTOS.forEach(e => assert(PETS_EVENTO.some(p => p.id === e.pet), 'pet do evento ' + e.id));
   // cuidar
   let S = novoEstado(t0); aplicarPet(S, 'coelho'); S.ts = t0;

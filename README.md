@@ -6,7 +6,7 @@ Roda direto no navegador: abra `sitio-dos-bichos.html`. O progresso fica salvo n
 
 ## O que tem
 
-- **Gacha:** ovos de Palha (moedas), Dourado (gemas) e Brilhante (1 por dia, com anúncio). 37 animais reais em 5 raridades, mais 8 animais exclusivos de evento. Garantia de Épico a cada 30 invocações, chances visíveis no jogo.
+- **Gacha:** ovos de Palha (moedas), Dourado (gemas) e Brilhante (1 por dia, com anúncio). 40 animais (reais e pré-históricos) em 5 raridades, mais 8 animais exclusivos de evento. Garantia de Épico a cada 30 invocações, chances visíveis no jogo.
 - **Fazenda idle:** os bichos produzem moedas no celeiro, mesmo com o app fechado.
 - **Fazendeiro:** nível 1 a 30, títulos e visual que evoluem.
 - **Obras:** Celeiro, Chocadeira, Moinho e Estufa, que aparecem no cenário e dependem do nível do fazendeiro.
