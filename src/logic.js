@@ -60,8 +60,8 @@ const PETS_EVENTO = [
   { id: 'tigre',    nome: 'Tigre',     em: '🐅', r: 3, ev: 1 },
   /* eventos de calendário */
   { id: 'coelhopas', nome: 'Lebre-dourada', em: '🐇', r: 3, ev: 1 }, { id: 'boi', nome: 'Boi-mansinho', em: '🐂', r: 3, ev: 1 },
-  { id: 'panda', nome: 'Panda', em: '🐼', r: 3, ev: 1 }, { id: 'morcego', nome: 'Morcego-frugívoro', em: '🦇', r: 3, ev: 1 },
-  { id: 'elefante', nome: 'Elefante-real', em: '🐘', r: 4, ev: 1 }, { id: 'onca', nome: 'Onça-pintada', em: '🐆', r: 3, ev: 1 }
+  { id: 'pandavermelho', nome: 'Panda-vermelho', em: '🐼', r: 3, ev: 1 }, { id: 'morcego', nome: 'Morcego-frugívoro', em: '🦇', r: 3, ev: 1 },
+  { id: 'elefanteasia', nome: 'Elefante-asiático', em: '🐘', r: 4, ev: 1 }, { id: 'oncanegra', nome: 'Onça-negra', em: '🐆', r: 3, ev: 1 }
 ];
 /* Saves antigos tinham unicórnio e dragão, que não existem; viram animais reais da mesma raridade. Dinossauros e mamutes existiram de verdade e ficam. */
 const PET_MIGRA = { unicornio: 'cisne', dragao: 'arara' };
@@ -1138,11 +1138,11 @@ function subirTorre(S, rng, extra) {
 
 /* ----- festivais de data (sem tema de feriado: nomes e bônus neutros, bichos e trajes exclusivos) ----- */
 const FESTIVAIS = [
-  { id: 'estrelas', nome: 'Festival das Estrelas', em: '🌟', de: [12, 20], ate: [1, 2],  bonus: { prod: 0.30 }, pet: 'elefante',  roupa: 'cal:estrelas', traje: 'Traje das Estrelas' },
-  { id: 'ritmo',    nome: 'Festival do Ritmo',     em: '🥁', de: [2, 10],  ate: [2, 21], bonus: { xp: 0.30 },   pet: 'onca',      roupa: 'cal:ritmo',    traje: 'Traje do Ritmo' },
+  { id: 'estrelas', nome: 'Festival das Estrelas', em: '🌟', de: [12, 20], ate: [1, 2],  bonus: { prod: 0.30 }, pet: 'elefanteasia',  roupa: 'cal:estrelas', traje: 'Traje das Estrelas' },
+  { id: 'ritmo',    nome: 'Festival do Ritmo',     em: '🥁', de: [2, 10],  ate: [2, 21], bonus: { xp: 0.30 },   pet: 'oncanegra',      roupa: 'cal:ritmo',    traje: 'Traje do Ritmo' },
   { id: 'dourado',  nome: 'Festival Dourado',      em: '✨', de: [3, 28],  ate: [4, 10], bonus: { prod: 0.20, xp: 0.15 }, pet: 'coelhopas', roupa: 'cal:dourado', traje: 'Traje Dourado' },
   { id: 'colheita', nome: 'Festival da Colheita',  em: '🧺', de: [6, 8],   ate: [6, 30], bonus: { horta: 1, prod: 0.10 },  pet: 'boi',       roupa: 'cal:colheita', traje: 'Traje da Colheita' },
-  { id: 'alegria',  nome: 'Festival da Alegria',   em: '🎈', de: [10, 5],  ate: [10, 16], bonus: { prod: 0.30 }, pet: 'panda',     roupa: 'cal:alegria',  traje: 'Traje da Alegria' },
+  { id: 'alegria',  nome: 'Festival da Alegria',   em: '🎈', de: [10, 5],  ate: [10, 16], bonus: { prod: 0.30 }, pet: 'pandavermelho',     roupa: 'cal:alegria',  traje: 'Traje da Alegria' },
   { id: 'noite',    nome: 'Festival da Noite',     em: '🌙', de: [10, 25], ate: [11, 3], bonus: { xp: 0.25, prod: 0.15 }, pet: 'morcego',   roupa: 'cal:noite',    traje: 'Traje da Noite' }
 ];
 const FEST_METAS = [30, 90, 180, 320];

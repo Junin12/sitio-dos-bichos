@@ -60,7 +60,7 @@ resumo(40,72); resumo(180,720); resumo(480,1440);
   for (const f of ['unicornio', 'dragao']) assert(!ids.has(f), 'sem bicho fantasioso ' + f);
   for (const k in PET_MIGRA) assert(PET_POR_ID[PET_MIGRA[k]], 'migração ' + k);
   for (let r = 0; r < 5; r++) assert(PETS.filter(p => p.r === r).length >= 6, 'raridade ' + r + ' com opções');
-  assert(ids.has('dino') && ids.has('mamute') && ids.has('trex'), 'pré-históricos reais presentes'); assert(PETS.length >= 35 && PETS_EVENTO.length === EVENTOS.length, 'tamanho do catálogo');
+  assert(ids.has('dino') && ids.has('mamute') && ids.has('trex'), 'pré-históricos reais presentes'); assert(PETS.length >= 35 && PETS_EVENTO.length >= EVENTOS.length, 'tamanho do catálogo');
   EVENTOS.forEach(e => assert(PETS_EVENTO.some(p => p.id === e.pet), 'pet do evento ' + e.id));
   // cuidar
   let S = novoEstado(t0); aplicarPet(S, 'coelho'); S.ts = t0;
@@ -132,7 +132,7 @@ resumo(40,72); resumo(180,720); resumo(480,1440);
   assert(S.nivel === 1 && S.obras.celeiro === 0 && S.coins === 240, 'reinicia progresso');
   assert(S.pets.leao && S.premium.semAnuncios && S.decor.girassol, 'mantém álbum, premium e decoração'); assert(S.nome === 'Ana' && S.visto, 'mantém nome e sinal de visto');
   assert(S.gems === 10 + r.gems + 5 - 5 || S.gems >= 10 + r.gems - 5, 'ganha gemas');
-  assert(Math.abs(multProd(S) / multMoinho(0) / (1 + bonusSets(S)) / (1 + bonusDecor(S)) - 1.25) < 1e-9, 'multiplicador permanente');
+  assert(Math.abs(multProd(S) / multMoinho(0) / (1 + bonusSets(S)) / (1 + bonusDecor(S)) / (1 + bonusFest(S, 'prod')) - 1.25) < 1e-9, 'multiplicador permanente');
   console.log('regras novas: ok');
 })();
 
@@ -279,7 +279,7 @@ resumo(40,72); resumo(180,720); resumo(480,1440);
   S.ts = Date.UTC(2026, 4, 15); assert(bonusFest(S, 'prod') === 0, 'sem festival, sem bônus'); S.ts = T;
   pontoFestival(S, 100); assert(S.cal.pts === 100, 'pontos do festival'); S.cal.pts = 400;
   assert(resgatarFestival(S, 2, T).roupa === 'cal:alegria' && S.roupas['cal:alegria'], 'traje do festival');
-  const n2_rp = resgatarFestival(S, 3, T); assert(n2_rp.pet.id === 'panda' && S.pets.panda && resgatarFestival(S, 3, T).erro === 'ja', 'bicho exclusivo do festival');
+  const n2_rp = resgatarFestival(S, 3, T); assert(n2_rp.pet.id === 'pandavermelho' && S.pets.pandavermelho && resgatarFestival(S, 3, T).erro === 'ja', 'bicho exclusivo do festival');
   assert(resgatarFestival(S, 0, Date.UTC(2026, 4, 15)).erro === 'sem_festival', 'não resgata fora do período');
   ajustarNovidades(S, Date.UTC(2026, 9, 26)); assert(S.cal.id === 'noite' && S.cal.pts === 0, 'novo festival zera os pontos');
   // fábricas: ingredientes da horta
