@@ -524,7 +524,7 @@ function tick() {
   if (mostrarFab) $('#fabQtd').textContent = '+' + fmt(q);
   if (aba === 'sitio') {
     const at = ativos(S);
-    Cena.atualizar({ roupa: Object.assign({ id: S.avatar.roupa, sexo: S.avatar.sexo, pele: PELES[S.avatar.pele] }, ROUPAS[S.avatar.roupa]), nivel: S.nivel, tier: tierDe(S.nivel), obras: S.obras, tema: temaAtual(S, now), decor: S.decor, pct: S.barn / cap, ativos: at.map(a => ({ id: a.id, em: PET_POR_ID[a.id].em, r: PET_POR_ID[a.id].r })) });
+    Cena.atualizar({ areas: S.areas, roupa: Object.assign({ id: S.avatar.roupa, sexo: S.avatar.sexo, pele: PELES[S.avatar.pele] }, ROUPAS[S.avatar.roupa]), nivel: S.nivel, tier: tierDe(S.nivel), obras: S.obras, tema: temaAtual(S, now), decor: S.decor, pct: S.barn / cap, ativos: at.map(a => ({ id: a.id, em: PET_POR_ID[a.id].em, r: PET_POR_ID[a.id].r })) });
     $('#prodTxt').textContent = '+' + fmt1(p) + ' moedas/s';
     $('#lvTit').textContent = tituloDe(S.nivel);
     $('#btnColetar').disabled = q < 1; $('#btnDobro').disabled = q < 1;
@@ -594,12 +594,12 @@ function boasVindas() {
   if (!S.visto && !(window.SITIO_CONFIG && !S.nome)) boasVindas();
 })();
 (function () { const hj = diaDe(Date.now()); S.metr.sessoes = (S.metr.sessoes || 0) + 1; S.metr.dias[hj] = 1; const ks = Object.keys(S.metr.dias); if (ks.length > 120) ks.slice(0, ks.length - 120).forEach(k => delete S.metr.dias[k]); })();
-Som.semVibra = !S.cfg.vibra; aplicarEco();
+Som.semVibra = !S.cfg.vibra; Som.musicaLigar(S.cfg.musica !== false); aplicarEco();
 atualizarSom(); hudLoop();
 Cena.aoTocar({
   celeiro: () => ACOES.coletar(),
   lento: () => { if (S.cfg.eco === 'auto' && !S.cfg.ecoAuto) { S.cfg.ecoAuto = true; aplicarEco(); toast('Modo econômico ligado para o jogo ficar mais leve'); salvar(); } },
-  bicho: (b, p) => { if (S.pets[b.id]) { const r = cuidar(S, b.id, Date.now(), 'carinho'); if (r.ok) { receber(r.ups); Fx.glifo(p.x, p.y - 20, humor(1), 24); } } Fx.glifo(p.x, p.y, '❤️', 22); Fx.brilhos(p.x, p.y + 12, 6, '#FFD23F'); Som.play('pop'); Som.vibrar(8); },
+  bicho: (b, p) => { if (S.pets[b.id]) { const r = cuidar(S, b.id, Date.now(), 'carinho'); if (r.ok) { receber(r.ups); Fx.glifo(p.x, p.y - 20, humor(1), 24); } } Fx.glifo(p.x, p.y, '❤️', 22); Fx.brilhos(p.x, p.y + 12, 6, '#FFD23F'); Som.bicho(b.id); Som.vibrar(8); },
   fazendeiro: () => { const p = Cena.posCeleiro() || { x: innerWidth / 2, y: 200 }; Fx.glifo(p.x + 30, p.y + 40, '👋', 26); Som.play('tap'); }
 });
 /*ONLINE*/

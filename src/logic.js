@@ -333,7 +333,7 @@ function novoEstado(now) {
     ads: { dobro: 0, ovo: 0, gemas: 0, acelerar: 0, missao: 0, diario: 0, bau: 0, brilho: 0, adubo: 0, pedido: 0 },
     horta: [null, null], colheita: {}, pedidos: [null, null, null], pedidoCont: 0, evt: { sem: -1, pts: 0, res: [0, 0, 0, 0] },
     bau: { dia: -1, qtd: 0 }, brilho: { dia: -1 }, premium: { semAnuncios: false, passe: false }, decor: {}, tema: 'auto',
-    tut: { passo: 0, fim: false }, cfg: { eco: 'auto', som: true, vibra: true }, metr: { sessoes: 0, dias: {}, convites: 0 },
+    tut: { passo: 0, fim: false }, cfg: { eco: 'auto', som: true, vibra: true, musica: true }, metr: { sessoes: 0, dias: {}, convites: 0 },
     dev: { ecpm: 5, dau: 1000, adsDia: 6 },
     avatar: { sexo: 'm', pele: 1, roupa: 'padrao', bicho: 'auto' }, roupas: { padrao: 1 }, passe: { temp: -1, xp: 0, res: [], resP: [] }, marcos: {}, exped: [], areas: {}, torre: { andar: 0, dia: -1, tent: 0 }, cal: { id: '', ano: 0, pts: 0, res: [0, 0, 0, 0] }, correio: { dia: -1, pegou: 0, enviou: 0 }, ing: 0, oficina: [], pesq: { n: {}, at: null }, cruz: null, conq: {}, chefe: { sem: -1, dano: 0, dia: -1, hoje: 0, res: 0 }, corrida: { j: -1, pts: 0, res: [0, 0, 0, 0] }, codigos: {},
     missoes: [null, null, null], mCont: 0, diario: { ultimo: -1, seq: 0 }, stats: { coletado: 0, chocados: 0 },

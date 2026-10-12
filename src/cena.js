@@ -8,6 +8,7 @@ const Cena = (() => {
   let cv = null, cx = null, bg = null, bgx = null, dpr = 1, esc = 1, raf = 0, ultimo = 0, relogio = 0, bgHora = -9;
   let info = { nivel: 1, tier: 0, obras: { celeiro: 0, chocadeira: 0, moinho: 0, estufa: 0 }, ativos: [], pct: 0, tema: 'primavera', decor: {} };
   let eco = false, ultDes = 0, medN = 0, medT = 0, medido = false, clima = [], temaVisto = '';
+  let clima2 = { tipo: 'ceu', t: 0, prox: 90 + Math.random() * 150, i: 0, flash: 0, trovao: -1 }, gotas = [], areasKey = '';
   let bichos = [], chave = '', nuvens = [], estrelas = [], borbs = [], vagas = [], flores = [], tufos = [];
   let fazendeiro = { x: 80, y: 192, tx: 80, dir: 1, fase: 0, t: 2, acena: 0 };
   const cb = { celeiro: null, bicho: null, fazendeiro: null, lento: null };
@@ -96,6 +97,23 @@ const Cena = (() => {
     c.fillStyle = rgb(nev); c.beginPath(); c.moveTo(0, HORIZ);
     for (let x = 0; x <= W; x += 5) c.lineTo(x, HORIZ - 24 - Math.abs(Math.sin(x / 70 + 1)) * 26 - Math.sin(x / 19) * 3);
     c.lineTo(W, HORIZ + 4); c.lineTo(0, HORIZ + 4); c.closePath(); c.fill();
+    const ar = info.areas || {};
+    if (ar.montanha) {                                                       // picos altos com neve, bem ao fundo
+      [[34, 46], [120, 62], [236, 54], [318, 70]].forEach(([x, h]) => {
+        c.fillStyle = rgb(mix(nev, [60, 70, 100], 0.35)); c.beginPath(); c.moveTo(x - 52, HORIZ + 2); c.lineTo(x, HORIZ - h); c.lineTo(x + 52, HORIZ + 2); c.closePath(); c.fill();
+        c.fillStyle = 'rgba(0,0,40,.18)'; c.beginPath(); c.moveTo(x, HORIZ - h); c.lineTo(x + 52, HORIZ + 2); c.lineTo(x + 8, HORIZ + 2); c.closePath(); c.fill();
+        c.fillStyle = 'rgba(255,255,255,' + (0.55 + 0.4 * L) + ')'; c.beginPath(); c.moveTo(x, HORIZ - h); c.lineTo(x - 13, HORIZ - h + 20); c.lineTo(x - 4, HORIZ - h + 16); c.lineTo(x + 3, HORIZ - h + 22); c.lineTo(x + 13, HORIZ - h + 19); c.closePath(); c.fill();
+      });
+    }
+    if (ar.praia) {                                                          // faixa de mar com reflexo e areia
+      g = c.createLinearGradient(0, HORIZ - 14, 0, HORIZ + 4); g.addColorStop(0, tom('#7fd0f0', 0.4)); g.addColorStop(1, tom('#3f9fd8', 0.4));
+      c.fillStyle = g; c.fillRect(176, HORIZ - 14, W - 176, 18); c.fillStyle = 'rgba(255,255,255,.35)'; for (let k = 0; k < 14; k++) c.fillRect(184 + k * 11 + (k % 3) * 2, HORIZ - 10 + (k % 4) * 3, 6, 1);
+      c.fillStyle = tom('#f1dba0', 0.4); c.beginPath(); c.moveTo(168, HORIZ + 6); c.quadraticCurveTo(220, HORIZ - 2, W, HORIZ + 2); c.lineTo(W, HORIZ + 10); c.lineTo(168, HORIZ + 10); c.fill();
+    }
+    if (ar.deserto) {                                                        // dunas à esquerda
+      g = c.createLinearGradient(0, HORIZ - 6, 0, HORIZ + 14); g.addColorStop(0, tom('#efd08a', 0.4)); g.addColorStop(1, tom('#d9b46a', 0.4));
+      c.fillStyle = g; c.beginPath(); c.moveTo(0, HORIZ + 14); c.quadraticCurveTo(40, HORIZ - 14, 96, HORIZ + 2); c.quadraticCurveTo(130, HORIZ + 10, 150, HORIZ + 14); c.closePath(); c.fill();
+    }
     colina(HORIZ - 2, 14, 0.5, tom(pal.c1));
     g = c.createLinearGradient(0, HORIZ - 30, 0, HORIZ + 6); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(255,255,255,' + (0.18 + 0.12 * L) + ')');
     c.fillStyle = g; c.fillRect(0, HORIZ - 30, W, 36);
@@ -207,6 +225,19 @@ const Cena = (() => {
     [[pal.arv[0], 0, -34, 17], [pal.arv[1], -9, -27, 12], [pal.arv[2], 10, -28, 12], [pal.arv[3], 2, -40, 9]].forEach(a => esfera(c, a[1] + bal * (1 + (-a[2] / 40)), a[2], a[3], a[0]));
     c.restore();
   }
+  function palmeira(c, x, y, s, t) {
+    c.save(); c.translate(x, y); sombra(c, 0, 0, 12 * s); c.scale(s, s);
+    const bal = reduzido() ? 0 : Math.sin(t * 1.1 + x) * 1.6;
+    c.strokeStyle = tom('#8a6a44'); c.lineWidth = 3.2; c.lineCap = 'round'; c.beginPath(); c.moveTo(0, 0); c.quadraticCurveTo(5 + bal * 0.4, -18, 3 + bal, -36); c.stroke();
+    for (let k = 0; k < 6; k++) { const a = -Math.PI / 2 + (k - 2.5) * 0.62 + bal * 0.03; c.strokeStyle = tom(k % 2 ? '#2f9a4f' : '#3fae5f'); c.lineWidth = 3.4; c.beginPath(); c.moveTo(3 + bal, -36); c.quadraticCurveTo(3 + bal + Math.cos(a) * 12, -36 + Math.sin(a) * 12 - 4, 3 + bal + Math.cos(a) * 20, -36 + Math.sin(a) * 18 + 10); c.stroke(); }
+    c.fillStyle = tom('#6b4a2d'); c.beginPath(); c.arc(1 + bal, -34, 2, 0, 7); c.arc(5 + bal, -33, 2, 0, 7); c.fill(); c.restore();
+  }
+  function cacto(c, x, y, s) {
+    c.save(); c.translate(x, y); sombra(c, 0, 0, 9 * s); c.scale(s, s);
+    c.fillStyle = tom('#3f9a5a'); c.beginPath(); c.roundRect ? c.roundRect(-3, -26, 6, 26, 3) : c.rect(-3, -26, 6, 26); c.fill();
+    c.beginPath(); c.roundRect ? c.roundRect(-11, -20, 4, 12, 2) : c.rect(-11, -20, 4, 12); c.fill(); c.fillRect(-11, -10, 8, 3); c.beginPath(); c.roundRect ? c.roundRect(7, -24, 4, 14, 2) : c.rect(7, -24, 4, 14); c.fill(); c.fillRect(3, -12, 8, 3);
+    c.fillStyle = 'rgba(255,255,255,.28)'; c.fillRect(-2, -24, 1.6, 22); c.fillStyle = '#ff7ab6'; c.beginPath(); c.arc(0, -27, 2.2, 0, 7); c.fill(); c.restore();
+  }
   function cerca(c, x0, x1) {
     c.fillStyle = tom('#9b7a4d'); c.fillRect(x0, 154, x1 - x0, 3); c.fillRect(x0, 162, x1 - x0, 3);
     for (let x = x0; x <= x1; x += 20) { c.fillStyle = tom('#8a6a44'); c.fillRect(x, 148, 3.5, 20); }
@@ -263,6 +294,29 @@ const Cena = (() => {
   }
   const DECOR_F = { girassol: dGirassol, banco: dBanco, espantalho: dEspantalho, colmeia: dColmeia, lago: dLago, balanco: dBalanco, fogueira: dFogueira, estandarte: dEstandarte };
 
+  /* ---------- chuva e tempestade ao vivo ---------- */
+  function atualizarTempo(dt) {
+    const k = info.tema, pode = !eco && !reduzido() && k !== 'inverno';
+    const c2 = clima2;
+    if (!pode) { c2.i = Math.max(0, c2.i - dt * 0.5); c2.tipo = 'ceu'; if (window.Som) Som.chuva(0); return; }
+    if (c2.tipo === 'ceu') { c2.prox -= dt; if (c2.prox <= 0) { c2.tipo = Math.random() < 0.3 ? 'tempestade' : 'chuva'; c2.t = rnd(45, 110); c2.trovao = rnd(3, 9); } c2.i = Math.max(0, c2.i - dt * 0.3); }
+    else { c2.t -= dt; c2.i = Math.min(1, c2.i + dt * 0.25); if (c2.tipo === 'tempestade') { c2.trovao -= dt; if (c2.trovao <= 0) { c2.flash = 1; c2.trovao = rnd(5, 14); setTimeout(() => { if (window.Som) Som.play('trovao'); }, 350 + Math.random() * 500); } } if (c2.t <= 0) { c2.tipo = 'ceu'; c2.prox = rnd(150, 420); } }
+    c2.flash = Math.max(0, c2.flash - dt * 2.2);
+    if (window.Som) Som.chuva(c2.i * (c2.tipo === 'tempestade' ? 1 : 0.7));
+  }
+  function desenharChuva(c, dt, t) {
+    const c2 = clima2; if (c2.i <= 0.02) return;
+    c.fillStyle = 'rgba(40,60,95,' + (0.26 * c2.i) + ')'; c.fillRect(0, 0, W, H);
+    if (!gotas.length) gotas = [...Array(80)].map(() => ({ x: rnd(0, W + 40), y: rnd(0, H), v: rnd(260, 380), l: rnd(7, 13) }));
+    c.strokeStyle = 'rgba(205,225,255,' + (0.55 * c2.i) + ')'; c.lineWidth = 1; c.beginPath();
+    gotas.forEach((g, n) => {
+      if (n > 80 * c2.i) return; g.y += g.v * dt; g.x -= g.v * dt * 0.22; if (g.y > H) { g.y = -12; g.x = rnd(0, W + 40); }
+      c.moveTo(g.x, g.y); c.lineTo(g.x + g.l * 0.22, g.y - g.l);
+      if (g.y > HORIZ + 20 && g.y < H - 20 && (n % 9 === 0) && Math.random() < 0.15) { c.moveTo(g.x + 3, g.y); c.ellipse(g.x, g.y, 3, 1, 0, 0, 7); }
+    });
+    c.stroke();
+    if (c2.flash > 0) { c.fillStyle = 'rgba(235,240,255,' + (0.5 * c2.flash) + ')'; c.fillRect(0, 0, W, H); }
+  }
   /* ---------- clima da estação: pétalas, folhas, flocos ---------- */
   function desenharClima(c, dt, t) {
     const k = info.tema; if (eco || reduzido() || (k !== 'primavera' && k !== 'outono' && k !== 'inverno')) return;
@@ -306,7 +360,9 @@ const Cena = (() => {
     if (b.nasc < 1) b.nasc = Math.min(1, b.nasc + dt * 2.2);
     if (b.vy !== 0 || b.yoff < 0) { b.vy += 520 * dt; b.yoff += b.vy * dt; if (b.yoff >= 0) { b.yoff = 0; b.vy = 0; } }
     if (reduzido()) return;
-    if (b.estado === 'idle') { b.t -= dt; if (b.t <= 0) { b.tx = rnd(116, 342); b.ty = rnd(172, 200); b.estado = 'walk'; } }
+    if (clima2.i > 0.4 && !b.abrigo) { b.abrigo = true; b.tx = rnd(70, 150); b.ty = rnd(180, 200); b.estado = 'walk'; }
+    else if (clima2.i < 0.1 && b.abrigo) b.abrigo = false;
+    if (b.estado === 'idle') { if (b.abrigo) return; b.t -= dt; if (b.t <= 0) { b.tx = rnd(116, 342); b.ty = rnd(172, 200); b.estado = 'walk'; } }
     else {
       const dx = b.tx - b.x, dy = b.ty - b.y, d = Math.hypot(dx, dy), v = 15 + b.r;
       if (d < 2) { b.estado = 'idle'; b.t = rnd(1.5, 5); } else { b.x += dx / d * v * dt; b.y += dy / d * v * dt * 0.6; b.dir = dx < 0 ? -1 : 1; b.fase += dt * 4; }
@@ -361,7 +417,7 @@ const Cena = (() => {
     ultDes = ts;
     if (!medido && !eco && ultimo) { const d = (ts - ultimo) / 1000; if (d < 0.5) { medN++; medT += d; } if (medN >= 150) { medido = true; if (medT / medN > 0.027 && cb.lento) cb.lento(); } }
     const dt = Math.max(0, Math.min(0.05, (ts - ultimo) / 1000 || 0.016)); ultimo = ts; relogio += dt;
-    const h = horaFixa == null ? horaAgora() : horaFixa; L = luzDe(h);
+    const h = horaFixa == null ? horaAgora() : horaFixa; L = luzDe(h); if (window.Som) Som.hora(h);
     if (Math.abs(h - bgHora) > 0.03) pintarFundo(h);
     const c = cx; c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(bg, 0, 0); c.setTransform(dpr * esc, 0, 0, dpr * esc, 0, 0);
     const t = relogio;
@@ -371,12 +427,14 @@ const Cena = (() => {
     nuvens.forEach(n => {
       if (!reduzido()) { n.x += n.v * dt; if (n.x > W + 50) n.x = -50; }
       const x = n.x, y = n.y, s = n.s, forma = () => { c.beginPath(); c.ellipse(x, y, 22 * s, 8 * s, 0, 0, 7); c.ellipse(x - 12 * s, y + 2 * s, 14 * s, 6 * s, 0, 0, 7); c.ellipse(x + 13 * s, y + 2 * s, 15 * s, 6.5 * s, 0, 0, 7); c.ellipse(x + 2 * s, y - 6 * s, 12 * s, 7 * s, 0, 0, 7); };
-      const ga = 0.35 + 0.55 * L; c.fillStyle = 'rgba(150,170,205,' + ga + ')'; forma(); c.fill();                  // base na sombra
-      c.fillStyle = 'rgba(255,255,255,' + ga + ')'; c.save(); c.translate(-1.2 * s, -2.2 * s); forma(); c.fill(); c.restore();   // topo iluminado
+      const ga = 0.35 + 0.55 * L, ch = clima2.i; c.fillStyle = 'rgba(' + Math.round(150 - 60 * ch) + ',' + Math.round(170 - 60 * ch) + ',' + Math.round(205 - 50 * ch) + ',' + ga + ')'; forma(); c.fill();                  // base na sombra
+      c.fillStyle = 'rgba(' + Math.round(255 - 90 * ch) + ',' + Math.round(255 - 90 * ch) + ',' + Math.round(255 - 70 * ch) + ',' + ga + ')'; c.save(); c.translate(-1.2 * s, -2.2 * s); forma(); c.fill(); c.restore();   // topo iluminado
     });
     // capim balançando
     tufos.forEach(g => { c.strokeStyle = tom('#3d9a5b', 0.5); c.lineWidth = 1.2; const b = reduzido() ? 0 : Math.sin(t * 2 + g.a) * 1.6; c.beginPath(); c.moveTo(g.x - 1.5, g.y); c.lineTo(g.x - 1.5 + b, g.y - g.h); c.moveTo(g.x + 1.5, g.y); c.lineTo(g.x + 1.5 + b, g.y - g.h * 0.8); c.stroke(); });
     arvore(c, 18, 150, 1.05, t, 0); arvore(c, 346, 152, 0.95, t, 2);
+    if (info.areas && info.areas.praia) { palmeira(c, 214, 152, 1.0, t); palmeira(c, 332, 176, 1.15, t); }
+    if (info.areas && info.areas.deserto) cacto(c, 158, 190, 1.0);
     celeiro(c, info.obras, t); chocadeira(c, info.obras); estufa(c, info.obras); moinho(c, info.obras, t);
     cerca(c, 106, W - 8);
     // seres ordenados pela profundidade
@@ -390,7 +448,7 @@ const Cena = (() => {
       b.a += dt * 1.6; b.x += Math.cos(b.a * 0.7) * 14 * dt; b.y += Math.sin(b.a * 1.1) * 9 * dt; b.x = clamp(b.x, 110, 345); b.y = clamp(b.y, 128, 172);
       const bat = Math.abs(Math.sin(t * 14 + b.a)) * 4 + 1; c.fillStyle = b.cor; c.beginPath(); c.ellipse(b.x - 2, b.y, bat, 3, -0.4, 0, 7); c.ellipse(b.x + 2, b.y, bat, 3, 0.4, 0, 7); c.fill();
     });
-    desenharClima(c, dt, t);
+    desenharClima(c, dt, t); atualizarTempo(dt); desenharChuva(c, dt, t);
     // capim alto na frente dos bichos (camada mais próxima da câmera)
     if (!eco) { const bal = reduzido() ? 0 : 1; for (let x = 4; x < W; x += 9) { const hh = 9 + ((x * 7) % 5), b = Math.sin(t * 1.8 + x) * 1.6 * bal; c.fillStyle = tom(x % 18 < 9 ? '#3f9f5e' : '#2f8a4e', 0.5); c.beginPath(); c.moveTo(x - 2.5, H); c.quadraticCurveTo(x, H - hh * 0.6, x + b, H - hh); c.quadraticCurveTo(x + 1.5, H - hh * 0.6, x + 2.5, H); c.fill(); } }
     // raios de luz atravessando o céu (só de dia)
@@ -447,6 +505,7 @@ const Cena = (() => {
     montar, parar, iniciar,
     atualizar(i) {
       info = i;
+      const ak = Object.keys(i.areas || {}).sort().join(','); if (ak !== areasKey) { areasKey = ak; bgHora = -9; }
       if (i.tema !== temaVisto) { temaVisto = i.tema; pal = PALS[i.tema] || PALS.primavera; bgHora = -9; }
       if (cv && cv.isConnected) sincronizar();
     },
@@ -455,5 +514,6 @@ const Cena = (() => {
     aoTocar(f) { Object.assign(cb, f); },
     posCeleiro() { return cv && cv.isConnected ? pos(62, 118) : null; },
     hora(h) { horaFixa = h; bgHora = -9; },
+    tempo(tipo) { clima2.tipo = tipo; clima2.t = 90; clima2.i = tipo === 'ceu' ? 0 : 1; clima2.prox = 600; },
   };
 })();

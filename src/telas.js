@@ -139,6 +139,7 @@ function viewAjustes() {
   const sit = `${S.nome ? esc(S.nome) + ' · ' : ''}${on ? 'online' : 'offline'}`;
   return `<section class="card"><h2>Ajustes</h2><p class="muted">${sit}</p>
       <div class="between ajrow"><b>Som</b><button class="btn mini ${Som.mudo ? 'ghost' : 'primary'}" data-act="som">${Som.mudo ? 'Desligado' : 'Ligado'}</button></div>
+      <div class="between ajrow"><b>Música ambiente</b><button class="btn mini ${S.cfg.musica !== false ? 'primary' : 'ghost'}" data-act="cfgMusica">${S.cfg.musica !== false ? 'Ligada' : 'Desligada'}</button></div>
       <div class="between ajrow"><b>Vibração</b><button class="btn mini ${S.cfg.vibra ? 'primary' : 'ghost'}" data-act="cfgVibra">${S.cfg.vibra ? 'Ligada' : 'Desligada'}</button></div>
       <div><b>Modo econômico</b><p class="muted">Menos efeitos e animações em aparelhos mais simples. No automático, o jogo mede o desempenho e liga sozinho se precisar.</p>${segHTML('cfgEco', S.cfg.eco, [['auto', 'Automático'], ['on', 'Ligado'], ['off', 'Desligado']])}</div>
       <div><b>Estação do sítio</b>${segHTML('cfgTema', tema, [['auto', 'Auto'], ['primavera', 'Prim.'], ['verao', 'Verão'], ['outono', 'Outono'], ['inverno', 'Inverno']])}</div></section>
@@ -482,6 +483,7 @@ Object.assign(ACOES, {
     receber(r.ups); salvar(); render(); metrica('evento_semana'); if (r.roupa) setTimeout(() => toast('Roupa nova: ' + ROUPAS[r.roupa].nome + '! Veja no seu perfil.'), 1800);
     if (r.pet) revelarPet(r.pet, r.res, 'Bicho do evento'); else { Som.play('bau'); toast('Prêmio: ' + textoRec({ coins: r.r.coins, gems: r.r.gems, xp: 0 })); }
   },
+  cfgMusica() { S.cfg.musica = S.cfg.musica === false; Som.musicaLigar(S.cfg.musica); salvar(); render(); },
   cfgVibra() { S.cfg.vibra = !S.cfg.vibra; Som.semVibra = !S.cfg.vibra; salvar(); render(); },
   cfgEco(v) { S.cfg.eco = v; if (v !== 'auto') S.cfg.ecoAuto = false; aplicarEco(); salvar(); render(); },
   cfgTema(v) { S.tema = v; salvar(); render(); },
