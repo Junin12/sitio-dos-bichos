@@ -122,6 +122,14 @@ const bom = async (p, tag) => ok(p.erros.length === 0, tag + ' sem erros de JS '
   await p.evaluate(() => fecharModal());
   // o jogo segue sem erros em todas as abas
   for (const [a, f] of [['sitio'], ['ovos'], ['obras', 'horta'], ['obras', 'decor'], ['guilda'], ['metas'], ['ajustes']]) { await p.evaluate(([a, f]) => { ACOES.aba(a); if (f) ACOES.subO(f); }, [a, f]); await p.waitForTimeout(120); }
+  // perfil do fazendeiro
+  await p.evaluate(() => { fecharModal(); ACOES.aba('sitio'); }); await p.click('#hudRing'); await p.waitForTimeout(200);
+  ok(await p.isVisible('.sheet.perfil .palco svg.avsvg'), 'perfil abre com o fazendeiro desenhado');
+  await p.evaluate(() => { ganharRoupa(S, 'evt:mar'); modalPerfil(); }); await p.click('[data-act="vestir"][data-arg="evt:mar"]');
+  ok(await p.evaluate(() => S.avatar.roupa === 'evt:mar'), 'vestir roupa do evento');
+  await p.click('[data-act="pacoteRoupa"][data-arg="realeza"]'); ok(await p.evaluate(() => !!S.roupas.dino), 'pacote de roupas (simulado)');
+  await p.click('[data-act="perfilSexo"][data-arg="f"]'); ok(await p.evaluate(() => S.avatar.sexo === 'f'), 'trocar para fazendeira');
+  await p.evaluate(() => fecharModal());
   await bom(p, 'mecânicas novas offline');
   await p.close();
 }

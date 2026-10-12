@@ -81,3 +81,7 @@ Inspiradas em jogos idle com coleção: sorteio em lote com ingressos, oficina (
 1. Rodar as migrações `20261012000400_novidades.sql` e `20261012000500_mecanicas.sql` no projeto Supabase, nessa ordem (veja backend/README.md).
 2. Empacotar com Capacitor e trocar os anúncios e as compras simulados por AdMob e Google Play Billing.
 3. Seguir o `PLAY_STORE.md`.
+
+## Visual 2.5D e perfil do fazendeiro
+- Cena com luz do sol, sombras macias, névoa de distância, volume nas construções e árvores, bichos com sombra de contato e base brilhante por raridade. Botões, cartões, barra de navegação, ovos e revelação com relevo. Tudo desenhado por código (canvas/SVG/CSS), sem imagens.
+- Toque no círculo de nível para abrir o perfil: fazendeiro ou fazendeira, tom de pele, roupa e o bicho companheiro (por padrão o mais evoluído e forte). Roupas vêm do nível, do prestígio, do prêmio final de cada evento semanal, da corrida de 48 h e de pacotes da loja (compra simulada até entrar o Google Play). O perfil fica só no aparelho por enquanto; ainda não aparece no ranking online.

@@ -331,7 +331,7 @@ function novoEstado(now) {
     bau: { dia: -1, qtd: 0 }, brilho: { dia: -1 }, premium: { semAnuncios: false, passe: false }, decor: {}, tema: 'auto',
     tut: { passo: 0, fim: false }, cfg: { eco: 'auto', som: true, vibra: true }, metr: { sessoes: 0, dias: {}, convites: 0 },
     dev: { ecpm: 5, dau: 1000, adsDia: 6 },
-    ing: 0, oficina: [], pesq: { n: {}, at: null }, cruz: null, conq: {}, chefe: { sem: -1, dano: 0, dia: -1, hoje: 0, res: 0 }, corrida: { j: -1, pts: 0, res: [0, 0, 0, 0] }, codigos: {},
+    avatar: { sexo: 'm', pele: 1, roupa: 'padrao', bicho: 'auto' }, roupas: { padrao: 1 }, ing: 0, oficina: [], pesq: { n: {}, at: null }, cruz: null, conq: {}, chefe: { sem: -1, dano: 0, dia: -1, hoje: 0, res: 0 }, corrida: { j: -1, pts: 0, res: [0, 0, 0, 0] }, codigos: {},
     missoes: [null, null, null], mCont: 0, diario: { ultimo: -1, seq: 0 }, stats: { coletado: 0, chocados: 0 },
     guilda: { id: -1, entrou: 0, doado: 0, nivel: 1, pontos: 0, semana: -1, baus: [0, 0, 0, 0], ajudou: {}, parab: {}, parabDia: { dia: -1, qtd: 0 } }
   };
@@ -571,9 +571,10 @@ function resgatarEvento(S, k, now) {
   if (S.evt.pts < EVT_METAS[k]) return { erro: 'meta' };
   const r = evtRec(S, k); S.evt.res[k] = 1;
   S.coins += r.coins; S.gems += r.gems; if (k === 2) ganharIng(S, 1); if (k === 3) ganharIng(S, 2);
-  let pet = null, res = null;
+  let pet = null, res = null, roupa = null;
+  if (k === 3 && ganharRoupa(S, 'evt:' + eventoDaSemana(now).id)) roupa = 'evt:' + eventoDaSemana(now).id;
   if (r.pet) { pet = PET_POR_ID[eventoDaSemana(now).pet]; res = aplicarPet(S, pet.id); }
-  return { ok: true, r, pet, res, ups: ganharXP(S, 30 + 20 * k) };
+  return { ok: true, r, pet, res, roupa, ups: ganharXP(S, 30 + 20 * k) };
 }
 
 /* ===== Baú diário e ovo brilhante (com anúncio) ===== */
@@ -646,16 +647,16 @@ function podePrestigiar(S) { return S.nivel >= NIVEL_PRESTIGIO; }
 function prestigiar(S, now) {
   if (!podePrestigiar(S)) return { erro: 'nivel' };
   const g = prestigioGemas(S), n = (S.prest || 0) + 1;
-  const keep = { pets: S.pets, gems: S.gems + g, ads: S.ads, dev: S.dev, guilda: S.guilda, stats: S.stats, premium: S.premium, decor: S.decor, tema: S.tema, tut: S.tut, cfg: S.cfg, metr: S.metr, visto: S.visto, nome: S.nome, convUsado: S.convUsado, diario: S.diario, bau: S.bau, brilho: S.brilho, evt: S.evt, colheita: {}, ing: S.ing, pesq: { n: S.pesq.n, at: null }, conq: S.conq, chefe: S.chefe, corrida: S.corrida, codigos: S.codigos };
+  const keep = { avatar: S.avatar, roupas: S.roupas, pets: S.pets, gems: S.gems + g, ads: S.ads, dev: S.dev, guilda: S.guilda, stats: S.stats, premium: S.premium, decor: S.decor, tema: S.tema, tut: S.tut, cfg: S.cfg, metr: S.metr, visto: S.visto, nome: S.nome, convUsado: S.convUsado, diario: S.diario, bau: S.bau, brilho: S.brilho, evt: S.evt, colheita: {}, ing: S.ing, pesq: { n: S.pesq.n, at: null }, conq: S.conq, chefe: S.chefe, corrida: S.corrida, codigos: S.codigos };
   const N = novoEstado(now);
   Object.assign(N, keep, { prest: n, criadoDia: S.criadoDia });
   for (const k of Object.keys(S)) delete S[k];
-  Object.assign(S, N);
+  Object.assign(S, N); ajustarAvatar(S);
   return { ok: true, prest: n, gems: g };
 }
 
 /* ===== Pontos para a guilda semanal já existem em addPontos; rodada geral de ajustes ao carregar/avançar ===== */
-function ajustarTudo(S, now, rng) { ajustarHorta(S); ajustarPedidos(S, now, rng); ajustarEvento(S, now); ajustarExtras(S, now); }
+function ajustarTudo(S, now, rng) { ajustarAvatar(S); ajustarHorta(S); ajustarPedidos(S, now, rng); ajustarEvento(S, now); ajustarExtras(S, now); }
 
 /* ===== Mecânicas de longo prazo =====
    Sorteio em lote com ingressos, oficina (fila de produção), pesquisa, combos, cruzamento, evolução,
@@ -910,7 +911,8 @@ function resgatarCorrida(S, k, now) {
   if (S.corrida.res[k]) return { erro: 'ja' };
   if (S.corrida.pts < CORR_METAS[k]) return { erro: 'meta' };
   const r = recCorrida(S, k); S.corrida.res[k] = 1; S.coins += r.coins; S.gems += r.gems; ganharIng(S, r.ing);
-  return { ok: true, rec: r, ups: ganharXP(S, 25 + 15 * k) };
+  const roupa = k === 3 && ganharRoupa(S, 'corrida') ? 'corrida' : null;
+  return { ok: true, rec: r, roupa, ups: ganharXP(S, 25 + 15 * k) };
 }
 /* adversários simulados da corrida (offline) */
 function corridaSim(S, now) {
@@ -919,4 +921,73 @@ function corridaSim(S, now) {
   l.push({ nome: 'Você', pts: S.corrida.pts, voce: true });
   l.sort((a, b) => b.pts - a.pts);
   return l.map((x, k) => Object.assign(x, { pos: k + 1 }));
+}
+
+/* ===== Perfil do fazendeiro: roupas e bicho companheiro =====
+   Roupas vêm de quatro lugares: nível/prestígio, o prêmio final de cada evento semanal (a roupa do tema),
+   o prêmio final da corrida de 48 h e pacotes da loja (SIMULADOS: viram compra do Google Play no app). */
+const ROUPAS = {
+  padrao:   { nome: 'Roupa do sítio',    fonte: 'base',   cam: null,      calca: '#3A4A63', chapeu: 'palha',   hc: '#e8cf84' },
+  junina:   { nome: 'Festa junina',      fonte: 'nivel',  nivel: 8,  cam: '#d9453a', cam2: '#fff',    calca: '#2f5fa8', chapeu: 'palha',   hc: '#e3c46a', acess: 'remendo' },
+  gala:     { nome: 'Gala do sítio',     fonte: 'nivel',  nivel: 20, cam: '#2a2f45', cam2: '#fff',    calca: '#1c2033', chapeu: 'cartola', hc: '#1c2033', acess: 'gravata' },
+  lenda:    { nome: 'Manto da lenda',    fonte: 'prest',  prest: 1,  cam: '#7a2fc8', cam2: '#ffd23f', calca: '#4a1f86', chapeu: 'coroa',   hc: '#f4b31f', acess: 'capa' },
+  'evt:polar':    { nome: 'Explorador polar',   fonte: 'evento', ev: 'polar',    cam: '#3a8fe0', cam2: '#fff',    calca: '#274c85', chapeu: 'gorro',   hc: '#e9f4ff', acess: 'cachecol' },
+  'evt:savana':   { nome: 'Guia da savana',     fonte: 'evento', ev: 'savana',   cam: '#c9a45a', cam2: '#7a5636', calca: '#6b5a3a', chapeu: 'safari',  hc: '#d8c07a' },
+  'evt:oceania':  { nome: 'Ranger da Oceania',  fonte: 'evento', ev: 'oceania',  cam: '#6f8a4a', cam2: '#e8cf84', calca: '#4a5a38', chapeu: 'akubra',  hc: '#8a6a44' },
+  'evt:mar':      { nome: 'Marujo',             fonte: 'evento', ev: 'mar',      cam: '#fff',    cam2: '#2f6fd1', calca: '#2f4f8a', chapeu: 'marujo',  hc: '#fff',    acess: 'listras' },
+  'evt:deserto':  { nome: 'Nômade do deserto',  fonte: 'evento', ev: 'deserto',  cam: '#e8d6a4', cam2: '#c4563b', calca: '#a88a52', chapeu: 'turbante', hc: '#c4563b' },
+  'evt:cerrado':  { nome: 'Vaqueiro do cerrado', fonte: 'evento', ev: 'cerrado', cam: '#b9783a', cam2: '#7a4a1f', calca: '#3a4a63', chapeu: 'couro',   hc: '#a8733a', acess: 'lenco' },
+  'evt:floresta': { nome: 'Lenhador',           fonte: 'evento', ev: 'floresta', cam: '#c8453a', cam2: '#2b1d00', calca: '#3a4a63', chapeu: 'gorro',   hc: '#2f7a4a', acess: 'xadrez' },
+  'evt:selva':    { nome: 'Explorador da selva', fonte: 'evento', ev: 'selva',   cam: '#4a8a4a', cam2: '#f4b31f', calca: '#5a4a2a', chapeu: 'capacete', hc: '#e8e0c0' },
+  corrida:  { nome: 'Piloto da corrida', fonte: 'corrida', cam: '#e63946', cam2: '#fff',   calca: '#1d1d2b', chapeu: 'capacete2', hc: '#e63946', acess: 'listras' },
+  astro:    { nome: 'Astronauta',        fonte: 'pacote', pacote: 'aventura', cam: '#f2f4f8', cam2: '#ff7a1a', calca: '#d7dbe6', chapeu: 'astro',   hc: '#f2f4f8', acess: 'remendo' },
+  pirata:   { nome: 'Pirata',            fonte: 'pacote', pacote: 'aventura', cam: '#7a2020', cam2: '#f4d97a', calca: '#2b1d00', chapeu: 'pirata',  hc: '#1c1c24' },
+  realeza:  { nome: 'Realeza',           fonte: 'pacote', pacote: 'realeza',  cam: '#b3202e', cam2: '#ffd23f', calca: '#6b1520', chapeu: 'coroa',   hc: '#f4b31f', acess: 'capa' },
+  dino:     { nome: 'Fantasia de dino',  fonte: 'pacote', pacote: 'realeza',  cam: '#4fa869', cam2: '#a6e6b4', calca: '#2f7a4a', chapeu: 'dino',    hc: '#4fa869' }
+};
+const PACOTES_ROUPA = {
+  aventura: { nome: 'Pacote Aventureiro', desc: 'Astronauta e Pirata, com 30 gemas de bônus.', preco: 'R$ 12,90', gemas: 30 },
+  realeza:  { nome: 'Pacote Realeza',     desc: 'Realeza e Fantasia de dino, com 30 gemas de bônus.', preco: 'R$ 14,90', gemas: 30 }
+};
+const PELES = ['#F6D5B5', '#E8B88A', '#C68B5E', '#8A5A3C'];
+function ajustarAvatar(S) {
+  S.avatar = Object.assign({ sexo: 'm', pele: 1, roupa: 'padrao', bicho: 'auto' }, S.avatar && typeof S.avatar === 'object' ? S.avatar : {});
+  if (!S.roupas || typeof S.roupas !== 'object') S.roupas = {};
+  S.roupas.padrao = 1;
+  for (const id in ROUPAS) {                                            // as de nível e prestígio liberam sozinhas
+    const r = ROUPAS[id];
+    if (r.fonte === 'nivel' && S.nivel >= r.nivel) S.roupas[id] = 1;
+    if (r.fonte === 'prest' && (S.prest || 0) >= r.prest) S.roupas[id] = 1;
+  }
+  if (!ROUPAS[S.avatar.roupa] || !S.roupas[S.avatar.roupa]) S.avatar.roupa = 'padrao';
+}
+function ganharRoupa(S, id) { ajustarAvatar(S); if (!ROUPAS[id] || S.roupas[id]) return false; S.roupas[id] = 1; return true; }
+function equiparRoupa(S, id) { ajustarAvatar(S); if (!S.roupas[id]) return { erro: 'nao_tem' }; S.avatar.roupa = id; return { ok: true }; }
+function mudarAvatar(S, campo, v) {
+  ajustarAvatar(S);
+  if (campo === 'sexo' && (v === 'm' || v === 'f')) S.avatar.sexo = v;
+  else if (campo === 'pele' && v >= 0 && v < PELES.length) S.avatar.pele = +v;
+  else return { erro: 'valor' };
+  return { ok: true };
+}
+function comprarPacoteRoupa(S, id) {
+  const p = PACOTES_ROUPA[id]; if (!p) return { erro: 'tipo' };
+  ajustarAvatar(S);
+  const itens = Object.keys(ROUPAS).filter(k => ROUPAS[k].pacote === id);
+  if (itens.every(k => S.roupas[k])) return { erro: 'ja' };
+  itens.forEach(k => { S.roupas[k] = 1; }); S.gems += p.gemas;
+  return { ok: true, itens, gemas: p.gemas };
+}
+/* bicho companheiro: o que o jogador escolheu ou, no automático, o mais evoluído e mais forte */
+function bichoDestaque(S) {
+  ajustarAvatar(S);
+  const forca = id => (S.pets[id].est || 0) * 1e6 + prodPet(id, S.pets[id].lvl) * (1 + 0.5 * (S.pets[id].est || 0)) + PET_POR_ID[id].r * 1e3;
+  if (S.avatar.bicho !== 'auto' && S.pets[S.avatar.bicho]) return S.avatar.bicho;
+  const ids = Object.keys(S.pets); if (!ids.length) return null;
+  return ids.sort((a, b) => forca(b) - forca(a))[0];
+}
+function escolherCompanheiro(S, id) {
+  ajustarAvatar(S);
+  if (id !== 'auto' && !S.pets[id]) return { erro: 'sem' };
+  S.avatar.bicho = id; return { ok: true };
 }

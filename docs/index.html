@@ -339,12 +339,43 @@ nav{box-shadow:0 6px 0 rgba(0,0,0,.08),0 18px 30px -10px rgba(0,40,20,.5),inset 
 nav button.on{background:linear-gradient(180deg,#5fd08a,var(--green) 45%,var(--green-d));box-shadow:0 4px 0 #1c7a3f,0 8px 12px -4px rgba(20,120,60,.55),inset 0 2px 0 rgba(255,255,255,.45);transform:translateY(-4px)}
 nav svg{filter:drop-shadow(0 2px 1px rgba(0,0,0,.2))}
 
+/* ===== Perfil do fazendeiro ===== */
+button.lvring{border:0;padding:0;cursor:pointer}
+.hudwho{cursor:pointer}
+.sheet.perfil{max-width:400px;max-height:92vh;overflow-y:auto}
+.palco{position:relative;display:flex;align-items:flex-end;justify-content:center;gap:4px;padding:14px 10px 12px;border-radius:24px;background:radial-gradient(ellipse at 50% 100%,#bfeccb 0,#8fd3a2 40%,transparent 72%),linear-gradient(180deg,#cfeeff,#eaf9ee);box-shadow:inset 0 3px 8px rgba(0,60,40,.15),inset 0 -2px 0 rgba(255,255,255,.6);overflow:hidden}
+.palco .avsvg{width:128px;height:164px;flex:none;filter:drop-shadow(0 5px 3px rgba(0,50,30,.25))}
+.palco.big .avsvg{width:150px;height:192px}
+.avpet{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:92px;max-width:120px}
+.avpet::before{content:'';position:absolute;left:50%;bottom:16px;width:104px;height:104px;margin-left:-52px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--rc) 55%,transparent),transparent 68%);z-index:0}
+.avpet .avem{position:relative;font-size:64px;line-height:1;filter:drop-shadow(0 6px 3px rgba(0,40,20,.35));animation:bob 2.6s ease-in-out infinite;z-index:1}
+.avpet .avstar{position:relative;color:#f4b31f;text-shadow:0 1px 0 #a86a00;font-size:14px;letter-spacing:2px;min-height:16px;z-index:1}
+.avpet small{position:relative;font:700 12px var(--font-display);color:var(--ink);background:rgba(255,255,255,.8);border-radius:99px;padding:2px 10px;box-shadow:0 2px 0 var(--line);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;z-index:1}
+.avpet.vazio{text-align:center;white-space:normal}
+.peles{display:flex;gap:10px;justify-content:center}
+.pele{width:34px;height:34px;border-radius:50%;border:3px solid #fff;box-shadow:0 3px 0 var(--line),inset 0 -4px 6px rgba(0,0,0,.15);cursor:pointer}
+.pele.on{outline:3px solid var(--green);outline-offset:2px}
+.roupas{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.roupa{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border-radius:16px;border:0;background:var(--surface2);box-shadow:0 3px 0 var(--line),inset 0 2px 0 #fff;cursor:pointer;font-family:var(--font-display);color:var(--ink);text-align:center}
+.roupa .mini{width:64px;height:80px}
+.roupa .mini svg{width:100%;height:100%}
+.roupa b{font-size:13px}
+.roupa small{font-size:11px;color:var(--muted);line-height:1.2}
+.roupa.on{box-shadow:0 3px 0 var(--green-d),0 0 0 3px var(--green)}
+.roupa.lock{opacity:.7;cursor:not-allowed}
+.roupa.lock .mini{filter:grayscale(1) brightness(.55) contrast(.9)}
+.chipsbicho{display:flex;flex-wrap:wrap;gap:6px}
+.chipbicho{min-width:42px;height:42px;padding:0 8px;border-radius:14px;border:0;background:var(--surface2);font-size:24px;cursor:pointer;box-shadow:0 3px 0 var(--line),inset 0 0 0 2px color-mix(in srgb,var(--rc,var(--line)) 50%,transparent);font-family:var(--font-display)}
+.chipbicho.on{box-shadow:0 3px 0 var(--green-d),inset 0 0 0 3px var(--green)}
+.seg.n2 button{font-size:14px}
+.sheet.perfil>*{flex-shrink:0}
+
 </style>
 
 <div class="shell">
   <header class="top">
-    <div class="lvring" id="hudRing" aria-label="Nível do fazendeiro"><b id="hudLv">1</b></div>
-    <div class="hudwho"><b id="hudTit">Fazendeiro</b><div class="xpmini"><i id="hudXp"></i></div></div>
+    <button class="lvring" id="hudRing" data-act="perfil" aria-label="Meu perfil"><b id="hudLv">1</b></button>
+    <div class="hudwho" data-act="perfil"><b id="hudTit">Fazendeiro</b><div class="xpmini"><i id="hudXp"></i></div></div>
     <div class="wallet" aria-label="Saldo">
       <span class="chip" id="chipCoins" title="Moedas"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gcoin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE27A"/><stop offset="1" stop-color="#F5A300"/></linearGradient><radialGradient id="${gid}r" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".35" stop-color="${f1}"/><stop offset="1" stop-color="${f2}"/></radialGradient><radialGradient id="${gid}s" cx=".38" cy=".3" r=".85"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#2a1500" stop-opacity=".38"/></radialGradient></defs><circle cx="12" cy="12" r="10.5" fill="url(#gcoin)" stroke="#D98F00" stroke-width="1.5"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="#D98F00" stroke-width="1.4" opacity=".55"/><path d="M8 8c1.5-1.2 3-1.6 4.4-1.4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" fill="none" opacity=".7"/></svg><span id="vCoins">0</span></span>
       <span class="chip" id="chipGems" title="Gemas"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="ggem" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8FD6FF"/><stop offset="1" stop-color="#1B72D8"/></linearGradient></defs><polygon points="12,1.5 21,9 12,22.5 3,9" fill="url(#ggem)" stroke="#1B5FB5" stroke-width="1.3" stroke-linejoin="round"/><polyline points="3,9 21,9" stroke="#fff" stroke-width="1.2" opacity=".6" fill="none"/><polyline points="8,9 12,1.5 16,9" stroke="#fff" stroke-width="1" opacity=".4" fill="none"/></svg><span id="vGems">0</span></span>
@@ -701,7 +732,7 @@ function novoEstado(now) {
     bau: { dia: -1, qtd: 0 }, brilho: { dia: -1 }, premium: { semAnuncios: false, passe: false }, decor: {}, tema: 'auto',
     tut: { passo: 0, fim: false }, cfg: { eco: 'auto', som: true, vibra: true }, metr: { sessoes: 0, dias: {}, convites: 0 },
     dev: { ecpm: 5, dau: 1000, adsDia: 6 },
-    ing: 0, oficina: [], pesq: { n: {}, at: null }, cruz: null, conq: {}, chefe: { sem: -1, dano: 0, dia: -1, hoje: 0, res: 0 }, corrida: { j: -1, pts: 0, res: [0, 0, 0, 0] }, codigos: {},
+    avatar: { sexo: 'm', pele: 1, roupa: 'padrao', bicho: 'auto' }, roupas: { padrao: 1 }, ing: 0, oficina: [], pesq: { n: {}, at: null }, cruz: null, conq: {}, chefe: { sem: -1, dano: 0, dia: -1, hoje: 0, res: 0 }, corrida: { j: -1, pts: 0, res: [0, 0, 0, 0] }, codigos: {},
     missoes: [null, null, null], mCont: 0, diario: { ultimo: -1, seq: 0 }, stats: { coletado: 0, chocados: 0 },
     guilda: { id: -1, entrou: 0, doado: 0, nivel: 1, pontos: 0, semana: -1, baus: [0, 0, 0, 0], ajudou: {}, parab: {}, parabDia: { dia: -1, qtd: 0 } }
   };
@@ -941,9 +972,10 @@ function resgatarEvento(S, k, now) {
   if (S.evt.pts < EVT_METAS[k]) return { erro: 'meta' };
   const r = evtRec(S, k); S.evt.res[k] = 1;
   S.coins += r.coins; S.gems += r.gems; if (k === 2) ganharIng(S, 1); if (k === 3) ganharIng(S, 2);
-  let pet = null, res = null;
+  let pet = null, res = null, roupa = null;
+  if (k === 3 && ganharRoupa(S, 'evt:' + eventoDaSemana(now).id)) roupa = 'evt:' + eventoDaSemana(now).id;
   if (r.pet) { pet = PET_POR_ID[eventoDaSemana(now).pet]; res = aplicarPet(S, pet.id); }
-  return { ok: true, r, pet, res, ups: ganharXP(S, 30 + 20 * k) };
+  return { ok: true, r, pet, res, roupa, ups: ganharXP(S, 30 + 20 * k) };
 }
 
 /* ===== Baú diário e ovo brilhante (com anúncio) ===== */
@@ -1016,16 +1048,16 @@ function podePrestigiar(S) { return S.nivel >= NIVEL_PRESTIGIO; }
 function prestigiar(S, now) {
   if (!podePrestigiar(S)) return { erro: 'nivel' };
   const g = prestigioGemas(S), n = (S.prest || 0) + 1;
-  const keep = { pets: S.pets, gems: S.gems + g, ads: S.ads, dev: S.dev, guilda: S.guilda, stats: S.stats, premium: S.premium, decor: S.decor, tema: S.tema, tut: S.tut, cfg: S.cfg, metr: S.metr, visto: S.visto, nome: S.nome, convUsado: S.convUsado, diario: S.diario, bau: S.bau, brilho: S.brilho, evt: S.evt, colheita: {}, ing: S.ing, pesq: { n: S.pesq.n, at: null }, conq: S.conq, chefe: S.chefe, corrida: S.corrida, codigos: S.codigos };
+  const keep = { avatar: S.avatar, roupas: S.roupas, pets: S.pets, gems: S.gems + g, ads: S.ads, dev: S.dev, guilda: S.guilda, stats: S.stats, premium: S.premium, decor: S.decor, tema: S.tema, tut: S.tut, cfg: S.cfg, metr: S.metr, visto: S.visto, nome: S.nome, convUsado: S.convUsado, diario: S.diario, bau: S.bau, brilho: S.brilho, evt: S.evt, colheita: {}, ing: S.ing, pesq: { n: S.pesq.n, at: null }, conq: S.conq, chefe: S.chefe, corrida: S.corrida, codigos: S.codigos };
   const N = novoEstado(now);
   Object.assign(N, keep, { prest: n, criadoDia: S.criadoDia });
   for (const k of Object.keys(S)) delete S[k];
-  Object.assign(S, N);
+  Object.assign(S, N); ajustarAvatar(S);
   return { ok: true, prest: n, gems: g };
 }
 
 /* ===== Pontos para a guilda semanal já existem em addPontos; rodada geral de ajustes ao carregar/avançar ===== */
-function ajustarTudo(S, now, rng) { ajustarHorta(S); ajustarPedidos(S, now, rng); ajustarEvento(S, now); ajustarExtras(S, now); }
+function ajustarTudo(S, now, rng) { ajustarAvatar(S); ajustarHorta(S); ajustarPedidos(S, now, rng); ajustarEvento(S, now); ajustarExtras(S, now); }
 
 /* ===== Mecânicas de longo prazo =====
    Sorteio em lote com ingressos, oficina (fila de produção), pesquisa, combos, cruzamento, evolução,
@@ -1280,7 +1312,8 @@ function resgatarCorrida(S, k, now) {
   if (S.corrida.res[k]) return { erro: 'ja' };
   if (S.corrida.pts < CORR_METAS[k]) return { erro: 'meta' };
   const r = recCorrida(S, k); S.corrida.res[k] = 1; S.coins += r.coins; S.gems += r.gems; ganharIng(S, r.ing);
-  return { ok: true, rec: r, ups: ganharXP(S, 25 + 15 * k) };
+  const roupa = k === 3 && ganharRoupa(S, 'corrida') ? 'corrida' : null;
+  return { ok: true, rec: r, roupa, ups: ganharXP(S, 25 + 15 * k) };
 }
 /* adversários simulados da corrida (offline) */
 function corridaSim(S, now) {
@@ -1289,6 +1322,75 @@ function corridaSim(S, now) {
   l.push({ nome: 'Você', pts: S.corrida.pts, voce: true });
   l.sort((a, b) => b.pts - a.pts);
   return l.map((x, k) => Object.assign(x, { pos: k + 1 }));
+}
+
+/* ===== Perfil do fazendeiro: roupas e bicho companheiro =====
+   Roupas vêm de quatro lugares: nível/prestígio, o prêmio final de cada evento semanal (a roupa do tema),
+   o prêmio final da corrida de 48 h e pacotes da loja (SIMULADOS: viram compra do Google Play no app). */
+const ROUPAS = {
+  padrao:   { nome: 'Roupa do sítio',    fonte: 'base',   cam: null,      calca: '#3A4A63', chapeu: 'palha',   hc: '#e8cf84' },
+  junina:   { nome: 'Festa junina',      fonte: 'nivel',  nivel: 8,  cam: '#d9453a', cam2: '#fff',    calca: '#2f5fa8', chapeu: 'palha',   hc: '#e3c46a', acess: 'remendo' },
+  gala:     { nome: 'Gala do sítio',     fonte: 'nivel',  nivel: 20, cam: '#2a2f45', cam2: '#fff',    calca: '#1c2033', chapeu: 'cartola', hc: '#1c2033', acess: 'gravata' },
+  lenda:    { nome: 'Manto da lenda',    fonte: 'prest',  prest: 1,  cam: '#7a2fc8', cam2: '#ffd23f', calca: '#4a1f86', chapeu: 'coroa',   hc: '#f4b31f', acess: 'capa' },
+  'evt:polar':    { nome: 'Explorador polar',   fonte: 'evento', ev: 'polar',    cam: '#3a8fe0', cam2: '#fff',    calca: '#274c85', chapeu: 'gorro',   hc: '#e9f4ff', acess: 'cachecol' },
+  'evt:savana':   { nome: 'Guia da savana',     fonte: 'evento', ev: 'savana',   cam: '#c9a45a', cam2: '#7a5636', calca: '#6b5a3a', chapeu: 'safari',  hc: '#d8c07a' },
+  'evt:oceania':  { nome: 'Ranger da Oceania',  fonte: 'evento', ev: 'oceania',  cam: '#6f8a4a', cam2: '#e8cf84', calca: '#4a5a38', chapeu: 'akubra',  hc: '#8a6a44' },
+  'evt:mar':      { nome: 'Marujo',             fonte: 'evento', ev: 'mar',      cam: '#fff',    cam2: '#2f6fd1', calca: '#2f4f8a', chapeu: 'marujo',  hc: '#fff',    acess: 'listras' },
+  'evt:deserto':  { nome: 'Nômade do deserto',  fonte: 'evento', ev: 'deserto',  cam: '#e8d6a4', cam2: '#c4563b', calca: '#a88a52', chapeu: 'turbante', hc: '#c4563b' },
+  'evt:cerrado':  { nome: 'Vaqueiro do cerrado', fonte: 'evento', ev: 'cerrado', cam: '#b9783a', cam2: '#7a4a1f', calca: '#3a4a63', chapeu: 'couro',   hc: '#a8733a', acess: 'lenco' },
+  'evt:floresta': { nome: 'Lenhador',           fonte: 'evento', ev: 'floresta', cam: '#c8453a', cam2: '#2b1d00', calca: '#3a4a63', chapeu: 'gorro',   hc: '#2f7a4a', acess: 'xadrez' },
+  'evt:selva':    { nome: 'Explorador da selva', fonte: 'evento', ev: 'selva',   cam: '#4a8a4a', cam2: '#f4b31f', calca: '#5a4a2a', chapeu: 'capacete', hc: '#e8e0c0' },
+  corrida:  { nome: 'Piloto da corrida', fonte: 'corrida', cam: '#e63946', cam2: '#fff',   calca: '#1d1d2b', chapeu: 'capacete2', hc: '#e63946', acess: 'listras' },
+  astro:    { nome: 'Astronauta',        fonte: 'pacote', pacote: 'aventura', cam: '#f2f4f8', cam2: '#ff7a1a', calca: '#d7dbe6', chapeu: 'astro',   hc: '#f2f4f8', acess: 'remendo' },
+  pirata:   { nome: 'Pirata',            fonte: 'pacote', pacote: 'aventura', cam: '#7a2020', cam2: '#f4d97a', calca: '#2b1d00', chapeu: 'pirata',  hc: '#1c1c24' },
+  realeza:  { nome: 'Realeza',           fonte: 'pacote', pacote: 'realeza',  cam: '#b3202e', cam2: '#ffd23f', calca: '#6b1520', chapeu: 'coroa',   hc: '#f4b31f', acess: 'capa' },
+  dino:     { nome: 'Fantasia de dino',  fonte: 'pacote', pacote: 'realeza',  cam: '#4fa869', cam2: '#a6e6b4', calca: '#2f7a4a', chapeu: 'dino',    hc: '#4fa869' }
+};
+const PACOTES_ROUPA = {
+  aventura: { nome: 'Pacote Aventureiro', desc: 'Astronauta e Pirata, com 30 gemas de bônus.', preco: 'R$ 12,90', gemas: 30 },
+  realeza:  { nome: 'Pacote Realeza',     desc: 'Realeza e Fantasia de dino, com 30 gemas de bônus.', preco: 'R$ 14,90', gemas: 30 }
+};
+const PELES = ['#F6D5B5', '#E8B88A', '#C68B5E', '#8A5A3C'];
+function ajustarAvatar(S) {
+  S.avatar = Object.assign({ sexo: 'm', pele: 1, roupa: 'padrao', bicho: 'auto' }, S.avatar && typeof S.avatar === 'object' ? S.avatar : {});
+  if (!S.roupas || typeof S.roupas !== 'object') S.roupas = {};
+  S.roupas.padrao = 1;
+  for (const id in ROUPAS) {                                            // as de nível e prestígio liberam sozinhas
+    const r = ROUPAS[id];
+    if (r.fonte === 'nivel' && S.nivel >= r.nivel) S.roupas[id] = 1;
+    if (r.fonte === 'prest' && (S.prest || 0) >= r.prest) S.roupas[id] = 1;
+  }
+  if (!ROUPAS[S.avatar.roupa] || !S.roupas[S.avatar.roupa]) S.avatar.roupa = 'padrao';
+}
+function ganharRoupa(S, id) { ajustarAvatar(S); if (!ROUPAS[id] || S.roupas[id]) return false; S.roupas[id] = 1; return true; }
+function equiparRoupa(S, id) { ajustarAvatar(S); if (!S.roupas[id]) return { erro: 'nao_tem' }; S.avatar.roupa = id; return { ok: true }; }
+function mudarAvatar(S, campo, v) {
+  ajustarAvatar(S);
+  if (campo === 'sexo' && (v === 'm' || v === 'f')) S.avatar.sexo = v;
+  else if (campo === 'pele' && v >= 0 && v < PELES.length) S.avatar.pele = +v;
+  else return { erro: 'valor' };
+  return { ok: true };
+}
+function comprarPacoteRoupa(S, id) {
+  const p = PACOTES_ROUPA[id]; if (!p) return { erro: 'tipo' };
+  ajustarAvatar(S);
+  const itens = Object.keys(ROUPAS).filter(k => ROUPAS[k].pacote === id);
+  if (itens.every(k => S.roupas[k])) return { erro: 'ja' };
+  itens.forEach(k => { S.roupas[k] = 1; }); S.gems += p.gemas;
+  return { ok: true, itens, gemas: p.gemas };
+}
+/* bicho companheiro: o que o jogador escolheu ou, no automático, o mais evoluído e mais forte */
+function bichoDestaque(S) {
+  ajustarAvatar(S);
+  const forca = id => (S.pets[id].est || 0) * 1e6 + prodPet(id, S.pets[id].lvl) * (1 + 0.5 * (S.pets[id].est || 0)) + PET_POR_ID[id].r * 1e3;
+  if (S.avatar.bicho !== 'auto' && S.pets[S.avatar.bicho]) return S.avatar.bicho;
+  const ids = Object.keys(S.pets); if (!ids.length) return null;
+  return ids.sort((a, b) => forca(b) - forca(a))[0];
+}
+function escolherCompanheiro(S, id) {
+  ajustarAvatar(S);
+  if (id !== 'auto' && !S.pets[id]) return { erro: 'sem' };
+  S.avatar.bicho = id; return { ok: true };
 }
 
 </script>
@@ -1464,7 +1566,7 @@ const Cena = (() => {
   const lerp = (a, b, t) => a + (b - a) * t;
 
   /* ---------- cor ---------- */
-  const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+  const hex = h => { if (h.length === 4) h = '#' + h[1] + h[1] + h[2] + h[2] + h[3] + h[3]; return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; };
   const mix = (a, b, t) => a.map((v, i) => Math.round(lerp(v, b[i], t)));
   const rgb = c => 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')';
   const NOITE = hex('#141b4a');
@@ -1760,22 +1862,38 @@ const Cena = (() => {
     }
   }
   function desenharFazendeiro(c, f, t) {
-    const cam = ['#C8453A', '#2F8FD1', '#7A4CC8', '#23834A', '#E39A0B', '#E39A0B'][info.tier] || '#C8453A', tier = info.tier;
+    const R = info.roupa && info.roupa.id !== 'padrao' ? info.roupa : null, cam = (R && R.cam) || ['#C8453A', '#2F8FD1', '#7A4CC8', '#23834A', '#E39A0B', '#E39A0B'][info.tier] || '#C8453A', tier = info.tier, pele = (info.roupa && info.roupa.pele) || '#F0C9A0';
     const andar = f.x !== f.tx ? Math.sin(f.fase * 2) * 3 : 0, resp = Math.sin(t * 2) * 0.6;
     c.save(); c.translate(f.x, f.y); c.scale(f.dir, 1); sombra(c, 0, 1, 9);
-    c.fillStyle = '#3A4A63'; c.fillRect(-6, -12 + andar * 0.0, 5, 12 - andar * 0.4); c.fillRect(1.5, -12, 5, 12 + andar * 0.4);
+    c.fillStyle = (R && R.calca) || '#3A4A63'; c.fillRect(-6, -12 + andar * 0.0, 5, 12 - andar * 0.4); c.fillRect(1.5, -12, 5, 12 + andar * 0.4);
     { const gc = c.createLinearGradient(-9, 0, 9, 0); gc.addColorStop(0, tom(rgb(mix(hex(cam), [255, 255, 255], 0.22)).replace(/rgb\((\d+),(\d+),(\d+)\)/, (m, a, b, d) => '#' + [a, b, d].map(v => (+v).toString(16).padStart(2, '0')).join(''))));  gc.addColorStop(1, tom(rgb(mix(hex(cam), [0, 0, 0], 0.28)).replace(/rgb\((\d+),(\d+),(\d+)\)/, (m, a, b, d) => '#' + [a, b, d].map(v => (+v).toString(16).padStart(2, '0')).join('')))); c.fillStyle = gc; } c.beginPath(); c.roundRect ? c.roundRect(-9, -31 + resp, 18, 21, 5) : c.rect(-9, -31 + resp, 18, 21); c.fill();
     if (tier >= 2) { c.fillStyle = '#2C5E8C'; c.fillRect(-5, -31 + resp, 3, 12); c.fillRect(2, -31 + resp, 3, 12); }
     if (tier >= 4) { c.fillStyle = '#F2C94C'; c.fillRect(-9, -17, 18, 3.5); }
     c.fillStyle = tom(cam);                                                    // braços
     c.fillRect(-12, -29 + resp, 4, 12 + andar * 0.3);
-    if (f.acena > 0) { c.save(); c.translate(9, -29); c.rotate(-2.2 + Math.sin(t * 14) * 0.45); c.fillRect(0, 0, 4, 12); c.fillStyle = '#F0C9A0'; c.fillRect(0, 11, 4, 3); c.restore(); }
+    if (f.acena > 0) { c.save(); c.translate(9, -29); c.rotate(-2.2 + Math.sin(t * 14) * 0.45); c.fillRect(0, 0, 4, 12); c.fillStyle = pele; c.fillRect(0, 11, 4, 3); c.restore(); }
     else c.fillRect(8, -29 + resp, 4, 12 - andar * 0.3);
-    esfera(c, 0, -39 + resp, 7.2, '#F0C9A0', 0.3);
+    esfera(c, 0, -39 + resp, 7.2, pele, 0.3);
     c.fillStyle = '#2B1D00'; c.fillRect(1.2, -40.5 + resp, 1.6, 1.8); c.fillRect(-3.6, -40.5 + resp, 1.6, 1.8);
-    if (tier >= 5) { c.fillStyle = '#F4B31F'; c.beginPath(); c.moveTo(-7, -45); c.lineTo(-7, -54); c.lineTo(-3.5, -49); c.lineTo(0, -56); c.lineTo(3.5, -49); c.lineTo(7, -54); c.lineTo(7, -45); c.fill(); }
+    if (R) chapeuCena(c, R, resp);
+    else if (tier >= 5) { c.fillStyle = '#F4B31F'; c.beginPath(); c.moveTo(-7, -45); c.lineTo(-7, -54); c.lineTo(-3.5, -49); c.lineTo(0, -56); c.lineTo(3.5, -49); c.lineTo(7, -54); c.lineTo(7, -45); c.fill(); }
     else { c.fillStyle = tom('#e8cf84'); c.beginPath(); c.ellipse(0, -45 + resp, 12, 3, 0, 0, 7); c.fill(); c.beginPath(); c.moveTo(-7, -45 + resp); c.quadraticCurveTo(0, -57 + resp, 7, -45 + resp); c.fill(); if (tier >= 1) { c.fillStyle = cam; c.fillRect(-7, -48 + resp, 14, 2.2); } }
     c.restore();
+  }
+  /* chapéus das roupas (versão pequena do desenho do perfil) */
+  function chapeuCena(c, R, resp) {
+    const t = R.chapeu, hc = tom(R.hc || '#e8cf84'), c2 = tom(R.cam2 || '#b3202e', 0.3), y = -45 + resp;
+    const aba = (rx) => { c.fillStyle = hc; c.beginPath(); c.ellipse(0, y, rx, 3, 0, 0, 7); c.fill(); };
+    const cupula = (w, h) => { c.fillStyle = hc; c.beginPath(); c.moveTo(-w, y); c.quadraticCurveTo(-w, y - h, 0, y - h); c.quadraticCurveTo(w, y - h, w, y); c.fill(); };
+    if (t === 'coroa') { c.fillStyle = '#F4B31F'; c.beginPath(); c.moveTo(-7, y); c.lineTo(-7, y - 9); c.lineTo(-3.5, y - 4); c.lineTo(0, y - 11); c.lineTo(3.5, y - 4); c.lineTo(7, y - 9); c.lineTo(7, y); c.fill(); }
+    else if (t === 'cartola') { c.fillStyle = hc; c.fillRect(-7, y - 14, 14, 14); aba(10); c.fillStyle = c2; c.fillRect(-7, y - 5, 14, 2.6); }
+    else if (t === 'gorro') { cupula(7.2, 12); c.fillStyle = c2; c.fillRect(-7.4, y - 3, 14.8, 3.2); c.beginPath(); c.arc(0, y - 12.5, 2.6, 0, 7); c.fill(); }
+    else if (t === 'turbante') { cupula(8, 13); c.strokeStyle = 'rgba(0,0,0,.25)'; c.lineWidth = 1; c.beginPath(); c.moveTo(-7, y - 5); c.quadraticCurveTo(0, y - 11, 7, y - 5); c.stroke(); }
+    else if (t === 'capacete' || t === 'capacete2') { cupula(8, 13); if (t === 'capacete') aba(11); c.fillStyle = c2; c.fillRect(-8, y - 4, 16, 2.4); }
+    else if (t === 'astro') { c.fillStyle = 'rgba(200,230,255,.3)'; c.beginPath(); c.arc(0, y + 5.5, 11, 0, 7); c.fill(); c.strokeStyle = '#f2f4f8'; c.lineWidth = 1.8; c.stroke(); }
+    else if (t === 'pirata') { c.fillStyle = hc; c.beginPath(); c.moveTo(-11, y + 1); c.lineTo(0, y - 12); c.lineTo(11, y + 1); c.quadraticCurveTo(0, y - 3, -11, y + 1); c.fill(); c.fillStyle = '#fff'; c.beginPath(); c.arc(0, y - 4, 1.6, 0, 7); c.fill(); }
+    else if (t === 'dino') { cupula(7.6, 12); c.fillStyle = c2; [-4, 0, 4].forEach(x => { c.beginPath(); c.moveTo(x - 1.8, y - 10); c.lineTo(x, y - 14); c.lineTo(x + 1.8, y - 10); c.fill(); }); }
+    else { aba(t === 'marujo' ? 8 : 12); cupula(7, t === 'marujo' ? 7 : 11); c.fillStyle = c2; c.fillRect(-7, y - 3.4, 14, 2.4); }
   }
   function atualizarFazendeiro(f, dt) {
     if (f.acena > 0) f.acena -= dt;
@@ -2217,6 +2335,7 @@ function viewAjustes() {
       <div class="between ajrow"><b>Vibração</b><button class="btn mini ${S.cfg.vibra ? 'primary' : 'ghost'}" data-act="cfgVibra">${S.cfg.vibra ? 'Ligada' : 'Desligada'}</button></div>
       <div><b>Modo econômico</b><p class="muted">Menos efeitos e animações em aparelhos mais simples. No automático, o jogo mede o desempenho e liga sozinho se precisar.</p>${segHTML('cfgEco', S.cfg.eco, [['auto', 'Automático'], ['on', 'Ligado'], ['off', 'Desligado']])}</div>
       <div><b>Estação do sítio</b>${segHTML('cfgTema', tema, [['auto', 'Auto'], ['primavera', 'Prim.'], ['verao', 'Verão'], ['outono', 'Outono'], ['inverno', 'Inverno']])}</div></section>
+    <section class="card"><div class="between"><h2>Meu perfil</h2><button class="btn mini primary" data-act="perfil">Abrir</button></div><p class="muted">Vista seu fazendeiro com roupas de eventos e escolha o bicho que fica ao lado dele.</p></section>
     <section class="card"><h2>Lembretes</h2><p class="muted">Avisos de ovo pronto, celeiro cheio, horta e bônus diário. No app instalado pela loja eles chegam com o jogo fechado; no navegador, só enquanto o jogo estiver aberto ou em segundo plano.</p>
       <button class="btn ${S.cfg.notif ? 'ghost' : 'primary'}" data-act="notif" ${nStat === 'denied' || nStat === 'nao' ? 'disabled' : ''}>${S.cfg.notif ? 'Desligar lembretes' : notifTxt}</button></section>
     <section class="card"><h2>Convidar amigos</h2><p class="muted">Quem entra pelo seu link ganha 10 gemas, e você ganha 15 gemas por amigo que chegar ao nível 3 (até 20 amigos).</p>${conv}
@@ -2553,7 +2672,7 @@ Object.assign(ACOES, {
   },
   evtResg(k) {
     const r = resgatarEvento(S, +k, Date.now()); if (!r.ok) return toast(r.erro === 'meta' ? 'Faltam pontos' : 'Já resgatado');
-    receber(r.ups); salvar(); render(); metrica('evento_semana');
+    receber(r.ups); salvar(); render(); metrica('evento_semana'); if (r.roupa) setTimeout(() => toast('Roupa nova: ' + ROUPAS[r.roupa].nome + '! Veja no seu perfil.'), 1800);
     if (r.pet) revelarPet(r.pet, r.res, 'Bicho do evento'); else { Som.play('bau'); toast('Prêmio: ' + textoRec({ coins: r.r.coins, gems: r.r.gems, xp: 0 })); }
   },
   cfgVibra() { S.cfg.vibra = !S.cfg.vibra; Som.semVibra = !S.cfg.vibra; salvar(); render(); },
@@ -2610,7 +2729,7 @@ Object.assign(ACOES, {
   cruzAbrir() { const r = abrirCruz(S, Date.now(), Math.random); if (!r.ok) return; receber(r.ups); salvar(); render(); revelarPet(r.pet, r.res, 'Filhote ' + RARIDADES[r.r].nome); },
   evoluir(id) { const r = evoluir(S, id); if (!r.ok) return toast(r.erro === 'frag' ? 'Faltam ' + r.falta + ' fragmentos' : erroMsg(r)); receber(r.ups); salvar(); modalBicho(id); render(); Som.play('lendario'); Fx.confete(innerWidth / 2, innerHeight * 0.35, 60, ['#FFC21A', '#fff', '#3DBB6B']); metrica('evolucao'); toast(nomeDoBicho(S, id) + ' evoluiu: ' + EST_NOMES[r.est]); },
   conqResg(id) { const r = resgatarConq(S, id); if (!r.ok) return; receber(r.ups); salvar(); render(); Som.play('bau'); toast('Conquista: +' + r.rec.gems + ' gemas' + (r.rec.ing ? ' e +' + r.rec.ing + ' ingressos' : '')); metrica('conquista'); },
-  corrResg(k) { const r = resgatarCorrida(S, +k, Date.now()); if (!r.ok) return toast(r.erro === 'meta' ? 'Faltam pontos' : 'Já resgatado'); receber(r.ups); salvar(); render(); Som.play('bau'); toast('Corrida: ' + textoRec({ coins: r.rec.coins, gems: r.rec.gems, xp: 0 }) + (r.rec.ing ? ' · +' + r.rec.ing + ' ingressos' : '')); },
+  corrResg(k) { const r = resgatarCorrida(S, +k, Date.now()); if (!r.ok) return toast(r.erro === 'meta' ? 'Faltam pontos' : 'Já resgatado'); receber(r.ups); salvar(); render(); Som.play('bau'); toast('Corrida: ' + textoRec({ coins: r.rec.coins, gems: r.rec.gems, xp: 0 }) + (r.rec.ing ? ' · +' + r.rec.ing + ' ingressos' : '') + (r.roupa ? ' · roupa nova: ' + ROUPAS[r.roupa].nome : '')); },
   corrPremio() { if (window.ON && ON.ativo) ACOES.corrPremioOn(); },
   chefeGolpe() {
     const now = Date.now(), d = chefeDados(now); if (!d || d.derrotado) return;
@@ -2639,6 +2758,97 @@ function viewGuildasSim() {
   return `<section class="card"><h2>Guilda contra guilda</h2><p class="muted">No modo online, guildas de jogadores reais disputam o pódio da semana e ganham prêmios. Aqui, as três guildas simuladas mostram como funciona.</p></section>
     <section class="card">${lista.map((x, k) => `<div class="mrow ${x.minha ? 'eu' : ''}"><span class="pos">${k + 1}</span><span class="who"><b>${x.nome}</b></span><span class="pts num">${fmt(x.pontos)}</span><span></span></div>`).join('')}</section>`;
 }
+
+/* ===== Perfil do fazendeiro ===== */
+function chapeuSVG(t, hc, c2, cor) {
+  const dk = '#00000026';
+  switch (t) {
+    case 'cartola': return `<ellipse cx="50" cy="22" rx="19" ry="4.5" fill="${hc}"/><rect x="38" y="2" width="24" height="20" rx="2" fill="${hc}"/><rect x="38" y="15" width="24" height="5" fill="${c2 || '#b3202e'}"/><ellipse cx="50" cy="2.5" rx="12" ry="2.6" fill="#ffffff22"/>`;
+    case 'coroa': return `<path d="M34 24 L36 8 L43 16 L50 4 L57 16 L64 8 L66 24 Z" fill="${hc}" stroke="#c98a00" stroke-width="1"/><circle cx="50" cy="12" r="2.2" fill="#e63946"/><circle cx="39" cy="17" r="1.6" fill="#3a8fe0"/><circle cx="61" cy="17" r="1.6" fill="#3a8fe0"/>`;
+    case 'gorro': return `<path d="M33 25 Q33 6 50 6 Q67 6 67 25 Z" fill="${hc}"/><rect x="32" y="21" width="36" height="6" rx="3" fill="${c2 || '#fff'}"/><circle cx="50" cy="5" r="4.5" fill="${c2 || '#fff'}"/>`;
+    case 'safari': case 'akubra': return `<ellipse cx="50" cy="23" rx="25" ry="5.5" fill="${hc}"/><path d="M36 23 Q36 7 50 7 Q64 7 64 23 Z" fill="${hc}"/><rect x="36" y="18" width="28" height="4" fill="${c2 || '#7a5636'}"/><ellipse cx="50" cy="23" rx="25" ry="5.5" fill="${dk}" opacity=".3"/>`;
+    case 'couro': return `<path d="M24 20 Q34 28 50 25 Q66 28 76 20 Q70 26 64 22 L36 22 Q30 26 24 20Z" fill="${hc}"/><path d="M36 22 Q36 6 50 8 Q64 6 64 22 Z" fill="${hc}"/><rect x="36" y="17" width="28" height="3.5" fill="${c2 || '#7a4a1f'}"/>`;
+    case 'marujo': return `<ellipse cx="50" cy="22" rx="18" ry="5" fill="${hc}"/><path d="M34 22 Q34 8 50 8 Q66 8 66 22 Z" fill="${hc}"/><rect x="34" y="18" width="32" height="4" fill="${c2 || '#2f6fd1'}"/><circle cx="50" cy="10" r="2" fill="${c2 || '#2f6fd1'}"/>`;
+    case 'turbante': return `<path d="M32 24 Q30 8 50 6 Q70 8 68 24 Q50 18 32 24Z" fill="${hc}"/><path d="M34 18 Q50 10 66 18 M33 22 Q50 14 67 22" stroke="#00000033" stroke-width="1.6" fill="none"/><circle cx="50" cy="14" r="3" fill="#ffd23f" stroke="#c98a00" stroke-width=".8"/>`;
+    case 'capacete': return `<ellipse cx="50" cy="23" rx="24" ry="5" fill="${hc}"/><path d="M34 23 Q34 4 50 4 Q66 4 66 23 Z" fill="${hc}"/><rect x="34" y="18" width="32" height="3.5" fill="${c2 || '#f4b31f'}"/><path d="M40 8 Q50 3 60 8" stroke="#fff" stroke-opacity=".6" stroke-width="2" fill="none"/>`;
+    case 'capacete2': return `<path d="M32 36 Q30 6 50 5 Q70 6 68 36 L62 30 Q50 26 38 30 Z" fill="${hc}"/><path d="M36 28 Q50 22 64 28 L64 33 Q50 28 36 33Z" fill="#1d2b3f"/><path d="M40 10 Q50 5 60 10" stroke="#fff" stroke-opacity=".6" stroke-width="2.2" fill="none"/><rect x="48" y="5" width="4" height="12" fill="${c2 || '#fff'}"/>`;
+    case 'astro': return `<circle cx="50" cy="35" r="23" fill="#cfe8ff" fill-opacity=".28" stroke="#f2f4f8" stroke-width="3.5"/><path d="M36 24 Q42 16 52 15" stroke="#fff" stroke-opacity=".8" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="38" y="55" width="24" height="5" rx="2.5" fill="#f2f4f8"/>`;
+    case 'pirata': return `<path d="M28 24 L50 4 L72 24 Q50 17 28 24Z" fill="${hc}"/><path d="M34 21 Q50 15 66 21" stroke="${c2 || '#f4d97a'}" stroke-width="1.6" fill="none"/><circle cx="50" cy="15" r="3" fill="#fff"/><rect x="48.4" y="17" width="3.2" height="3" fill="#fff"/>`;
+    case 'dino': return `<path d="M32 30 Q30 8 50 7 Q70 8 68 30 Q50 20 32 30Z" fill="${hc}"/><path d="M38 9 L42 2 L46 8 L50 0 L54 8 L58 2 L62 9Z" fill="${c2 || '#a6e6b4'}"/><circle cx="41" cy="18" r="4" fill="#fff"/><circle cx="59" cy="18" r="4" fill="#fff"/><circle cx="41.5" cy="18.5" r="1.8" fill="#222"/><circle cx="58.5" cy="18.5" r="1.8" fill="#222"/>`;
+    default: return `<ellipse cx="50" cy="23" rx="25" ry="5.5" fill="${hc}"/><path d="M37 23 Q37 6 50 6 Q63 6 63 23 Z" fill="${hc}"/><rect x="37" y="18" width="26" height="3.6" fill="${cor || '#c8453a'}"/><ellipse cx="50" cy="23" rx="25" ry="5.5" fill="#00000022"/>`;
+  }
+}
+function avatarSVG(sexo, pele, rid, extra) {
+  const R = ROUPAS[rid] || ROUPAS.padrao, tier = (extra && extra.tier) || 0, cam = R.cam || ['#C8453A', '#2F8FD1', '#7A4CC8', '#23834A', '#E39A0B', '#E39A0B'][tier] || '#C8453A';
+  const sk = PELES[pele] || PELES[1], f = sexo === 'f', cab = f ? '#5a3a24' : '#4a3220', id = 'av' + Math.random().toString(36).slice(2, 7);
+  const hatType = R.chapeu, cobreCabelo = ['astro', 'capacete2', 'dino', 'gorro', 'turbante', 'pirata', 'cartola', 'capacete'].includes(hatType);
+  let a = '';
+  a += `<defs><linearGradient id="${id}c" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".38"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".28"/></linearGradient><radialGradient id="${id}h" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#5a2a00" stop-opacity=".28"/></radialGradient></defs>`;
+  a += `<ellipse cx="50" cy="123" rx="28" ry="5" fill="#00281a" opacity=".28"/>`;
+  if (R.acess === 'capa') a += `<path d="M30 54 L22 114 Q50 122 78 114 L70 54Z" fill="${R.cam2 === '#ffd23f' ? '#4a1f86' : '#7a1520'}"/><path d="M30 54 L22 114 Q50 122 78 114 L70 54Z" fill="url(#${id}c)"/>`;
+  a += `<rect x="34" y="88" width="12" height="28" rx="4" fill="${R.calca}"/><rect x="54" y="88" width="12" height="28" rx="4" fill="${R.calca}"/><rect x="34" y="88" width="32" height="28" rx="4" fill="url(#${id}c)" opacity=".7"/>`;
+  a += `<ellipse cx="40" cy="117" rx="9" ry="4.5" fill="#2b1d14"/><ellipse cx="60" cy="117" rx="9" ry="4.5" fill="#2b1d14"/>`;
+  a += `<rect x="25" y="56" width="11" height="28" rx="5.5" fill="${cam}"/><rect x="64" y="56" width="11" height="28" rx="5.5" fill="${cam}"/><circle cx="30.5" cy="86" r="5" fill="${sk}"/><circle cx="69.5" cy="86" r="5" fill="${sk}"/>`;
+  a += `<path d="M${f ? 31 : 29} 54 Q50 48 ${f ? 69 : 71} 54 L${f ? 67 : 70} 94 Q50 99 ${f ? 33 : 30} 94Z" fill="${cam}"/>`;
+  if (R.acess === 'listras') for (let y = 60; y < 94; y += 8) a += `<rect x="31" y="${y}" width="38" height="3.5" fill="${R.cam2}" opacity=".9"/>`;
+  if (R.acess === 'xadrez') { for (let y = 58; y < 94; y += 9) a += `<rect x="31" y="${y}" width="38" height="3" fill="${R.cam2}" opacity=".45"/>`; for (let x = 36; x < 68; x += 10) a += `<rect x="${x}" y="54" width="3" height="40" fill="${R.cam2}" opacity=".45"/>`; }
+  if (R.acess === 'remendo') a += `<rect x="55" y="68" width="9" height="9" rx="1.5" fill="${R.cam2}"/><path d="M56.5 70h6M56.5 72.5h6M56.5 75h6" stroke="#0003" stroke-width=".8"/>`;
+  if (R.acess === 'gravata') a += `<path d="M46 56 L54 56 L52 76 L50 80 L48 76Z" fill="#b3202e"/><path d="M44 53 L50 60 L56 53Z" fill="${R.cam2}"/>`;
+  if (R.acess === 'cachecol') a += `<rect x="32" y="52" width="36" height="9" rx="4.5" fill="${R.cam2}"/><rect x="58" y="58" width="9" height="22" rx="3.5" fill="${R.cam2}"/><path d="M58 70h9M58 75h9" stroke="#3a8fe0" stroke-width="2"/>`;
+  if (R.acess === 'lenco') a += `<path d="M38 53 L62 53 L50 68Z" fill="${R.cam2}"/><circle cx="50" cy="60" r="1.6" fill="#fff" opacity=".7"/>`;
+  if (R.chapeu !== 'astro' && !R.acess) { if (tier >= 2) a += `<rect x="38" y="56" width="5" height="26" fill="#2C5E8C"/><rect x="57" y="56" width="5" height="26" fill="#2C5E8C"/>`; }
+  if (rid === 'padrao' && tier >= 4) a += `<rect x="30" y="76" width="40" height="5" fill="#F2C94C"/>`;
+  a += `<path d="M${f ? 31 : 29} 54 Q50 48 ${f ? 69 : 71} 54 L${f ? 67 : 70} 94 Q50 99 ${f ? 33 : 30} 94Z" fill="url(#${id}c)"/>`;
+  if (f && !cobreCabelo) a += `<path d="M31 32 Q28 56 36 66 Q32 46 36 34Z M69 32 Q72 56 64 66 Q68 46 64 34Z" fill="${cab}"/>`;
+  a += `<rect x="45" y="48" width="10" height="8" rx="3" fill="${sk}"/>`;
+  a += `<circle cx="50" cy="36" r="16.5" fill="${sk}"/><circle cx="50" cy="36" r="16.5" fill="url(#${id}h)"/><circle cx="33.5" cy="37" r="3" fill="${sk}"/><circle cx="66.5" cy="37" r="3" fill="${sk}"/>`;
+  if (!cobreCabelo) a += f ? `<path d="M33 34 Q34 18 50 18 Q66 18 67 34 Q60 24 50 25 Q40 24 33 34Z" fill="${cab}"/>` : `<path d="M34 30 Q36 19 50 19 Q64 19 66 30 Q58 24 50 25 Q42 24 34 30Z" fill="${cab}"/>`;
+  a += `<ellipse cx="43.5" cy="37" rx="1.9" ry="2.4" fill="#2b1d14"/><ellipse cx="56.5" cy="37" rx="1.9" ry="2.4" fill="#2b1d14"/><circle cx="44.1" cy="36.2" r=".7" fill="#fff"/><circle cx="57.1" cy="36.2" r=".7" fill="#fff"/>`;
+  if (f) a += `<path d="M41.4 35 l-1.7 -.9 M58.6 35 l1.7 -.9" stroke="#2b1d14" stroke-width=".8" stroke-linecap="round"/>`;
+  a += `<path d="M45 43 Q50 47.5 55 43" stroke="#8a3a2a" stroke-width="1.7" fill="none" stroke-linecap="round"/><circle cx="39.5" cy="42" r="2.6" fill="#ff7a8a" opacity=".35"/><circle cx="60.5" cy="42" r="2.6" fill="#ff7a8a" opacity=".35"/>`;
+  a += chapeuSVG(hatType, R.hc, R.cam2, cam);
+  return `<svg class="avsvg" viewBox="0 0 100 128" aria-hidden="true">${a}</svg>`;
+}
+function palcoPerfil(big) {
+  ajustarAvatar(S);
+  const id = bichoDestaque(S), p = id && PET_POR_ID[id], o = id && S.pets[id];
+  const est = o ? estagio(S, id) : 0;
+  const pet = p ? `<div class="avpet" style="--rc:var(--r${p.r})"><span class="avstar">${'★'.repeat(est)}</span><span class="avem">${p.em}</span><small>${esc(nomeDoBicho(S, id))}</small></div>` : '<div class="avpet vazio"><small>Abra um ovo para ganhar um companheiro</small></div>';
+  return `<div class="palco ${big ? 'big' : ''}">${avatarSVG(S.avatar.sexo, S.avatar.pele, S.avatar.roupa, { tier: tierDe(S.nivel) })}${pet}</div>`;
+}
+function fonteRoupa(id) {
+  const r = ROUPAS[id];
+  return r.fonte === 'nivel' ? 'Nível ' + r.nivel : r.fonte === 'prest' ? 'Fazer o prestígio' : r.fonte === 'evento' ? 'Prêmio final: ' + EVENTOS.find(e => e.id === r.ev).nome : r.fonte === 'corrida' ? 'Prêmio final da corrida' : r.fonte === 'pacote' ? PACOTES_ROUPA[r.pacote].nome : '';
+}
+function modalPerfil() {
+  ajustarAvatar(S);
+  const A = S.avatar, tem = id => !!S.roupas[id];
+  const roupas = Object.keys(ROUPAS).map(id => {
+    const r = ROUPAS[id], ok = tem(id), on = A.roupa === id;
+    return `<button class="roupa ${on ? 'on' : ''} ${ok ? '' : 'lock'}" ${ok ? `data-act="vestir" data-arg="${id}"` : 'disabled'} title="${esc(r.nome)}"><span class="mini">${avatarSVG(A.sexo, A.pele, id, { tier: 0 })}</span><b>${r.nome}</b><small>${ok ? (on ? 'Vestindo' : 'Toque para vestir') : fonteRoupa(id)}</small></button>`;
+  }).join('');
+  const pets = Object.keys(S.pets).sort((a, b) => PET_POR_ID[b].r - PET_POR_ID[a].r).slice(0, 24).map(id => `<button class="chipbicho ${A.bicho === id ? 'on' : ''}" data-act="companheiro" data-arg="${id}" title="${esc(nomeDoBicho(S, id))}" style="--rc:var(--r${PET_POR_ID[id].r})">${PET_POR_ID[id].em}</button>`).join('');
+  const pacotes = Object.keys(PACOTES_ROUPA).map(id => {
+    const x = PACOTES_ROUPA[id], itens = Object.keys(ROUPAS).filter(k => ROUPAS[k].pacote === id), ja = itens.every(tem);
+    return `<div class="card"><div class="between"><h3>${x.nome}</h3><span class="badge ${ja ? 'on' : ''}">${ja ? 'Adquirido' : x.preco}</span></div><p class="muted">${x.desc}</p>${ja ? '' : `<button class="btn primary" data-act="pacoteRoupa" data-arg="${id}">Comprar (simulação)</button>`}</div>`;
+  }).join('');
+  abrirModal(`<div class="sheet perfil"><div class="between"><h2>${esc(S.nome || tituloDe(S.nivel))}</h2><button class="btn mini ghost" data-act="fechar">Fechar</button></div>
+    <p class="muted">${tituloDe(S.nivel)} · nível ${S.nivel} · poder ${fmt(poderJogador(S))}</p>${palcoPerfil(true)}
+    <div class="row wrap"><div class="seg n2" style="flex:1">${[['m', 'Fazendeiro'], ['f', 'Fazendeira']].map(x => `<button class="${A.sexo === x[0] ? 'on' : ''}" data-act="perfilSexo" data-arg="${x[0]}">${x[1]}</button>`).join('')}</div></div>
+    <div class="peles">${PELES.map((c, i) => `<button class="pele ${A.pele === i ? 'on' : ''}" data-act="perfilPele" data-arg="${i}" style="background:${c}" aria-label="Tom de pele ${i + 1}"></button>`).join('')}</div>
+    <h3>Roupas</h3><div class="roupas">${roupas}</div>
+    <h3>Companheiro</h3><p class="muted">Por padrão fica o bicho mais evoluído e forte do sítio. Escolha outro se preferir.</p>
+    <div class="chipsbicho"><button class="chipbicho ${A.bicho === 'auto' ? 'on' : ''}" data-act="companheiro" data-arg="auto">Auto</button>${pets}</div>
+    <h3>Pacotes de roupas <span class="tag" style="background:var(--yolk);color:var(--yolk-ink)">Simulação</span></h3><p class="muted">No app da loja viram compras do Google Play. Roupas de evento só saem jogando: o prêmio final de cada semana temática.</p>${pacotes}</div>`);
+}
+Object.assign(ACOES, {
+  perfil() { modalPerfil(); },
+  vestir(id) { const r = equiparRoupa(S, id); if (!r.ok) return; salvar(); modalPerfil(); render(); Som.play('bau'); },
+  perfilSexo(v) { mudarAvatar(S, 'sexo', v); salvar(); modalPerfil(); render(); },
+  perfilPele(v) { mudarAvatar(S, 'pele', +v); salvar(); modalPerfil(); render(); },
+  companheiro(id) { escolherCompanheiro(S, id); salvar(); modalPerfil(); },
+  pacoteRoupa(id) { const r = comprarPacoteRoupa(S, id); if (!r.ok) return toast('Você já tem esse pacote'); metrica('compra_simulada'); salvar(); render(); modalPerfil(); toast('Pacote adquirido (simulação): +' + r.gemas + ' gemas'); }
+});
 
 /* ---------- telas ---------- */
 function cardDiario(hoje) {
@@ -2934,7 +3144,7 @@ function tick() {
   if (mostrarFab) $('#fabQtd').textContent = '+' + fmt(q);
   if (aba === 'sitio') {
     const at = ativos(S);
-    Cena.atualizar({ nivel: S.nivel, tier: tierDe(S.nivel), obras: S.obras, tema: temaAtual(S, now), decor: S.decor, pct: S.barn / cap, ativos: at.map(a => ({ id: a.id, em: PET_POR_ID[a.id].em, r: PET_POR_ID[a.id].r })) });
+    Cena.atualizar({ roupa: Object.assign({ id: S.avatar.roupa, sexo: S.avatar.sexo, pele: PELES[S.avatar.pele] }, ROUPAS[S.avatar.roupa]), nivel: S.nivel, tier: tierDe(S.nivel), obras: S.obras, tema: temaAtual(S, now), decor: S.decor, pct: S.barn / cap, ativos: at.map(a => ({ id: a.id, em: PET_POR_ID[a.id].em, r: PET_POR_ID[a.id].r })) });
     $('#prodTxt').textContent = '+' + fmt1(p) + ' moedas/s';
     $('#lvTit').textContent = tituloDe(S.nivel);
     $('#btnColetar').disabled = q < 1; $('#btnDobro').disabled = q < 1;

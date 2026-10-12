@@ -17,7 +17,7 @@ const Cena = (() => {
   const lerp = (a, b, t) => a + (b - a) * t;
 
   /* ---------- cor ---------- */
-  const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+  const hex = h => { if (h.length === 4) h = '#' + h[1] + h[1] + h[2] + h[2] + h[3] + h[3]; return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; };
   const mix = (a, b, t) => a.map((v, i) => Math.round(lerp(v, b[i], t)));
   const rgb = c => 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')';
   const NOITE = hex('#141b4a');
@@ -313,22 +313,38 @@ const Cena = (() => {
     }
   }
   function desenharFazendeiro(c, f, t) {
-    const cam = ['#C8453A', '#2F8FD1', '#7A4CC8', '#23834A', '#E39A0B', '#E39A0B'][info.tier] || '#C8453A', tier = info.tier;
+    const R = info.roupa && info.roupa.id !== 'padrao' ? info.roupa : null, cam = (R && R.cam) || ['#C8453A', '#2F8FD1', '#7A4CC8', '#23834A', '#E39A0B', '#E39A0B'][info.tier] || '#C8453A', tier = info.tier, pele = (info.roupa && info.roupa.pele) || '#F0C9A0';
     const andar = f.x !== f.tx ? Math.sin(f.fase * 2) * 3 : 0, resp = Math.sin(t * 2) * 0.6;
     c.save(); c.translate(f.x, f.y); c.scale(f.dir, 1); sombra(c, 0, 1, 9);
-    c.fillStyle = '#3A4A63'; c.fillRect(-6, -12 + andar * 0.0, 5, 12 - andar * 0.4); c.fillRect(1.5, -12, 5, 12 + andar * 0.4);
+    c.fillStyle = (R && R.calca) || '#3A4A63'; c.fillRect(-6, -12 + andar * 0.0, 5, 12 - andar * 0.4); c.fillRect(1.5, -12, 5, 12 + andar * 0.4);
     { const gc = c.createLinearGradient(-9, 0, 9, 0); gc.addColorStop(0, tom(rgb(mix(hex(cam), [255, 255, 255], 0.22)).replace(/rgb\((\d+),(\d+),(\d+)\)/, (m, a, b, d) => '#' + [a, b, d].map(v => (+v).toString(16).padStart(2, '0')).join(''))));  gc.addColorStop(1, tom(rgb(mix(hex(cam), [0, 0, 0], 0.28)).replace(/rgb\((\d+),(\d+),(\d+)\)/, (m, a, b, d) => '#' + [a, b, d].map(v => (+v).toString(16).padStart(2, '0')).join('')))); c.fillStyle = gc; } c.beginPath(); c.roundRect ? c.roundRect(-9, -31 + resp, 18, 21, 5) : c.rect(-9, -31 + resp, 18, 21); c.fill();
     if (tier >= 2) { c.fillStyle = '#2C5E8C'; c.fillRect(-5, -31 + resp, 3, 12); c.fillRect(2, -31 + resp, 3, 12); }
     if (tier >= 4) { c.fillStyle = '#F2C94C'; c.fillRect(-9, -17, 18, 3.5); }
     c.fillStyle = tom(cam);                                                    // braços
     c.fillRect(-12, -29 + resp, 4, 12 + andar * 0.3);
-    if (f.acena > 0) { c.save(); c.translate(9, -29); c.rotate(-2.2 + Math.sin(t * 14) * 0.45); c.fillRect(0, 0, 4, 12); c.fillStyle = '#F0C9A0'; c.fillRect(0, 11, 4, 3); c.restore(); }
+    if (f.acena > 0) { c.save(); c.translate(9, -29); c.rotate(-2.2 + Math.sin(t * 14) * 0.45); c.fillRect(0, 0, 4, 12); c.fillStyle = pele; c.fillRect(0, 11, 4, 3); c.restore(); }
     else c.fillRect(8, -29 + resp, 4, 12 - andar * 0.3);
-    esfera(c, 0, -39 + resp, 7.2, '#F0C9A0', 0.3);
+    esfera(c, 0, -39 + resp, 7.2, pele, 0.3);
     c.fillStyle = '#2B1D00'; c.fillRect(1.2, -40.5 + resp, 1.6, 1.8); c.fillRect(-3.6, -40.5 + resp, 1.6, 1.8);
-    if (tier >= 5) { c.fillStyle = '#F4B31F'; c.beginPath(); c.moveTo(-7, -45); c.lineTo(-7, -54); c.lineTo(-3.5, -49); c.lineTo(0, -56); c.lineTo(3.5, -49); c.lineTo(7, -54); c.lineTo(7, -45); c.fill(); }
+    if (R) chapeuCena(c, R, resp);
+    else if (tier >= 5) { c.fillStyle = '#F4B31F'; c.beginPath(); c.moveTo(-7, -45); c.lineTo(-7, -54); c.lineTo(-3.5, -49); c.lineTo(0, -56); c.lineTo(3.5, -49); c.lineTo(7, -54); c.lineTo(7, -45); c.fill(); }
     else { c.fillStyle = tom('#e8cf84'); c.beginPath(); c.ellipse(0, -45 + resp, 12, 3, 0, 0, 7); c.fill(); c.beginPath(); c.moveTo(-7, -45 + resp); c.quadraticCurveTo(0, -57 + resp, 7, -45 + resp); c.fill(); if (tier >= 1) { c.fillStyle = cam; c.fillRect(-7, -48 + resp, 14, 2.2); } }
     c.restore();
+  }
+  /* chapéus das roupas (versão pequena do desenho do perfil) */
+  function chapeuCena(c, R, resp) {
+    const t = R.chapeu, hc = tom(R.hc || '#e8cf84'), c2 = tom(R.cam2 || '#b3202e', 0.3), y = -45 + resp;
+    const aba = (rx) => { c.fillStyle = hc; c.beginPath(); c.ellipse(0, y, rx, 3, 0, 0, 7); c.fill(); };
+    const cupula = (w, h) => { c.fillStyle = hc; c.beginPath(); c.moveTo(-w, y); c.quadraticCurveTo(-w, y - h, 0, y - h); c.quadraticCurveTo(w, y - h, w, y); c.fill(); };
+    if (t === 'coroa') { c.fillStyle = '#F4B31F'; c.beginPath(); c.moveTo(-7, y); c.lineTo(-7, y - 9); c.lineTo(-3.5, y - 4); c.lineTo(0, y - 11); c.lineTo(3.5, y - 4); c.lineTo(7, y - 9); c.lineTo(7, y); c.fill(); }
+    else if (t === 'cartola') { c.fillStyle = hc; c.fillRect(-7, y - 14, 14, 14); aba(10); c.fillStyle = c2; c.fillRect(-7, y - 5, 14, 2.6); }
+    else if (t === 'gorro') { cupula(7.2, 12); c.fillStyle = c2; c.fillRect(-7.4, y - 3, 14.8, 3.2); c.beginPath(); c.arc(0, y - 12.5, 2.6, 0, 7); c.fill(); }
+    else if (t === 'turbante') { cupula(8, 13); c.strokeStyle = 'rgba(0,0,0,.25)'; c.lineWidth = 1; c.beginPath(); c.moveTo(-7, y - 5); c.quadraticCurveTo(0, y - 11, 7, y - 5); c.stroke(); }
+    else if (t === 'capacete' || t === 'capacete2') { cupula(8, 13); if (t === 'capacete') aba(11); c.fillStyle = c2; c.fillRect(-8, y - 4, 16, 2.4); }
+    else if (t === 'astro') { c.fillStyle = 'rgba(200,230,255,.3)'; c.beginPath(); c.arc(0, y + 5.5, 11, 0, 7); c.fill(); c.strokeStyle = '#f2f4f8'; c.lineWidth = 1.8; c.stroke(); }
+    else if (t === 'pirata') { c.fillStyle = hc; c.beginPath(); c.moveTo(-11, y + 1); c.lineTo(0, y - 12); c.lineTo(11, y + 1); c.quadraticCurveTo(0, y - 3, -11, y + 1); c.fill(); c.fillStyle = '#fff'; c.beginPath(); c.arc(0, y - 4, 1.6, 0, 7); c.fill(); }
+    else if (t === 'dino') { cupula(7.6, 12); c.fillStyle = c2; [-4, 0, 4].forEach(x => { c.beginPath(); c.moveTo(x - 1.8, y - 10); c.lineTo(x, y - 14); c.lineTo(x + 1.8, y - 10); c.fill(); }); }
+    else { aba(t === 'marujo' ? 8 : 12); cupula(7, t === 'marujo' ? 7 : 11); c.fillStyle = c2; c.fillRect(-7, y - 3.4, 14, 2.4); }
   }
   function atualizarFazendeiro(f, dt) {
     if (f.acena > 0) f.acena -= dt;

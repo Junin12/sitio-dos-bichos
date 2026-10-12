@@ -328,3 +328,34 @@ a{color:var(--sky-d)}
 nav{box-shadow:0 6px 0 rgba(0,0,0,.08),0 18px 30px -10px rgba(0,40,20,.5),inset 0 2px 0 rgba(255,255,255,.9)}
 nav button.on{background:linear-gradient(180deg,#5fd08a,var(--green) 45%,var(--green-d));box-shadow:0 4px 0 #1c7a3f,0 8px 12px -4px rgba(20,120,60,.55),inset 0 2px 0 rgba(255,255,255,.45);transform:translateY(-4px)}
 nav svg{filter:drop-shadow(0 2px 1px rgba(0,0,0,.2))}
+
+/* ===== Perfil do fazendeiro ===== */
+button.lvring{border:0;padding:0;cursor:pointer}
+.hudwho{cursor:pointer}
+.sheet.perfil{max-width:400px;max-height:92vh;overflow-y:auto}
+.palco{position:relative;display:flex;align-items:flex-end;justify-content:center;gap:4px;padding:14px 10px 12px;border-radius:24px;background:radial-gradient(ellipse at 50% 100%,#bfeccb 0,#8fd3a2 40%,transparent 72%),linear-gradient(180deg,#cfeeff,#eaf9ee);box-shadow:inset 0 3px 8px rgba(0,60,40,.15),inset 0 -2px 0 rgba(255,255,255,.6);overflow:hidden}
+.palco .avsvg{width:128px;height:164px;flex:none;filter:drop-shadow(0 5px 3px rgba(0,50,30,.25))}
+.palco.big .avsvg{width:150px;height:192px}
+.avpet{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:92px;max-width:120px}
+.avpet::before{content:'';position:absolute;left:50%;bottom:16px;width:104px;height:104px;margin-left:-52px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--rc) 55%,transparent),transparent 68%);z-index:0}
+.avpet .avem{position:relative;font-size:64px;line-height:1;filter:drop-shadow(0 6px 3px rgba(0,40,20,.35));animation:bob 2.6s ease-in-out infinite;z-index:1}
+.avpet .avstar{position:relative;color:#f4b31f;text-shadow:0 1px 0 #a86a00;font-size:14px;letter-spacing:2px;min-height:16px;z-index:1}
+.avpet small{position:relative;font:700 12px var(--font-display);color:var(--ink);background:rgba(255,255,255,.8);border-radius:99px;padding:2px 10px;box-shadow:0 2px 0 var(--line);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;z-index:1}
+.avpet.vazio{text-align:center;white-space:normal}
+.peles{display:flex;gap:10px;justify-content:center}
+.pele{width:34px;height:34px;border-radius:50%;border:3px solid #fff;box-shadow:0 3px 0 var(--line),inset 0 -4px 6px rgba(0,0,0,.15);cursor:pointer}
+.pele.on{outline:3px solid var(--green);outline-offset:2px}
+.roupas{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.roupa{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border-radius:16px;border:0;background:var(--surface2);box-shadow:0 3px 0 var(--line),inset 0 2px 0 #fff;cursor:pointer;font-family:var(--font-display);color:var(--ink);text-align:center}
+.roupa .mini{width:64px;height:80px}
+.roupa .mini svg{width:100%;height:100%}
+.roupa b{font-size:13px}
+.roupa small{font-size:11px;color:var(--muted);line-height:1.2}
+.roupa.on{box-shadow:0 3px 0 var(--green-d),0 0 0 3px var(--green)}
+.roupa.lock{opacity:.7;cursor:not-allowed}
+.roupa.lock .mini{filter:grayscale(1) brightness(.55) contrast(.9)}
+.chipsbicho{display:flex;flex-wrap:wrap;gap:6px}
+.chipbicho{min-width:42px;height:42px;padding:0 8px;border-radius:14px;border:0;background:var(--surface2);font-size:24px;cursor:pointer;box-shadow:0 3px 0 var(--line),inset 0 0 0 2px color-mix(in srgb,var(--rc,var(--line)) 50%,transparent);font-family:var(--font-display)}
+.chipbicho.on{box-shadow:0 3px 0 var(--green-d),inset 0 0 0 3px var(--green)}
+.seg.n2 button{font-size:14px}
+.sheet.perfil>*{flex-shrink:0}
