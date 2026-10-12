@@ -1,0 +1,10 @@
+{
+  "name": "sitio-dos-bichos-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Backend Supabase do Sítio dos Bichos: migrações SQL e testes rodando as migrações em um Postgres local (via psql).",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  }
+}

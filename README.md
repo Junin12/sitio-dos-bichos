@@ -25,6 +25,8 @@ src/logic.js               regras do jogo, sem DOM
 src/template.html          interface (HTML, CSS e JS)
 build.py                   junta template e regras no HTML final
 tests/simulacao.js         simulação de ritmo de progressão
+src/api.js                 cliente do backend (Supabase), pronto para o jogo usar
+backend/                   banco, regras do servidor e testes (veja backend/README.md)
 versoes/pet-da-roca-v1.html   primeira versão (gacha + fazenda, sem progressão)
 ```
 
@@ -46,6 +48,6 @@ Os números de balanceamento (custos, XP, metas) ficam no começo de `src/logic.
 
 ## Próximos passos
 
-1. Backend para contas, salvamento na nuvem, guilda e ranking reais.
+1. Ligar o jogo ao backend (já pronto em `backend/` e `src/api.js`): trocar os jogadores simulados pelas chamadas reais.
 2. Empacotar com Capacitor e trocar os anúncios simulados por AdMob recompensado.
 3. Revisar as exigências da Play Store (divulgação de chances, política de anúncios, classificação indicativa).
