@@ -306,36 +306,39 @@ a{color:var(--sky-d)}
 @media (max-width:440px){.top:has(#chipIng:not([hidden])) .hudwho{display:none}.top:has(#chipIng:not([hidden])){justify-content:space-between}}
 
 /* ===== Visual 3D: volume, brilho e profundidade ===== */
-.btn{position:relative;box-shadow:0 5px 0 var(--cd),0 12px 18px -8px rgba(0,0,0,.45),inset 0 2px 0 rgba(255,255,255,.55),inset 0 -3px 0 rgba(0,0,0,.08)}
+:root{--hi:#fff;--hi2:rgba(255,255,255,.9);--gl:rgba(255,255,255,.3)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--hi:color-mix(in srgb,var(--surface) 93%,#fff);--hi2:rgba(255,255,255,.06);--gl:rgba(255,255,255,.1)}}
+:root[data-theme="dark"]{--hi:color-mix(in srgb,var(--surface) 93%,#fff);--hi2:rgba(255,255,255,.06);--gl:rgba(255,255,255,.1)}
+.btn{position:relative;box-shadow:0 5px 0 var(--cd),0 12px 18px -8px rgba(0,0,0,.45),inset 0 2px 0 var(--gl),inset 0 -3px 0 rgba(0,0,0,.08)}
 .btn:active:not(:disabled){box-shadow:0 1px 0 var(--cd),inset 0 2px 6px rgba(0,0,0,.18)}
-.btn.mini{box-shadow:0 4px 0 var(--cd),inset 0 2px 0 rgba(255,255,255,.5)}
+.btn.mini{box-shadow:0 4px 0 var(--cd),inset 0 2px 0 var(--gl)}
 .btn.good,.btn.ad{border:1px solid rgba(255,255,255,.18)}
-.card{background:linear-gradient(180deg,#fff,var(--surface) 22%);box-shadow:0 4px 0 var(--line),0 14px 22px -14px rgba(0,40,20,.35),inset 0 2px 0 rgba(255,255,255,.9)}
-.card .card{background:var(--surface2);box-shadow:inset 0 2px 5px rgba(0,0,0,.07),inset 0 -1px 0 rgba(255,255,255,.8)}
-.chip{box-shadow:0 3px 0 var(--line),0 8px 12px -8px rgba(0,0,0,.3),inset 0 2px 0 rgba(255,255,255,.9);background:linear-gradient(180deg,#fff,var(--surface))}
+.card{background:linear-gradient(180deg,var(--hi),var(--surface) 22%);box-shadow:0 4px 0 var(--line),0 14px 22px -14px rgba(0,40,20,.35),inset 0 2px 0 var(--hi2)}
+.card .card{background:var(--surface2);box-shadow:inset 0 2px 5px rgba(0,0,0,.07),inset 0 -1px 0 var(--gl)}
+.chip{box-shadow:0 3px 0 var(--line),0 8px 12px -8px rgba(0,0,0,.3),inset 0 2px 0 var(--hi2);background:linear-gradient(180deg,var(--hi),var(--surface))}
 .chip svg{filter:drop-shadow(0 1.5px 1px rgba(0,0,0,.3))}
-.bar{height:16px;box-shadow:inset 0 3px 5px rgba(0,0,0,.2),0 1px 0 rgba(255,255,255,.7)}
+.bar{height:16px;box-shadow:inset 0 3px 5px rgba(0,0,0,.2),0 1px 0 var(--gl)}
 .bar>i{box-shadow:inset 0 -3px 0 rgba(0,0,0,.14),0 0 8px color-mix(in srgb,var(--yolk) 55%,transparent)}
 .bar.sky>i{box-shadow:inset 0 -3px 0 rgba(0,0,0,.14),0 0 8px color-mix(in srgb,var(--sky) 55%,transparent)}
 .bar.green>i{box-shadow:inset 0 -3px 0 rgba(0,0,0,.14),0 0 8px color-mix(in srgb,var(--green) 55%,transparent)}
-.seg{box-shadow:inset 0 3px 6px rgba(0,0,0,.14),0 1px 0 rgba(255,255,255,.7)}
-.seg button.on{background:linear-gradient(180deg,#fff,var(--surface));box-shadow:0 3px 0 var(--line),0 6px 10px -4px rgba(0,0,0,.25),inset 0 2px 0 #fff}
+.seg{box-shadow:inset 0 3px 6px rgba(0,0,0,.14),0 1px 0 var(--gl)}
+.seg button.on{background:linear-gradient(180deg,var(--hi),var(--surface));box-shadow:0 3px 0 var(--line),0 6px 10px -4px rgba(0,0,0,.25),inset 0 2px 0 var(--hi2)}
 /* medalhões dos bichos: relevo de peça esculpida */
-.slot{background:radial-gradient(circle at 50% 18%,#fff,var(--surface) 60%,var(--surface2));box-shadow:0 4px 0 var(--line),0 10px 14px -8px rgba(0,0,0,.35),inset 0 2px 0 #fff,inset 0 0 0 2px color-mix(in srgb,var(--rc,transparent) 45%,transparent)}
+.slot{background:radial-gradient(circle at 50% 18%,var(--hi),var(--surface) 60%,var(--surface2));box-shadow:0 4px 0 var(--line),0 10px 14px -8px rgba(0,0,0,.35),inset 0 2px 0 var(--hi2),inset 0 0 0 2px color-mix(in srgb,var(--rc,transparent) 45%,transparent)}
 .slot .em,.cell .em{filter:drop-shadow(0 4px 2px rgba(0,30,20,.3))}
 .slot::after{content:'';position:absolute;left:18%;right:18%;bottom:20%;height:10%;border-radius:50%;background:radial-gradient(ellipse,rgba(0,40,20,.2),transparent 70%);z-index:0}
-.cell{background:radial-gradient(circle at 50% 18%,#fff,var(--surface) 65%);box-shadow:inset 0 0 0 3px var(--rc),0 3px 0 color-mix(in srgb,var(--rc) 60%,#000 20%),0 8px 10px -6px rgba(0,0,0,.3)}
+.cell{background:radial-gradient(circle at 50% 18%,var(--hi),var(--surface) 65%);box-shadow:inset 0 0 0 3px var(--rc),0 3px 0 color-mix(in srgb,var(--rc) 60%,#000 20%),0 8px 10px -6px rgba(0,0,0,.3)}
 .cell.off{box-shadow:inset 0 3px 6px rgba(0,0,0,.12)}
 .slot.empty,.slot.lock{background:transparent;box-shadow:inset 0 3px 6px rgba(0,0,0,.08)}
 /* ovos */
 .egg svg.eggsvg{filter:drop-shadow(0 7px 3px rgba(60,35,0,.28)) drop-shadow(0 0 1px rgba(60,35,0,.4))}
 .hatchegg svg{filter:drop-shadow(0 14px 8px rgba(0,0,0,.35))}
 /* revelação: holofote e pedestal */
-.reveal .face{background:radial-gradient(circle at 34% 26%,#fff,var(--surface) 45%,color-mix(in srgb,var(--rc) 22%,var(--surface2)));box-shadow:0 0 0 5px var(--rc),0 0 0 11px color-mix(in srgb,var(--rc) 25%,transparent),0 0 46px color-mix(in srgb,var(--rc) 60%,transparent),inset 0 -10px 18px rgba(0,0,0,.12),inset 0 8px 14px rgba(255,255,255,.7)}
+.reveal .face{background:radial-gradient(circle at 34% 26%,var(--hi),var(--surface) 45%,color-mix(in srgb,var(--rc) 22%,var(--surface2)));box-shadow:0 0 0 5px var(--rc),0 0 0 11px color-mix(in srgb,var(--rc) 25%,transparent),0 0 46px color-mix(in srgb,var(--rc) 60%,transparent),inset 0 -10px 18px rgba(0,0,0,.12),inset 0 8px 14px var(--hi2)}
 .reveal .face::after{content:'';position:absolute;left:-14%;right:-14%;bottom:-20px;height:22px;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.35),transparent 70%);z-index:-1}
-.sheet{background:linear-gradient(180deg,#fff,var(--surface) 18%);box-shadow:0 20px 50px -10px rgba(0,0,0,.55),inset 0 2px 0 #fff}
-nav{box-shadow:0 6px 0 rgba(0,0,0,.08),0 18px 30px -10px rgba(0,40,20,.5),inset 0 2px 0 rgba(255,255,255,.9)}
-nav button.on{background:linear-gradient(180deg,#5fd08a,var(--green) 45%,var(--green-d));box-shadow:0 4px 0 #1c7a3f,0 8px 12px -4px rgba(20,120,60,.55),inset 0 2px 0 rgba(255,255,255,.45);transform:translateY(-4px)}
+.sheet{background:linear-gradient(180deg,var(--hi),var(--surface) 18%);box-shadow:0 20px 50px -10px rgba(0,0,0,.55),inset 0 2px 0 var(--hi2)}
+nav{box-shadow:0 6px 0 rgba(0,0,0,.08),0 18px 30px -10px rgba(0,40,20,.5),inset 0 2px 0 var(--hi2)}
+nav button.on{background:linear-gradient(180deg,#5fd08a,var(--green) 45%,var(--green-d));box-shadow:0 4px 0 #1c7a3f,0 8px 12px -4px rgba(20,120,60,.55),inset 0 2px 0 var(--gl);transform:translateY(-4px)}
 nav svg{filter:drop-shadow(0 2px 1px rgba(0,0,0,.2))}
 
 /* ===== Perfil do fazendeiro ===== */
@@ -355,7 +358,7 @@ button.lvring{border:0;padding:0;cursor:pointer}
 .pele{width:34px;height:34px;border-radius:50%;border:3px solid #fff;box-shadow:0 3px 0 var(--line),inset 0 -4px 6px rgba(0,0,0,.15);cursor:pointer}
 .pele.on{outline:3px solid var(--green);outline-offset:2px}
 .roupas{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.roupa{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border-radius:16px;border:0;background:var(--surface2);box-shadow:0 3px 0 var(--line),inset 0 2px 0 #fff;cursor:pointer;font-family:var(--font-display);color:var(--ink);text-align:center}
+.roupa{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border-radius:16px;border:0;background:var(--surface2);box-shadow:0 3px 0 var(--line),inset 0 2px 0 var(--hi2);cursor:pointer;font-family:var(--font-display);color:var(--ink);text-align:center}
 .roupa .mini{width:64px;height:80px}
 .roupa .mini svg{width:100%;height:100%}
 .roupa b{font-size:13px}
@@ -370,7 +373,7 @@ button.lvring{border:0;padding:0;cursor:pointer}
 .sheet.perfil>*{flex-shrink:0}
 
 /* brilho do botão fica no fundo (abaixo do texto), só no topo e discreto */
-.btn{background:linear-gradient(180deg,rgba(255,255,255,.3) 0,rgba(255,255,255,0) 42%),linear-gradient(180deg,var(--c1),var(--c2))}
+.btn{background:linear-gradient(180deg,var(--gl) 0,rgba(255,255,255,0) 42%),linear-gradient(180deg,var(--c1),var(--c2))}
 .btn:disabled{background:linear-gradient(180deg,var(--c1),var(--c2))}
 
 /* classificações com aparência */
