@@ -124,8 +124,11 @@ function viewEvento0() {
 function ecoAtivo() {
   const c = S.cfg.eco;
   if (c === 'on') return true; if (c === 'off') return false;
-  return !!S.cfg.ecoAuto || (navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 3) || false;
+  return !!S.cfg.ecoAuto || bateriaBaixa || (navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 3) || false;
 }
+/* economia de bateria: com menos de 20% e sem carregar, o modo automático liga o econômico */
+let bateriaBaixa = false;
+(function () { try { navigator.getBattery && navigator.getBattery().then(b => { const ver = () => { const v = !b.charging && b.level < 0.2; if (v !== bateriaBaixa) { bateriaBaixa = v; if (typeof S !== 'undefined' && S.cfg && S.cfg.eco === 'auto') { aplicarEco(); if (v) toast('Bateria baixa: modo econômico ligado'); } } }; b.addEventListener('levelchange', ver); b.addEventListener('chargingchange', ver); ver(); }); } catch (e) {} })();
 function aplicarEco() { const v = ecoAtivo(); Cena.eco(v); Fx.eco(v); document.body.classList.toggle('eco', v); }
 function viewAjustes() {
   const on = window.ON && ON.ativo, p = S.prest || 0;
@@ -156,6 +159,7 @@ function viewAjustes() {
       <button class="btn ${podePrestigiar(S) ? 'primary' : 'ghost'}" data-act="prestigio" ${podePrestigiar(S) ? '' : 'disabled'}>${podePrestigiar(S) ? (confirmaPrest ? 'Toque de novo para confirmar' : 'Fazer prestígio') : 'Chegue ao nível ' + NIVEL_PRESTIGIO + ' (você: ' + S.nivel + ')'}</button></section>
     <section class="card"><h2>Loja <span class="tag" style="background:var(--yolk);color:var(--yolk-ink)">Simulação</span></h2><p class="muted">Neste protótipo, "comprar" apenas liga o benefício, sem cobrança. No app da loja entram as compras reais do Google Play.</p>${loja}</section>
     <section class="card"><h2>Mais</h2><div class="row wrap"><button class="btn ghost" data-act="aba" data-arg="dev">Painel e métricas</button><button class="btn ghost" data-act="tutorial">Rever tutorial</button></div>
+      <div class="between ajrow"><b>Privacidade dos anúncios</b><button class="btn mini ghost" data-act="consent">${S.cfg.consent === 'p' ? 'Personalizados' : S.cfg.consent === 'np' ? 'Não personalizados' : 'Escolher'}</button></div>
       <p class="muted"><a href="${URL_JOGO}privacidade.html" target="_blank" rel="noopener">Política de privacidade</a></p>
       <button class="btn ghost" data-act="resetar">${confirmaReset ? 'Toque de novo para confirmar' : 'Zerar progresso'}</button>
       ${on ? `<button class="btn ghost" data-act="contaApagar">${ON.confirmaApagar ? 'Toque de novo: apagar conta e dados online' : 'Apagar minha conta e dados online'}</button>` : ''}</section>`;
@@ -174,6 +178,15 @@ function abrirVisita(s) {
     ${window.ON && ON.ativo ? `<button class="btn ad" style="width:100%" data-act="trocaMenu" data-arg="${esc(s.id)}|${esc(String(s.nome).replace(/\|/g, ' '))}">🔁 Enviar bicho</button>` : ''}
     <div class="row"><button class="btn primary" data-act="curtirSitio" data-arg="${esc(s.id)}" ${s.curtiu_hoje ? 'disabled' : ''}>${s.curtiu_hoje ? 'Curtido hoje' : '♥ Curtir (+moedas)'}</button><button class="btn ghost" data-act="fechar">Fechar</button></div></div>`);
 }
+
+/* ---------- consentimento de anúncios (LGPD / política da Google) ---------- */
+function consentimento() {
+  abrirModal(`<div class="sheet"><p class="eyebrow">Privacidade</p><h2>Como quer ver anúncios?</h2>
+    <p class="muted">Os vídeos opcionais dão bônus no jogo. Anúncios personalizados usam o ID de publicidade do aparelho para mostrar coisas do seu interesse; os não personalizados não. O jogo funciona igual nos dois. Você pode mudar quando quiser em Ajustes. <a href="${URL_JOGO}privacidade.html" target="_blank" rel="noopener">Política de privacidade</a></p>
+    <button class="btn primary xl" data-act="consentSet" data-arg="p">Personalizados</button>
+    <button class="btn ghost xl" data-act="consentSet" data-arg="np">Não personalizados</button></div>`);
+}
+Object.assign(ACOES, { consent() { consentimento(); }, consentSet(v) { S.cfg.consent = v === 'p' ? 'p' : 'np'; salvar(); fecharModal(); render(); toast('Preferência salva'); } });
 
 /* ---------- Notificações (abstração) ---------- */
 const Notif = (() => {
@@ -200,6 +213,8 @@ const Notif = (() => {
     if (of) l.push({ id: 6, ts: of.fim, t: 'Receita pronta', c: RECEITAS[of.id].em + ' ' + RECEITAS[of.id].nome + ' saiu da oficina.' });
     if (S.pesq.at && S.pesq.at.fim > now) l.push({ id: 7, ts: S.pesq.at.fim, t: 'Pesquisa concluída', c: PESQ[S.pesq.at.id].nome + ' está pronta.' });
     if (S.cruz && S.cruz.pronto > now) l.push({ id: 8, ts: S.cruz.pronto, t: 'Filhote nasceu', c: 'O cruzamento terminou. Venha conhecer o filhote!' });
+    const ex = (S.exped || []).filter(e => e && e.fim > now).sort((a, b) => a.fim - b.fim)[0];
+    if (ex) l.push({ id: 9, ts: ex.fim, t: 'Expedição de volta', c: 'Seus bichos voltaram da viagem com recompensas.' });
     l.push({ id: 4, ts: proximaHora(9, now), t: 'Bônus do dia', c: 'Seu prêmio diário está esperando.' });
     const seg = fimSemanaMs(now); if (seg > now) l.push({ id: 5, ts: seg + 9 * HORA, t: 'Novo evento semanal', c: 'Tem bicho exclusivo e prêmios novos no sítio.' });
     return l.filter(n => n.ts > now + 30000);

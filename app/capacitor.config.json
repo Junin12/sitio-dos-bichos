@@ -1,0 +1,9 @@
+{
+  "appId": "br.com.sitiodosbichos",
+  "appName": "Sítio dos Bichos",
+  "webDir": "www",
+  "android": { "allowMixedContent": false },
+  "plugins": {
+    "LocalNotifications": { "smallIcon": "ic_stat_icon", "iconColor": "#2F8A4E" }
+  }
+}

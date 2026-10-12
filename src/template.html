@@ -111,7 +111,9 @@ function abrirModal(h) { MODAL.hidden = false; MODAL.innerHTML = h; }
 function fecharModal() { clearInterval(adT); adReward = null; MODAL.hidden = true; MODAL.innerHTML = ''; drenar(); }
 function receber(ups) { if (ups && ups.length) fila.push(...ups); }
 function drenar() {
-  if (!MODAL.hidden || !fila.length) return;
+  if (!MODAL.hidden) return;
+  if (!S.cfg.consent && S.visto && Anuncios.disponivel()) return consentimento();
+  if (!fila.length) return;
   const u = fila.shift(), d = desbloqueios(u.nivel);
   abrirModal(`<div class="sheet pop"><p class="eyebrow">Você subiu de nível</p><div class="lvbig">${u.nivel}</div><h2>${tituloDe(u.nivel)}</h2>
     <p class="muted">+${u.gems} gemas${d.length ? '<br>Liberou: <b>' + d.join(', ') + '</b>' : ''}</p>
@@ -121,6 +123,10 @@ function drenar() {
 function anuncio(tipo, titulo, recompensa) {
   if (semAnuncios(S)) { evento(S, 'anuncio', 1); contarBau(S, Date.now()); recompensa(); salvar(); render(); return; }
   metrica('anuncio');
+  if (Anuncios.disponivel()) {                                   // app publicado: vídeo de verdade
+    Anuncios.mostrar(S.cfg.consent === 'p').then(ok => { if (!ok) return toast('Anúncio indisponível agora. Tente de novo em instantes.'); anuncioVisto(S, tipo); recompensa(); salvar(); render(); });
+    return;
+  }
   adReward = recompensa; adTipo = tipo;
   abrirModal(`<div class="sheet"><p class="eyebrow">Anúncio simulado</p><h2>${titulo}</h2>
     <div><div class="bar"><i id="adBar"></i></div><p class="muted" id="adMsg" style="margin-top:8px">Assistindo… 3s</p></div>
@@ -597,7 +603,7 @@ function boasVindas() {
   if (!S.visto && !(window.SITIO_CONFIG && !S.nome)) boasVindas();
 })();
 (function () { const hj = diaDe(Date.now()); S.metr.sessoes = (S.metr.sessoes || 0) + 1; S.metr.dias[hj] = 1; const ks = Object.keys(S.metr.dias); if (ks.length > 120) ks.slice(0, ks.length - 120).forEach(k => delete S.metr.dias[k]); })();
-Som.semVibra = !S.cfg.vibra; Som.musicaLigar(S.cfg.musica !== false); aplicarEco();
+Anuncios.iniciar(); Som.semVibra = !S.cfg.vibra; Som.musicaLigar(S.cfg.musica !== false); aplicarEco();
 atualizarSom(); hudLoop();
 Cena.aoTocar({
   celeiro: () => ACOES.coletar(),

@@ -78,7 +78,7 @@ Inspiradas em jogos idle com coleção: sorteio em lote com ingressos, oficina (
 
 ## Próximos passos
 
-1. Rodar as migrações `20261012000400_novidades.sql`, `20261012000500_mecanicas.sql` e `20261012000600_servidores.sql`, `20261012000700_presentes.sql` e `20261012000800_social.sql` no projeto Supabase, nessa ordem (veja backend/README.md).
+1. Rodar as migrações `20261012000400_novidades.sql`, `20261012000500_mecanicas.sql`, `20261012000600_servidores.sql`, `20261012000700_presentes.sql` e `20261012000800_social.sql` no projeto Supabase, nessa ordem (veja backend/README.md).
 2. Empacotar com Capacitor e trocar os anúncios e as compras simulados por AdMob e Google Play Billing.
 3. Seguir o `PLAY_STORE.md`.
 
@@ -88,3 +88,8 @@ Inspiradas em jogos idle com coleção: sorteio em lote com ingressos, oficina (
 
 ## Novidades II
 Passe da temporada (30 níveis, trilha premium ligada ao Passe), marcos de sequência, expedições, torre, oficina com ingredientes da horta, mapa com áreas, festivais de calendário (nomes neutros, bichos e trajes exclusivos), clima ao vivo (chuva e trovão), vozes dos bichos e música ambiente, correio de presentes e cartão de perfil em PNG. Conquistas, login e avisos do Google Play ficam no adaptador `Plat` (src/som.js): só funcionam depois de empacotar com Capacitor e configurar o plugin e os IDs do Play Console.
+
+## Novidades III e IV
+- No jogo: vizinhos que pedem para ver seus bichos (semanal), selos e bichos dourados (3% ao chocar ou polindo com gemas), cesta e safra da estação, oferta de iniciante (72 h), baú dos anúncios (5 e 10 por dia), visita ao sítio com bichos andando.
+- Online (migração 8): liga de guildas (bronze, prata, ouro), passe de guilda (+10% de moedas para todos, compra simulada), troca de bichos (1 por dia, até raridade 3), papo da guilda só com frases prontas e painel de métricas (`priv.painel_diario`, `priv.painel_retencao`, `priv.painel_niveis`, `priv.painel_recursos`: consulte no SQL Editor).
+- Publicação: pasta `app/` com Capacitor, AdMob, avisos e passo a passo em `app/PUBLICAR.md`; consentimento de anúncios no primeiro uso dentro do app; política de privacidade em `docs/privacidade.html` (preencha seus dados de contato); modo econômico também por bateria baixa.

@@ -116,3 +116,24 @@ const Plat = (() => {
     aviso(titulo, texto, segundos) { try { const p = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.LocalNotifications; if (p) p.schedule({ notifications: [{ id: 1, title: titulo, body: texto, schedule: { at: new Date(Date.now() + segundos * 1000) } }] }); } catch (e) {} },
   };
 })();
+
+/* ---------- Anúncios recompensados (adaptador AdMob) ----------
+   No navegador o jogo usa o anúncio simulado. No app (Capacitor + @capacitor-community/admob) usa vídeo de verdade.
+   Os IDs abaixo são os de TESTE do Google: troque pelos seus no Play/AdMob antes de publicar. */
+const ADMOB_IDS = { recompensado: 'ca-app-pub-3940256099942544/5224354917' };
+const Anuncios = (() => {
+  const pl = () => (window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.AdMob) || null;
+  return {
+    disponivel: () => !!pl(),
+    async iniciar() { try { const p = pl(); if (p) await p.initialize({ initializeForTesting: ADMOB_IDS.recompensado.startsWith('ca-app-pub-3940256099942544') }); } catch (e) {} },
+    // devolve true se o jogador assistiu até o fim (e merece a recompensa)
+    async mostrar(personalizado) {
+      const p = pl(); if (!p) return false;
+      try {
+        await p.prepareRewardVideoAd({ adId: ADMOB_IDS.recompensado, npa: !personalizado });
+        const r = await p.showRewardVideoAd();
+        return !!(r && (r.amount >= 0 || r.type));
+      } catch (e) { return false; }
+    }
+  };
+})();

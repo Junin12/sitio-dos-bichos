@@ -134,6 +134,41 @@ const bom = async (p, tag) => ok(p.erros.length === 0, tag + ' sem erros de JS '
   await p.close();
 }
 
+
+/* ---------- novidades III: sítio, vizinhos, selos, consentimento e bateria ---------- */
+{
+  const save = JSON.stringify({ v: 2, ts: Date.now() - 600e3, coins: 5e5, gems: 500, nivel: 14, xp: 0, slots: 6, visto: true, tut: { passo: 9, fim: true }, ing: 3,
+    pets: { coelho: { lvl: 10 }, gato: { lvl: 5 }, leao: { lvl: 4 }, trex: { lvl: 3 }, ovelha: { lvl: 6 }, galinha: { lvl: 6 }, pintinho: { lvl: 6 }, arara: { lvl: 2 } }, obras: { celeiro: 3, chocadeira: 2, moinho: 3, estufa: 2 } });
+  const p = await abrir('sitio-dos-bichos.html', async pg => {
+    await pg.addInitScript(s => { localStorage.setItem('sitio-dos-bichos.v1', s);
+      window.Capacitor = { Plugins: { AdMob: { initialize: async () => {}, prepareRewardVideoAd: async () => {}, showRewardVideoAd: async () => ({ amount: 1, type: 'x' }) } } };
+      navigator.getBattery = async () => ({ charging: false, level: 0.1, addEventListener() {} }); }, save);
+  });
+  await p.waitForTimeout(600); await p.evaluate(() => fecharModal()); await p.waitForTimeout(200);
+  ok(await p.isVisible('text=Como quer ver anúncios?'), 'consentimento aparece no app com AdMob');
+  await p.click('[data-act="consentSet"][data-arg="np"]'); ok(await p.evaluate(() => S.cfg.consent === 'np' && MODAL.hidden), 'escolha de anúncios não personalizados salva');
+  ok(await p.evaluate(() => document.body.classList.contains('eco')), 'bateria baixa liga o modo econômico no automático');
+  // anúncio de verdade (adaptador) entrega a recompensa e conta no baú
+  const n0 = await p.evaluate(() => S.bauAd.n); await p.evaluate(() => ACOES.coletar2x && ACOES.coletar2x()); await p.waitForTimeout(400);
+  ok(await p.evaluate(n => S.bauAd.n === n + 1, n0), 'anúncio do adaptador conta no baú do dia');
+  await p.evaluate(() => { aba = 'sitio'; render(); }); await p.waitForTimeout(200);
+  ok(await p.isVisible('text=Baú dos anúncios') && await p.isVisible('text=no sítio'), 'cartões de estação e baú aparecem no sítio');
+  const c0 = await p.evaluate(() => S.coins); await p.click('[data-act="cesta"]'); ok(await p.evaluate(c => S.coins > c && !cestaPronta(S, Date.now()), c0), 'cesta da estação pega pela tela');
+  // oferta de iniciante
+  ok(await p.isVisible('text=Oferta de iniciante'), 'oferta de iniciante visível'); await p.click('[data-act="oferta"]'); await p.click('[data-act="ofertaOk"]');
+  ok(await p.evaluate(() => S.oferta.comprou && !!S.roupas.aprendiz), 'oferta comprada (simulação)');
+  // selos: polir bicho no nível máximo
+  const g0 = await p.evaluate(() => S.gems); await p.evaluate(() => modalBicho('coelho')); await p.click('[data-act="polir"]');
+  ok(await p.evaluate(g => S.pets.coelho.dourado && S.gems < g, g0), 'bicho polido vira dourado pela tela'); await p.evaluate(() => fecharModal());
+  // vizinhos
+  await p.evaluate(() => { ACOES.aba('metas'); ACOES.subM('missoes'); }); await p.waitForTimeout(250);
+  ok(await p.isVisible('text=Vizinhos pedem'), 'cartão dos vizinhos');
+  await p.evaluate(() => { PETS.forEach(x => { S.pets[x.id] = { lvl: 9 }; }); S.eggs = [null, null]; render(); }); await p.waitForTimeout(150);
+  await p.click('[data-act="npcEntregar"][data-arg="0"]'); ok(await p.evaluate(() => S.npc.feitos.includes(0)), 'pedido de vizinho entregue pela tela');
+  await p.evaluate(() => ACOES.subM('album')); await p.waitForTimeout(200); ok(await p.isVisible('text=Selos do álbum'), 'selos no álbum');
+  await bom(p, 'novidades III');
+}
+
 /* ---------- online: a página real falando com o Postgres de verdade ---------- */
 try {
   const { criarBanco, removerBanco, cliente, admin, consulta } = await import('../backend/tests/ajuda.mjs');

@@ -30,6 +30,7 @@ base = template.replace("/*LOGIC*/", logica).replace("/*STYLE*/", estilo).replac
 
 saida = raiz / "sitio-dos-bichos.html"
 saida.write_text(base.replace("/*ONLINE*/", ""), encoding="utf-8")
+(raiz / "privacidade.html").write_text(ler("src", "privacidade.html"), encoding="utf-8")
 print(f"Gerado {saida.name} ({saida.stat().st_size} bytes)")
 
 if "--online" in sys.argv:
@@ -44,5 +45,6 @@ if "--online" in sys.argv:
     html = html.replace("<script>", cdn + "<script>", 1)
     (raiz / "docs").mkdir(exist_ok=True)
     (raiz / "docs" / "index.html").write_text(html, encoding="utf-8")
+    (raiz / "docs" / "privacidade.html").write_text(ler("src", "privacidade.html"), encoding="utf-8")
     (raiz / "docs" / ".nojekyll").write_text("", encoding="utf-8")
     print(f"Gerado docs/index.html ({len(html)} bytes)")
