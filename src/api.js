@@ -49,6 +49,14 @@ export const MENSAGENS = {
   mural_inexistente: 'Aviso não encontrado.',
   proprio_evento: 'Você não pode parabenizar a si mesmo.',
   ja_parabenizou: 'Você já parabenizou esse aviso.',
+  prestigio_invalido: 'Prestígio não permitido agora.',
+  convite_ja_usado: 'Você já usou um convite.',
+  convite_tarde: 'Convites só valem para quem está começando.',
+  convite_invalido: 'Código de convite não encontrado.',
+  convite_proprio: 'Você não pode usar o próprio convite.',
+  nada_a_resgatar: 'Nada para resgatar por enquanto.',
+  ja_curtiu: 'Você já curtiu esse sítio hoje.',
+  sem_premio: 'Sua guilda não ficou no pódio.',
 };
 
 const falha = (erro, extra = {}) => ({ ok: false, erro, mensagem: MENSAGENS[erro] || 'Algo deu errado.', ...extra });
@@ -86,8 +94,18 @@ export function criarApi(sb) {
       } catch (e) { return falha('rede'); }
       return chamar('jogo_iniciar', { p_nome: String(nome || '').trim() });
     },
-    perfilAtualizar: ({ nome = null, nivel, poder }) =>
-      chamar('jogo_perfil_atualizar', { p_nome: nome, p_nivel: inteiro(nivel, 1, 30), p_poder: inteiro(poder, 0, Number.MAX_SAFE_INTEGER) }),
+    perfilAtualizar: ({ nome = null, nivel, poder, prestigio = 0 }) =>
+      chamar('jogo_perfil_atualizar', { p_nome: nome, p_nivel: inteiro(nivel, 1, 30), p_poder: inteiro(poder, 0, Number.MAX_SAFE_INTEGER), p_prestigio: inteiro(prestigio, 0, 50) }),
+    convite: {
+      codigo: () => chamar('jogo_convite_codigo'),
+      usar: codigo => chamar('jogo_convite_usar', { p_codigo: String(codigo || '').trim().slice(0, 12) }),
+      resgatar: () => chamar('jogo_convites_resgatar'),
+    },
+    visitar: alvo => chamar('jogo_visitar', { p_alvo: alvo }),
+    curtir: alvo => chamar('jogo_curtir', { p_alvo: alvo }),
+    conta: { apagar: () => chamar('jogo_conta_apagar') },
+    // Métricas anônimas: só nomes de uma lista fixa.
+    evento: nome => chamar('jogo_evento', { p_nome: nome }),
     save: {
       carregar: () => chamar('jogo_save_carregar'),
       // versao = a que veio do último carregar/salvar (0 se ainda não existe save).
@@ -114,6 +132,11 @@ export function criarApi(sb) {
     mural: {
       postar: (tipo, params) => chamar('jogo_mural_postar', { p_tipo: tipo, p_params: params }),
       parabenizar: id => chamar('jogo_mural_parabenizar', { p_mural: id }),
+      reagir: reacao => chamar('jogo_mural_reagir', { p_reacao: reacao }),
+    },
+    guildas: {
+      ranking: (limite = 20) => chamar('jogo_ranking_guildas', { p_limite: inteiro(limite, 1, 50) }),
+      premio: () => chamar('jogo_premio_guilda_resgatar'),
     },
     ranking: (limite = 50) => chamar('jogo_ranking', { p_limite: inteiro(limite, 1, 100) }),
   };

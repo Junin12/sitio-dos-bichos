@@ -102,7 +102,7 @@ h3{font:600 16px/1.2 var(--font-display)}
 .bar.sky>i{background:linear-gradient(180deg,var(--sky2),var(--sky))}
 .bar.green>i{background:linear-gradient(180deg,var(--green2),var(--green))}
 
-.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:color-mix(in srgb,var(--ink) 9%,transparent);border-radius:16px;padding:4px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;background:color-mix(in srgb,var(--ink) 9%,transparent);border-radius:16px;padding:4px}
 .seg button{border:0;border-radius:12px;padding:9px;min-height:42px;font:600 15px var(--font-display);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s}
 .seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 2px 0 var(--line)}
 
@@ -250,3 +250,36 @@ th{font:600 12px var(--font-display);color:var(--muted)}
   .guia .btn{min-width:78px;padding-inline:10px}
 }
 .iconbtn .slash{display:none}.iconbtn.off .slash{display:inline}.iconbtn.off .onda{display:none}
+
+/* ===== novidades ===== */
+.seg.n4 button,.seg.n5 button{font-size:13px;padding:8px 2px}
+.seg.n3 button{font-size:14px}
+.row.wrap{flex-wrap:wrap}
+button.slot{font:inherit;color:inherit;cursor:pointer;width:100%}
+button.slot:active{transform:scale(.96)}
+.slot .mood{position:absolute;top:3px;right:4px;font-size:13px;z-index:1}
+.parcela.pronto,.pedido.pronto{box-shadow:0 0 0 3px var(--yolk),var(--shadow)}
+.evtmini .bar{margin:6px 0}
+.evtpet{font-size:72px;text-align:center;line-height:1.1;animation:bob 2.4s ease-in-out infinite}
+.evtpet.sombra{filter:brightness(0) opacity(.22)}
+.evtrew{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.evtrew .num{font:700 17px var(--font-display)}
+.evtrew.ok{opacity:.55}
+.decem{font-size:40px;width:56px;text-align:center;flex:none}
+.ajrow{padding:6px 0}
+.reacoes{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.prest{background:linear-gradient(160deg,var(--surface),color-mix(in srgb,var(--yolk) 18%,var(--surface)))}
+a{color:var(--sky-d)}
+#tut{position:fixed;inset:0;z-index:30;pointer-events:none}
+.tutspot{position:absolute;border-radius:16px;box-shadow:0 0 0 9999px rgba(8,22,14,.58),0 0 0 3px var(--yolk);transition:left .28s,top .28s,width .28s,height .28s}
+#tut[hidden] .tutspot{box-shadow:none}
+.tutbub{position:absolute;left:14px;right:14px;max-width:360px;margin:0 auto;background:var(--surface);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px;pointer-events:auto;box-shadow:0 5px 0 var(--line),0 20px 40px -12px rgba(0,0,0,.55);font-weight:700}
+.tutbub::after{content:'';position:absolute;left:var(--ax,50%);width:16px;height:16px;background:var(--surface);transform:translateX(-50%) rotate(45deg)}
+.tutbub.baixo::after{top:-7px}
+.tutbub.cima::after{bottom:-7px}
+.tutbub .row{justify-content:flex-end}
+.eco .rays,.eco .evtpet,.eco .slot .em,.eco .chest.pronto{animation:none}
+.eco .modal,.eco .toast{backdrop-filter:none;-webkit-backdrop-filter:none}
+.eco main.in>*{animation:none}
+@media (prefers-reduced-motion: reduce){.evtpet{animation:none}}
+.toast{pointer-events:none}

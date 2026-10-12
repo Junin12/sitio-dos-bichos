@@ -18,6 +18,7 @@ Tudo vive no Postgres do Supabase; o jogo conversa só com funções `jogo_*` (R
 3. Aplique as migrações, nesta ordem (`supabase/migrations/`):
    - com a CLI: `supabase link --project-ref SEU_REF && supabase db push`
    - ou colando cada arquivo no **SQL Editor**.
+   - A migração 4 (`20261012000400_novidades.sql`) traz prestígio, convites, visitas e curtidas, reações no mural, ranking e prêmio de guilda contra guilda, métricas e exclusão de conta. Quem já aplicou as migrações 1 a 3 só precisa colar e rodar a 4 (uma vez; ela não é repetível).
 4. Copie a **Project URL** e a **anon key** (Settings → API) para o jogo:
 
 ```js
@@ -33,6 +34,8 @@ await api.guilda.contribuir(8, 'ovo');           // Grande Colheita
 const r = await api.ranking();
 if (!r.ok) mostrar(r.mensagem);                  // textos em português prontos
 ```
+
+Outras chamadas disponíveis: `api.convite.codigo/usar/resgatar`, `api.visitar`, `api.curtir`, `api.mural.reagir`, `api.guildas.ranking/premio`, `api.evento('sessao')` (métricas) e `api.conta.apagar()`. Consultas de retenção e anúncios por dia: `metricas.sql`.
 
 A anon key é pública por desenho; quem protege os dados são as permissões acima.
 

@@ -18,14 +18,15 @@ logica = ler("src", "logic.js")
 
 estilo = ler("src", "estilo.css")
 efeitos = "\n".join(ler("src", f) for f in ("som.js", "fx.js", "cena.js"))
-for nome, texto in (("src/logic.js", logica), ("src/api.js", ler("src", "api.js")), ("src/online.js", ler("src", "online.js")), ("src/som.js+fx.js+cena.js", efeitos)):
+telas = ler("src", "telas.js")
+for nome, texto in (("src/logic.js", logica), ("src/api.js", ler("src", "api.js")), ("src/online.js", ler("src", "online.js")), ("src/som.js+fx.js+cena.js", efeitos), ("src/telas.js", telas)):
     if "</script>" in texto:
         raise SystemExit(f"{nome} não pode conter </script>")
-for m in ("/*LOGIC*/", "/*ONLINE*/", "/*STYLE*/", "/*FX*/"):
+for m in ("/*LOGIC*/", "/*ONLINE*/", "/*STYLE*/", "/*FX*/", "/*TELAS*/"):
     if m not in template:
         raise SystemExit(f"src/template.html precisa do marcador {m}")
 
-base = template.replace("/*LOGIC*/", logica).replace("/*STYLE*/", estilo).replace("/*FX*/", efeitos)
+base = template.replace("/*LOGIC*/", logica).replace("/*STYLE*/", estilo).replace("/*FX*/", efeitos).replace("/*TELAS*/", telas)
 
 saida = raiz / "sitio-dos-bichos.html"
 saida.write_text(base.replace("/*ONLINE*/", ""), encoding="utf-8")

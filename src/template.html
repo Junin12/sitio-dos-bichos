@@ -1,3 +1,10 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#3DBB6B">
+<meta name="description" content="Sítio dos Bichos: choque ovos, crie seus bichos, cuide da horta e entre numa guilda.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Sítio dos Bichos</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Mulish:wght@400;600;700;800&display=swap">
 <style>
@@ -11,6 +18,7 @@
     <div class="wallet" aria-label="Saldo">
       <span class="chip" id="chipCoins" title="Moedas"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gcoin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE27A"/><stop offset="1" stop-color="#F5A300"/></linearGradient></defs><circle cx="12" cy="12" r="10.5" fill="url(#gcoin)" stroke="#D98F00" stroke-width="1.5"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="#D98F00" stroke-width="1.4" opacity=".55"/><path d="M8 8c1.5-1.2 3-1.6 4.4-1.4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" fill="none" opacity=".7"/></svg><span id="vCoins">0</span></span>
       <span class="chip" id="chipGems" title="Gemas"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="ggem" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8FD6FF"/><stop offset="1" stop-color="#1B72D8"/></linearGradient></defs><polygon points="12,1.5 21,9 12,22.5 3,9" fill="url(#ggem)" stroke="#1B5FB5" stroke-width="1.3" stroke-linejoin="round"/><polyline points="3,9 21,9" stroke="#fff" stroke-width="1.2" opacity=".6" fill="none"/><polyline points="8,9 12,1.5 16,9" stroke="#fff" stroke-width="1" opacity=".4" fill="none"/></svg><span id="vGems">0</span></span>
+      <button class="iconbtn" id="btnAj" data-act="aba" data-arg="ajustes" aria-label="Ajustes"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1"/></svg></button>
       <button class="iconbtn" id="btnSom" data-act="som" aria-label="Som ligado ou desligado"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="onda" d="M16.5 9a4 4 0 010 6M19 6.5a8 8 0 010 11"/><path class="slash" d="M17 9l5 6M22 9l-5 6"/></svg></button>
     </div>
   </header>
@@ -38,23 +46,38 @@
 TZ_OFF = new Date().getTimezoneOffset();
 const KEY = 'sitio-dos-bichos.v1';
 const $ = s => document.querySelector(s);
+const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function carregar() {
   let s = null;
   try { s = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
   const base = novoEstado(Date.now());
   if (!s || typeof s !== 'object') return base;
   const r = Object.assign(base, s);
-  ['obras', 'cd', 'ads', 'dev', 'stats', 'diario', 'guilda'].forEach(k => { r[k] = Object.assign({}, base[k], s[k]); });
+  ['obras', 'cd', 'ads', 'dev', 'stats', 'diario', 'guilda', 'premium', 'cfg', 'tut', 'bau', 'brilho', 'metr'].forEach(k => { r[k] = Object.assign({}, base[k], s[k]); });
+  // bichos que não existem mais viram animais reais (mantém o maior nível)
+  for (const velho in PET_MIGRA) if (r.pets[velho]) { const novo = PET_MIGRA[velho]; r.pets[novo] = r.pets[novo] ? (r.pets[novo].lvl >= r.pets[velho].lvl ? r.pets[novo] : r.pets[velho]) : r.pets[velho]; delete r.pets[velho]; }
+  for (const id of Object.keys(r.pets)) if (!PET_POR_ID[id] || !r.pets[id] || !(r.pets[id].lvl >= 1)) delete r.pets[id];
+  if (!Array.isArray(r.horta)) r.horta = []; r.horta = r.horta.map(p => p && CULTIVOS[p.id] ? p : null);
+  if (!r.colheita || typeof r.colheita !== 'object') r.colheita = {};
+  if (!Array.isArray(r.pedidos) || r.pedidos.length !== 3) r.pedidos = [null, null, null];
+  if (!r.decor || typeof r.decor !== 'object') r.decor = {};
+  for (const k of Object.keys(r.decor)) if (!DECORS[k]) delete r.decor[k];
+  if (!r.evt || !Array.isArray(r.evt.res)) r.evt = base.evt;
+  r.eggs = r.eggs.map(e => e && OVOS[e.tipo] ? e : null);
+  if (!r.prest) r.prest = 0;
+  if (!TEMAS[r.tema]) r.tema = 'auto';
   if (!Array.isArray(r.eggs)) r.eggs = [null, null];
   if (!r.pets || typeof r.pets !== 'object') r.pets = {};
   if (!Array.isArray(r.missoes) || r.missoes.length !== 3) { r.missoes = [null, null, null]; for (let i = 0; i < 3; i++) r.missoes[i] = novaMissao(r); }
   r.missoes = r.missoes.map(m => m || novaMissao(r));
   if (r.guilda.id >= GUILDAS.length) r.guilda = base.guilda;   // sobra do modo online
-  ajustarIncubadoras(r);
+  ajustarIncubadoras(r); ajustarTudo(r, Date.now());
   return r;
 }
 let S = carregar();
+try { const cv = new URLSearchParams(location.search).get('convite'); if (cv && /^[0-9A-Za-z]{4,12}$/.test(cv) && !S.convitePend && !S.convUsado) { S.convitePend = cv.toUpperCase(); } } catch (e) {}
 let aba = 'sitio', subG = 'guilda', subM = 'missoes';
+Som.semVibra = false;
 let ultimoSalvo = 0, confirmaReset = false;
 function salvar() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} ultimoSalvo = Date.now(); }
 
@@ -75,8 +98,8 @@ const erroMsg0 = e => e.erro === 'nivel' ? 'Libera no nível ' + e.nivel : e.err
 
 const PLAY = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5v9l7-4.5z" fill="currentColor"/></svg>';
 function eggSVG(tipo) {
-  const ouro = tipo === 'dourado';
-  const f1 = ouro ? '#FBD35A' : '#D9C48A', f2 = ouro ? '#E39A0B' : '#B79B5B', pinta = ouro ? '#FFF1B8' : '#8F7640', gid = 'g' + tipo;
+  const ouro = tipo === 'dourado', brilho = tipo === 'brilhante';
+  const f1 = brilho ? '#A5EBFF' : ouro ? '#FBD35A' : '#D9C48A', f2 = brilho ? '#3A8FE0' : ouro ? '#E39A0B' : '#B79B5B', pinta = brilho ? '#E6FAFF' : ouro ? '#FFF1B8' : '#8F7640', gid = 'g' + tipo;
   return `<svg class="eggsvg" viewBox="0 0 64 76" aria-hidden="true"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${f1}"/><stop offset="1" stop-color="${f2}"/></linearGradient></defs><path d="M32 3C19 3 7 26 7 47c0 17 11 26 25 26s25-9 25-26C57 26 45 3 32 3z" fill="url(#${gid})"/><ellipse cx="22" cy="24" rx="5" ry="9" fill="#fff" opacity=".35" transform="rotate(20 22 24)"/><circle cx="40" cy="48" r="3" fill="${pinta}" opacity=".6"/><circle cx="28" cy="58" r="2.2" fill="${pinta}" opacity=".6"/><circle cx="44" cy="36" r="1.8" fill="${pinta}" opacity=".6"/></svg>`;
 }
 
@@ -95,6 +118,8 @@ function drenar() {
   Som.play('nivel'); Som.vibrar([30, 40, 60]); Fx.confete(innerWidth / 2, innerHeight * 0.4, 110, ['#FFC21A', '#3DBB6B', '#2F9BE8', '#FF7AB6', '#fff']);
 }
 function anuncio(tipo, titulo, recompensa) {
+  if (semAnuncios(S)) { evento(S, 'anuncio', 1); recompensa(); salvar(); render(); return; }
+  metrica('anuncio');
   adReward = recompensa; adTipo = tipo;
   abrirModal(`<div class="sheet"><p class="eyebrow">Anúncio simulado</p><h2>${titulo}</h2>
     <div><div class="bar"><i id="adBar"></i></div><p class="muted" id="adMsg" style="margin-top:8px">Assistindo… 3s</p></div>
@@ -141,6 +166,7 @@ function processar(r, semDrenar) {
 const ACOES = {
   aba(a) { aba = a; confirmaReset = false; render(); $('#view').scrollTop = 0; },
   subG(x) { subG = x; render(); },
+  subOAba() { aba = 'obras'; subO = 'horta'; render(); },
   subM(x) { subM = x; render(); },
   fechar() { fecharModal(); },
   adok() {
@@ -187,8 +213,8 @@ const ACOES = {
   ajudar(i) { const r = ajudar(S, +i, Date.now()); if (!r.ok) return toast(erroMsg(r)); receber(r.ups); salvar(); render(); toast('Você ajudou ' + membroNome(S.guilda.id, +i) + ': +' + fmt(r.coins) + ' moedas'); },
   parabens(k) { const r = parabenizar(S, k, Date.now()); if (!r.ok) return toast(erroMsg(r)); salvar(); render(); toast('Parabéns enviado: +' + fmt(r.coins) + ' moedas'); },
   resetar() {
-    if (!confirmaReset) { confirmaReset = true; render(); setTimeout(() => { if (confirmaReset) { confirmaReset = false; if (aba === 'dev') render(); } }, 4000); return; }
-    S = novoEstado(Date.now()); confirmaReset = false; fila = []; salvar(); aba = 'sitio'; render(); toast('Progresso zerado');
+    if (!confirmaReset) { confirmaReset = true; render(); setTimeout(() => { if (confirmaReset) { confirmaReset = false; if (aba === 'dev' || aba === 'ajustes') render(); } }, 4000); return; }
+    S = novoEstado(Date.now()); ajustarTudo(S, Date.now()); confirmaReset = false; fila = []; salvar(); aba = 'sitio'; subO = 'obras'; render(); toast('Progresso zerado');
   }
 };
 document.addEventListener('click', e => {
@@ -201,6 +227,7 @@ document.addEventListener('input', e => {
   S.dev[k] = Math.max(0, parseFloat(e.target.value) || 0); calcDev(); salvar();
 });
 
+/*TELAS*/
 /* ---------- telas ---------- */
 function cardDiario(hoje) {
   const pronto = S.diario.ultimo !== hoje, seq = seqDiaria(S, hoje), idx = (seq - 1) % 7, feitos = pronto ? idx : idx + 1;
@@ -231,12 +258,20 @@ function proximoPasso() {
   if (pronto >= 0) return { ic: '🥚', t: 'Seu ovo está pronto!', d: 'Abra para descobrir qual bicho nasceu.', btn: 'Abrir', act: 'abrir', arg: pronto };
   if (Object.keys(S.pets).length === 0 && podeOvo) return { ic: '🛒', t: 'Compre seu primeiro ovo', d: 'Custa ' + fmt(custoPalha) + ' moedas. Bichos produzem moedas para você.', btn: 'Comprar', act: 'comprar', arg: 'palha' };
   if (S.diario.ultimo !== hoje) return { ic: '🎁', t: 'Bônus do dia', d: 'Entre todo dia para ganhar prêmios maiores.', btn: 'Pegar', act: 'diario' };
+  const hp = S.horta.findIndex(p => p && now >= p.pronto);
+  if (hp >= 0) return { ic: CULTIVOS[S.horta[hp].id].em, t: 'Colheita pronta na horta', d: 'Colha para entregar pedidos aos clientes.', btn: 'Ver horta', act: 'subOAba' };
+  const ped = S.pedidos.findIndex(p => p && podeEntregar(S, p) && now <= p.ate);
+  if (ped >= 0) return { ic: S.pedidos[ped].em, t: S.pedidos[ped].cliente + ' espera sua entrega', d: 'Você já tem o que ele pediu. Entregue e ganhe moedas e gemas.', btn: 'Entregar', act: 'entregar', arg: ped };
+  const ev = EVT_METAS.findIndex((m, k) => !S.evt.res[k] && S.evt.pts >= m && S.nivel >= 3);
+  if (ev >= 0) return { ic: eventoDaSemana(now).em, t: 'Prêmio do evento da semana', d: 'Você bateu uma meta do evento. Resgate!', btn: 'Resgatar', act: 'evtResg', arg: ev };
   const mi = S.missoes.findIndex(m => m && m.feita);
   if (mi >= 0) return { ic: '⭐', t: 'Missão concluída!', d: 'Resgate sua recompensa.', btn: 'Resgatar', act: 'resgatar', arg: mi };
   if (q >= Math.max(20, cap * 0.3)) return { ic: '🌾', t: 'Moedas esperando no celeiro', d: '+' + fmt(q) + ' moedas prontas para coletar.', btn: 'Coletar', act: 'coletar' };
   if (podeOvo) return { ic: '🥚', t: 'Tem incubadora livre', d: 'Compre um ovo por ' + fmt(custoPalha) + ' moedas e ganhe mais bichos.', btn: 'Comprar ovo', act: 'comprar', arg: 'palha' };
   const mo = melhorOferta();
   if (mo) return { ic: '🔨', t: mo.t, d: 'Custa ' + fmt(mo.custo) + ' moedas e deixa o sítio mais forte.', btn: 'Melhorar', act: mo.act, arg: mo.arg };
+  if (podePrestigiar(S)) return { ic: '🌟', t: 'Prestígio disponível', d: 'Recomece com bônus permanente e mantenha seus bichos.', btn: 'Ver', act: 'aba', arg: 'ajustes' };
+  if (bauDisponivel(S, hoje) && !bauPrecisaAnuncio(S, hoje)) return { ic: '🎁', t: 'Baú do dia', d: 'Um presente grátis por dia, sem precisar de anúncio.', btn: 'Abrir', act: 'bauDia' };
   if (bauPronto(now)) return { ic: '🎁', t: 'Baú da guilda pronto', d: 'A guilda bateu a meta. Resgate seu prêmio.', btn: 'Ver baús', act: 'aba', arg: 'guilda' };
   if (S.nivel >= NIVEL_GUILDA && S.guilda.id < 0) return { ic: '🛡️', t: 'Entre numa guilda', d: 'Jogue com outros fazendeiros e ganhe baús toda semana.', btn: 'Ver guildas', act: 'aba', arg: 'guilda' };
   const ovo = S.eggs.filter(e => e && now < e.pronto).sort((a, b) => a.pronto - b.pronto)[0];
@@ -253,11 +288,11 @@ function viewSitio() {
   for (let i = 0; i < SLOTS_MAX; i++) {
     if (i < S.slots) {
       const a = at[i];
-      if (a) { const p = PET_POR_ID[a.id]; tiles += `<div class="slot" style="--rc:var(--r${p.r})"><span class="em" style="animation-delay:${(i * 0.3).toFixed(1)}s">${p.em}</span><span class="lvl">Nv ${a.lvl}</span><span class="rate">${fmt1(a.prod * mp)}/s</span></div>`; }
+      if (a) { const p = PET_POR_ID[a.id]; tiles += `<button class="slot" data-act="bicho" data-arg="${a.id}" style="--rc:var(--r${p.r})" aria-label="${esc(nomeDoBicho(S, a.id))}, cuidar"><span class="mood">${humor(felicidade(S, a.id))}</span><span class="em" style="animation-delay:${(i * 0.3).toFixed(1)}s">${p.em}</span><span class="lvl">Nv ${a.lvl}</span><span class="rate">${fmt1(a.prod * mp)}/s</span></button>`; }
       else tiles += '<div class="slot empty">vazio</div>';
     } else tiles += '<div class="slot lock">🔒</div>';
   }
-  const vazio = Object.keys(S.pets).length === 0 ? '<p class="muted">Nenhum bicho trabalhando ainda. Abra seu primeiro ovo na aba Ovos.</p>' : '';
+  const vazio = Object.keys(S.pets).length === 0 ? '<p class="muted">Nenhum bicho trabalhando ainda. Abra seu primeiro ovo na aba Ovos.</p>' : '<p class="muted">Toque em um bicho para fazer carinho, dar ração ou escolher um nome.</p>';
   return `
     <section class="card scenecard"><div id="cenaHost"></div>
       <div class="cenatop"><span class="pill dark num" id="prodTxt">+0/s</span><span class="pill num" id="lvTit"></span></div>
@@ -266,6 +301,7 @@ function viewSitio() {
     </section>
     <section class="card guia" id="guia" aria-live="polite">${guiaHTML()}</section>
     ${S.diario.ultimo !== hoje ? cardDiario(hoje) : ''}
+    ${cardEventoMini()}${cardPresentes()}
     <section class="card"><div class="between"><h2>Safra <span id="safNum">1</span></h2><span class="muted num" id="safEta"></span></div>
       <div class="bar green"><i id="safBar"></i></div>
       <p class="muted">Avança sozinha com a produção. Ao concluir: <b id="safRec"></b></p></section>
@@ -288,7 +324,7 @@ function viewOvos() {
   const falta = PITY_LIMIT - S.pity;
   const pityTxt = falta <= 1 ? 'Próxima invocação: Épico ou melhor garantido' : `Épico ou melhor garantido em ${falta} invocações`;
   let inc = ''; for (let i = 0; i < S.eggs.length; i++) inc += incubadora(i);
-  const loja = Object.keys(OVOS).map(id => {
+  const loja = Object.keys(OVOS).filter(id => OVOS[id].moeda !== 'anuncio').map(id => {
     const o = OVOS[id], c = custoOvo(S, id), custo = o.moeda === 'coins' ? fmt(c) + ' moedas' : c + ' gemas', trava = S.nivel < o.nivel;
     return `<div class="card egg">${eggSVG(id)}<div class="info"><div class="between"><h3>${o.nome}</h3><span class="muted num">${tempoOvo(S, id)}s</span></div>
       <div class="chips">${chancesChips(o.pesos)}</div>
@@ -300,9 +336,9 @@ function viewOvos() {
     <section class="card"><h2>Loja de ovos</h2>${loja}<p class="muted">O preço do Ovo de Palha sobe com seu nível e com cada ovo chocado.</p></section>
     <section class="card"><h2>Recompensas</h2><div class="row">
         <button class="btn ad" data-cd="ovo" data-label="Ovo grátis" data-act="ovoGratis">${PLAY}<span class="cdl">Ovo grátis</span> <span class="tag">Anúncio</span></button>
-        <button class="btn ad" data-cd="gemas" data-label="+2 gemas" data-act="gemasGratis">${PLAY}<span class="cdl">+2 gemas</span> <span class="tag">Anúncio</span></button></div></section>
+        <button class="btn ad" data-cd="gemas" data-label="+2 gemas" data-act="gemasGratis">${PLAY}<span class="cdl">+2 gemas</span> <span class="tag">Anúncio</span></button></div>${S.nivel >= OVOS.brilhante.nivel && brilhoDisponivel(S, diaDe(Date.now())) ? `<div class="row" style="margin-top:8px"><button class="btn ad" data-act="brilho">${PLAY}Ovo brilhante do dia <span class="tag">Anúncio</span></button></div>` : ''}</section>
     <section class="card"><details><summary>Chances de cada ovo</summary>
-      <div class="scroll-x"><table><thead><tr><th>Raridade</th><th>Palha</th><th>Dourado</th><th>Produção</th></tr></thead><tbody>${linhas}</tbody></table></div>
+      <div class="scroll-x"><table><thead><tr><th>Raridade</th>${Object.keys(OVOS).map(id => '<th>' + OVOS[id].nome.replace('Ovo de ', '').replace('Ovo ', '') + '</th>').join('')}<th>Produção</th></tr></thead><tbody>${linhas}</tbody></table></div>
       <p class="muted" style="margin-top:8px">Garantia: a cada ${PITY_LIMIT} invocações sem Épico ou melhor, a próxima é Épico (92%) ou Lendário (8%). Bicho repetido sobe 1 nível, até o nível ${LVL_MAX}.</p></details></section>`;
 }
 function efTexto(id, l) {
@@ -331,11 +367,12 @@ function viewObras() {
     <section class="card"><div class="between"><h3>Pasto</h3><span class="muted num">${S.slots}/${SLOTS_MAX} vagas</span></div><p class="muted">Mais vagas deixam mais bichos trabalhando ao mesmo tempo.</p>${pb}</section>
     ${Object.keys(OBRAS).map(cardObra).join('')}`;
 }
-const segHTML = (acao, atual, itens) => `<div class="seg" role="tablist">${itens.map(([k, t]) => `<button role="tab" class="${atual === k ? 'on' : ''}" data-act="${acao}" data-arg="${k}" aria-selected="${atual === k}">${t}</button>`).join('')}</div>`;
+const segHTML = (acao, atual, itens) => `<div class="seg n${itens.length}" role="tablist">${itens.map(([k, t]) => `<button role="tab" class="${atual === k ? 'on' : ''}" data-act="${acao}" data-arg="${k}" aria-selected="${atual === k}">${t}</button>`).join('')}</div>`;
 const relTempo = ms => { const m = Math.max(1, Math.round(ms / 60000)); return m < 60 ? 'há ' + m + ' min' : 'há ' + Math.floor(m / 60) + ' h'; };
 function viewGuilda() {
-  const seg = segHTML('subG', subG, [['guilda', 'Guilda'], ['ranking', 'Ranking']]);
+  const seg = segHTML('subG', subG, [['guilda', 'Guilda'], ['ranking', 'Sítios'], ['guildas', 'Guildas']]);
   if (subG === 'ranking') return seg + viewRanking();
+  if (subG === 'guildas') return seg + (window.ON && ON.ativo ? viewGuildasRankOn() : viewGuildasSim());
   if (window.ON && ON.ativo) return seg + viewGuildaOn();
   const g = S.guilda, now = Date.now();
   if (g.id < 0) {
@@ -386,15 +423,19 @@ function missaoDesc(m) {
   return m.t === 'coletar' ? 'Colete ' + fmt(m.meta) + ' moedas' : m.t === 'chocar' ? 'Choque ' + m.meta + (m.meta > 1 ? ' ovos' : ' ovo') : m.t === 'obra' ? 'Melhore ' + m.meta + (m.meta > 1 ? ' obras' : ' obra') : m.t === 'anuncio' ? 'Assista 1 anúncio recompensado' : 'Consiga um bicho ' + RARIDADES[m.min].nome + ' ou melhor';
 }
 function viewMetas() {
-  const seg = segHTML('subM', subM, [['missoes', 'Missões'], ['album', 'Álbum']]);
+  const seg = segHTML('subM', subM, [['missoes', 'Missões'], ['pedidos', 'Pedidos'], ['evento', 'Evento'], ['album', 'Álbum']]);
+  if (subM === 'pedidos') return seg + viewPedidos();
+  if (subM === 'evento') return seg + viewEvento();
   if (subM === 'album') {
     const comp = setsCompletos(S), tem = Object.keys(S.pets).length;
     const grupos = RARIDADES.map((r, i) => {
       const lista = PETS.filter(p => p.r === i), got = lista.filter(p => S.pets[p.id]).length;
-      const cel = lista.map(p => { const o = S.pets[p.id]; return o ? `<div class="cell" style="--rc:var(--r${i})" title="${p.nome}"><span class="em">${p.em}</span><span class="nm">Nv ${o.lvl}</span></div>` : `<div class="cell off" style="--rc:var(--r${i})" title="Ainda não descoberto"><span class="em">${p.em}</span><span class="nm">???</span></div>`; }).join('');
+      const cel = lista.map(p => { const o = S.pets[p.id]; return o ? `<div class="cell" style="--rc:var(--r${i})" title="${esc(nomeDoBicho(S, p.id))}"><span class="em">${p.em}</span><span class="nm">${o.nome ? esc(trunc(o.nome, 9)) : 'Nv ' + o.lvl}</span></div>` : `<div class="cell off" style="--rc:var(--r${i})" title="Ainda não descoberto"><span class="em">${p.em}</span><span class="nm">???</span></div>`; }).join('');
       return `<section class="card" style="--rc:var(--r${i})"><div class="between"><h3><i class="dot"></i>${r.nome} <span class="muted num">${got}/${lista.length}</span></h3><span class="badge ${comp[i] ? 'on' : ''}">${comp[i] ? 'Completo' : ''} +${Math.round(SET_BONUS[i] * 100)}% moedas</span></div><div class="cgrid">${cel}</div></section>`;
     }).join('');
-    return seg + `<section class="card"><div class="between"><h2>Álbum</h2><span class="big">${tem}/${PETS.length}</span></div><div class="bar"><i style="width:${tem / PETS.length * 100}%"></i></div><p class="muted">Complete uma raridade inteira para ganhar um bônus permanente de moedas. Bônus atual: <b>+${Math.round(bonusSets(S) * 100)}%</b>.</p></section>${grupos}`;
+    const evc = PETS_EVENTO.map(p => { const o = S.pets[p.id]; return o ? `<div class="cell" style="--rc:var(--r3)" title="${esc(p.nome)}"><span class="em">${p.em}</span><span class="nm">Nv ${o.lvl}</span></div>` : `<div class="cell off" style="--rc:var(--r3)" title="Exclusivo de evento"><span class="em">${p.em}</span><span class="nm">evento</span></div>`; }).join('');
+    const grupoEv = `<section class="card" style="--rc:var(--r3)"><div class="between"><h3>🎪 Exclusivos de evento <span class="muted num">${PETS_EVENTO.filter(p => S.pets[p.id]).length}/${PETS_EVENTO.length}</span></h3></div><div class="cgrid">${evc}</div></section>`;
+    return seg + `<section class="card"><div class="between"><h2>Álbum</h2><span class="big">${tem}/${PETS.length + PETS_EVENTO.length}</span></div><div class="bar"><i style="width:${tem / (PETS.length + PETS_EVENTO.length) * 100}%"></i></div><p class="muted">Complete uma raridade inteira para ganhar um bônus permanente de moedas. Bônus atual: <b>+${Math.round(bonusSets(S) * 100)}%</b>.</p></section>${grupos}${grupoEv}`;
   }
   const hoje = diaDe(Date.now());
   const cards = S.missoes.map((m, i) => `<section class="card"><div class="between"><h3>${missaoDesc(m)}</h3></div>
@@ -410,8 +451,11 @@ function viewDev() {
   return `<section class="card"><h2>Painel de anúncios</h2>
       <p class="muted">Valores simulados para estimar o potencial do jogo. O eCPM real varia por país, rede de anúncios e público.</p>
       <div class="scroll-x"><table><thead><tr><th>Anúncio recompensado</th><th>Assistidos</th></tr></thead><tbody>
-        ${linha('Coletar em dobro', a.dobro)}${linha('Chocar agora', a.acelerar)}${linha('Ovo grátis', a.ovo)}${linha('+2 gemas', a.gemas)}${linha('Missão em dobro', a.missao)}${linha('Bônus diário em dobro', a.diario)}
+        ${linha('Coletar em dobro', a.dobro)}${linha('Chocar agora', a.acelerar)}${linha('Ovo grátis', a.ovo)}${linha('+2 gemas', a.gemas)}${linha('Missão em dobro', a.missao)}${linha('Bônus diário em dobro', a.diario)}${linha('Baú extra do dia', a.bau)}${linha('Ovo brilhante', a.brilho)}${linha('Adubo da horta', a.adubo)}${linha('Pedido em dobro', a.pedido)}
         <tr><td><b>Total</b></td><td><b>${tot}</b></td></tr></tbody></table></div></section>
+    <section class="card"><h2>Suas métricas</h2><div class="scroll-x"><table><tbody>
+        ${linha('Dias jogados', Object.keys(S.metr.dias || {}).length)}${linha('Sessões', S.metr.sessoes || 0)}${linha('Ovos chocados', S.stats.chocados)}${linha('Pedidos entregues', S.stats.pedidos || 0)}${linha('Prestígios', S.prest || 0)}${linha('Compras simuladas', S.metr.compra_simulada || 0)}${linha('Convites compartilhados', S.metr.convite || 0)}</tbody></table></div>
+      <p class="muted">Métricas do jogo todo (retenção D1/D7/D30, anúncios por dia, funil do tutorial) ficam no servidor: rode backend/metricas.sql no editor SQL do Supabase.</p></section>
     <section class="card"><h2>Calculadora de receita</h2>
       <div class="field-in"><label for="devEcpm">eCPM (US$ por mil anúncios)</label><input id="devEcpm" data-dev="ecpm" type="number" inputmode="decimal" min="0" step="0.5" value="${S.dev.ecpm}"></div>
       <div class="field-in"><label for="devDau">Jogadores ativos por dia</label><input id="devDau" data-dev="dau" type="number" inputmode="numeric" min="0" step="100" value="${S.dev.dau}"></div>
@@ -421,7 +465,8 @@ function viewDev() {
       <div class="kpi"><span class="muted">Projeção por mês</span><span class="big" id="devMes">—</span></div></section>
     <section class="card"><h2>Sobre o modo social</h2><p class="muted">${window.ON && ON.ativo ? 'Conectado ao servidor: guilda, ranking e mural usam jogadores reais, e seu progresso é salvo na nuvem.' : 'Guilda, ranking e mural usam jogadores simulados que seguem o relógio real. Na versão online, esses dados vêm de um servidor com contas e salvamento na nuvem.'}</p></section>
     <section class="card"><h2>Dados do jogo</h2><p class="muted">O progresso fica salvo neste navegador.</p>
-      <button class="btn ghost" data-act="resetar">${confirmaReset ? 'Toque de novo para confirmar' : 'Zerar progresso'}</button></section>`;
+      <button class="btn ghost" data-act="resetar">${confirmaReset ? 'Toque de novo para confirmar' : 'Zerar progresso'}</button>
+      <button class="btn ghost" data-act="aba" data-arg="ajustes">Voltar aos ajustes</button></section>`;
 }
 function calcDev() {
   const a = S.ads, tot = Object.keys(a).reduce((x, k) => x + a[k], 0), e = S.dev.ecpm / 1000, dia = S.dev.dau * S.dev.adsDia * e;
@@ -434,7 +479,7 @@ let abaVista = '', entrouT = 0;
 function render() {
   const v = $('#view');
   if (aba !== abaVista) { abaVista = aba; v.classList.add('in'); clearTimeout(entrouT); entrouT = setTimeout(() => v.classList.remove('in'), 650); }
-  v.innerHTML = aba === 'sitio' ? viewSitio() : aba === 'ovos' ? viewOvos() : aba === 'obras' ? viewObras() : aba === 'guilda' ? viewGuilda() : aba === 'metas' ? viewMetas() : viewDev();
+  v.innerHTML = aba === 'sitio' ? viewSitio() : aba === 'ovos' ? viewOvos() : aba === 'obras' ? viewObrasTab() : aba === 'guilda' ? viewGuilda() : aba === 'metas' ? viewMetas() : aba === 'ajustes' ? viewAjustes() : viewDev();
   document.querySelectorAll('#nav button').forEach(b => {
     const on = b.dataset.arg === aba; b.classList.toggle('on', on);
     if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
@@ -453,21 +498,21 @@ function tick() {
   const now = Date.now();
   processar(avancar(S, now));
   const navBtn = k => document.querySelector('#nav button[data-arg="' + k + '"]');
-  const pend = S.missoes.some(m => m && m.feita) || S.diario.ultimo !== diaDe(now);
+  const pend = S.missoes.some(m => m && m.feita) || S.diario.ultimo !== diaDe(now) || temPendenciaMetas();
   navBtn('metas').classList.toggle('has', pend);
-  navBtn('obras').classList.toggle('has', temMelhoria());
+  navBtn('obras').classList.toggle('has', temMelhoria() || hortaPronta());
   navBtn('guilda').classList.toggle('has', bauPronto(now));
   navBtn('ovos').classList.toggle('has', S.eggs.some(e => e && now >= e.pronto));
   const cap = capCeleiro(S), q = Math.floor(S.barn), p = prodTotal(S), max = S.nivel >= NIVEL_MAX, prox = xpProx(S.nivel);
   $('#hudLv').textContent = S.nivel; $('#hudTit').textContent = tituloDe(S.nivel);
   const xpPct = max ? 100 : Math.min(100, S.xp / prox * 100);
   $('#hudRing').style.setProperty('--p', xpPct.toFixed(1)); $('#hudXp').style.width = xpPct + '%';
-  const fab = $('#fab'), mostrarFab = aba !== 'sitio' && aba !== 'dev' && q >= Math.max(20, cap * 0.25);
+  const fab = $('#fab'), mostrarFab = aba !== 'sitio' && aba !== 'dev' && aba !== 'ajustes' && q >= Math.max(20, cap * 0.25);
   if (fab.hidden === mostrarFab) fab.hidden = !mostrarFab;
   if (mostrarFab) $('#fabQtd').textContent = '+' + fmt(q);
   if (aba === 'sitio') {
     const at = ativos(S);
-    Cena.atualizar({ nivel: S.nivel, tier: tierDe(S.nivel), obras: S.obras, pct: S.barn / cap, ativos: at.map(a => ({ id: a.id, em: PET_POR_ID[a.id].em, r: PET_POR_ID[a.id].r })) });
+    Cena.atualizar({ nivel: S.nivel, tier: tierDe(S.nivel), obras: S.obras, tema: temaAtual(S, now), decor: S.decor, pct: S.barn / cap, ativos: at.map(a => ({ id: a.id, em: PET_POR_ID[a.id].em, r: PET_POR_ID[a.id].r })) });
     $('#prodTxt').textContent = '+' + fmt1(p) + ' moedas/s';
     $('#lvTit').textContent = tituloDe(S.nivel);
     $('#btnColetar').disabled = q < 1; $('#btnDobro').disabled = q < 1;
@@ -491,6 +536,7 @@ function tick() {
     });
     if (refazer) { render(); return; }
   }
+  tickTelas(now);
   if (now - ultimoSalvo > 5000) salvar();
 }
 /* saldo com contagem suave e "pulinho" quando muda */
@@ -535,13 +581,17 @@ function boasVindas() {
   drenar();
   if (!S.visto && !(window.SITIO_CONFIG && !S.nome)) boasVindas();
 })();
+(function () { const hj = diaDe(Date.now()); S.metr.sessoes = (S.metr.sessoes || 0) + 1; S.metr.dias[hj] = 1; const ks = Object.keys(S.metr.dias); if (ks.length > 120) ks.slice(0, ks.length - 120).forEach(k => delete S.metr.dias[k]); })();
+Som.semVibra = !S.cfg.vibra; aplicarEco();
 atualizarSom(); hudLoop();
 Cena.aoTocar({
   celeiro: () => ACOES.coletar(),
-  bicho: (b, p) => { Fx.glifo(p.x, p.y, '❤️', 22); Fx.brilhos(p.x, p.y + 12, 6, '#FFD23F'); Som.play('pop'); Som.vibrar(8); },
+  lento: () => { if (S.cfg.eco === 'auto' && !S.cfg.ecoAuto) { S.cfg.ecoAuto = true; aplicarEco(); toast('Modo econômico ligado para o jogo ficar mais leve'); salvar(); } },
+  bicho: (b, p) => { if (S.pets[b.id]) { const r = cuidar(S, b.id, Date.now(), 'carinho'); if (r.ok) { receber(r.ups); Fx.glifo(p.x, p.y - 20, humor(1), 24); } } Fx.glifo(p.x, p.y, '❤️', 22); Fx.brilhos(p.x, p.y + 12, 6, '#FFD23F'); Som.play('pop'); Som.vibrar(8); },
   fazendeiro: () => { const p = Cena.posCeleiro() || { x: innerWidth / 2, y: 200 }; Fx.glifo(p.x + 30, p.y + 40, '👋', 26); Som.play('tap'); }
 });
 /*ONLINE*/
 setInterval(tick, 250);
+if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
 document.addEventListener('visibilitychange', () => { if (document.hidden) salvar(); else tick(); });
 </script>

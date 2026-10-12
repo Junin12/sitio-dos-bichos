@@ -42,3 +42,17 @@ test('api.entrar cria sessão anônima quando não há uma', async () => {
   assert.equal(logou, true);
   assert.equal(r.perfil.nome, 'Zé');
 });
+
+test('api: convites, visitas, reações e guildas', async () => {
+  const a = criarApi(await jogador(db, 'ApiA', 6)), b = criarApi(await jogador(db, 'ApiB', 1));
+  const { codigo } = await a.convite.codigo();
+  assert.equal((await b.convite.usar(codigo)).ok, true);
+  assert.equal((await b.convite.usar(codigo)).mensagem, 'Você já usou um convite.');
+  assert.equal((await a.guilda.criar('Api Reage', '')).ok, true);
+  assert.equal((await a.mural.reagir('uau')).ok, true);
+  assert.equal((await a.guildas.ranking()).ok, true);
+  assert.equal((await a.evento('sessao')).ok, true);
+  const rk = await b.ranking(); assert.equal(rk.ok, true);
+  assert.equal((await b.curtir('00000000-0000-0000-0000-000000000000')).erro, 'alvo_invalido');
+  assert.equal((await a.perfilAtualizar({ nivel: 6, poder: 10, prestigio: 0 })).ok, true);
+});

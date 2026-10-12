@@ -1,7 +1,7 @@
 /* ===== Efeitos de partículas por cima de toda a tela =====
    Moedas voando até o saldo, confete, brilhos e corações. Um canvas só, que dorme quando não há partículas. */
 const Fx = (() => {
-  let cv = null, cx = null, dpr = 1, parts = [], raf = 0, ultimo = 0;
+  let cv = null, cx = null, dpr = 1, parts = [], raf = 0, ultimo = 0, eco = false;
   const reduzido = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function garantir() {
     if (cv) return true;
@@ -20,7 +20,7 @@ const Fx = (() => {
   /* alvo: {x,y} em pixels da tela, normalmente o ícone de moedas */
   function moedas(x, y, n, alvo, aoChegar) {
     if (!garantir() || reduzido()) { if (aoChegar) aoChegar(); return; }
-    n = Math.min(n, 18);
+    n = Math.min(eco ? 8 : 18, n);
     for (let i = 0; i < n; i++) {
       const a = rnd(0, Math.PI * 2), v = rnd(90, 230);
       parts.push({ k: 'moeda', x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 140, t: 0, fase: 0, esp: rnd(0.45, 0.7) + i * 0.025, rot: rnd(0, 6), alvo, cb: i === n - 1 ? aoChegar : null, tam: rnd(7, 10) });
@@ -29,6 +29,7 @@ const Fx = (() => {
   }
   function confete(x, y, n, cores) {
     if (!garantir() || reduzido()) return;
+    if (eco) n = Math.ceil(n / 3);
     for (let i = 0; i < n; i++) {
       const a = rnd(-Math.PI * 0.95, -Math.PI * 0.05), v = rnd(260, 620);
       parts.push({ k: 'confete', x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, vida: rnd(1.4, 2.6), rot: rnd(0, 6), vr: rnd(-9, 9), w: rnd(5, 10), h: rnd(3, 6), cor: cores[i % cores.length] });
@@ -99,5 +100,5 @@ const Fx = (() => {
     raf = parts.length ? requestAnimationFrame(passo) : 0;
     if (!parts.length) cx.clearRect(0, 0, innerWidth, innerHeight);
   }
-  return { moedas, confete, brilhos, glifo };
+  return { moedas, confete, brilhos, glifo, eco(v) { eco = !!v; } };
 })();

@@ -6,10 +6,11 @@ const Cena = (() => {
   const W = 360, H = 292, HORIZ = 118;
   const EMOJI = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
   let cv = null, cx = null, bg = null, bgx = null, dpr = 1, esc = 1, raf = 0, ultimo = 0, relogio = 0, bgHora = -9;
-  let info = { nivel: 1, tier: 0, obras: { celeiro: 0, chocadeira: 0, moinho: 0, estufa: 0 }, ativos: [], pct: 0 };
+  let info = { nivel: 1, tier: 0, obras: { celeiro: 0, chocadeira: 0, moinho: 0, estufa: 0 }, ativos: [], pct: 0, tema: 'primavera', decor: {} };
+  let eco = false, ultDes = 0, medN = 0, medT = 0, medido = false, clima = [], temaVisto = '';
   let bichos = [], chave = '', nuvens = [], estrelas = [], borbs = [], vagas = [], flores = [], tufos = [];
   let fazendeiro = { x: 80, y: 192, tx: 80, dir: 1, fase: 0, t: 2, acena: 0 };
-  const cb = { celeiro: null, bicho: null, fazendeiro: null };
+  const cb = { celeiro: null, bicho: null, fazendeiro: null, lento: null };
   const reduzido = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const rnd = (a, b) => a + Math.random() * (b - a);
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -22,6 +23,14 @@ const Cena = (() => {
   const NOITE = hex('#141b4a');
   let L = 1;                                      // luz do dia: 0 noite, 1 dia pleno
   const tom = (h, forca) => rgb(mix(hex(h), NOITE, (1 - L) * (forca == null ? 0.55 : forca)));
+  /* Estações (hemisfério sul): cores do pasto, das árvores e das flores. */
+  const PALS = {
+    primavera: { c1: '#8cc9a0', c2: '#6fbb86', g1: '#7cd08d', g2: '#4fa869', ter: '#d9bd8a', arv: ['#3f9f5e', '#4fb56d', '#4fb56d', '#f7b6d2'], flor: ['#ff7ab6', '#fff', '#ffd23f', '#b69bff'] },
+    verao:     { c1: '#86c98a', c2: '#62bb62', g1: '#8bd45f', g2: '#4fae48', ter: '#d8bd7e', arv: ['#2f9a4f', '#3fae5f', '#57c274', '#6cd388'], flor: ['#ffd23f', '#ffb02e', '#fff', '#ff7a5a'] },
+    outono:    { c1: '#c9b27a', c2: '#b79a58', g1: '#c8b45a', g2: '#a8913f', ter: '#c9a46c', arv: ['#c9742a', '#d98b32', '#e3a23a', '#b8602a'], flor: ['#e58b2b', '#c4563b', '#ffd23f', '#fff'] },
+    inverno:   { c1: '#a8c9bd', c2: '#93b8aa', g1: '#a7d0b2', g2: '#86b496', ter: '#cbb999', arv: ['#5f8a78', '#6f9c89', '#80ad9a', '#a8c4b4'], flor: ['#fff', '#dfe9f5', '#c9d8ee', '#fff'] }
+  };
+  let pal = PALS.primavera;
   const CEU = [[0, '#0a1030', '#1d2b5e'], [5, '#1a2150', '#5b4a86'], [6.5, '#ff9f7a', '#ffd9a0'], [8, '#5fb6f5', '#cdeeff'], [12, '#4aa8f0', '#d6f2ff'], [17, '#5aa5e6', '#ffe2b5'], [18.5, '#ff8a5c', '#8a5aa0'], [20, '#1b2152', '#3a3470'], [24, '#0a1030', '#1d2b5e']];
   function ceuEm(h) {
     for (let i = 0; i < CEU.length - 1; i++) {
@@ -41,7 +50,8 @@ const Cena = (() => {
     estrelas = [...Array(46)].map(() => ({ x: rnd(0, W), y: rnd(0, 95), r: rnd(0.5, 1.5), f: rnd(0, 6) }));
     borbs = [...Array(3)].map(() => ({ x: rnd(120, 340), y: rnd(120, 170), a: rnd(0, 6), cor: ['#ff7ab6', '#ffb02e', '#8f7bff'][Math.floor(rnd(0, 3))] }));
     vagas = [...Array(12)].map(() => ({ x: rnd(10, 350), y: rnd(125, 185), a: rnd(0, 6), v: rnd(0.4, 1) }));
-    flores = [...Array(34)].map(() => ({ x: rnd(4, 356), y: rnd(HORIZ + 14, 280), c: ['#ff7ab6', '#fff', '#ffd23f', '#b69bff'][Math.floor(rnd(0, 4))], r: rnd(1, 1.8) }));
+    flores = [...Array(34)].map(() => ({ x: rnd(4, 356), y: rnd(HORIZ + 14, 280), k: Math.floor(rnd(0, 4)), r: rnd(1, 1.8) }));
+    clima = [...Array(24)].map(() => ({ x: rnd(0, W), y: rnd(0, H), v: rnd(10, 26), vx: rnd(-8, 8), a: rnd(0, 6), s: rnd(1.2, 2.6) }));
     tufos = [...Array(44)].map(() => ({ x: rnd(2, 358), y: rnd(HORIZ + 8, 284), a: rnd(0, 6), h: rnd(4, 8) }));
   }
 
@@ -81,17 +91,17 @@ const Cena = (() => {
       for (let x = 0; x <= W; x += 6) c.lineTo(x, base - Math.sin(x / 58 + fase) * amp - Math.sin(x / 23 + fase * 2) * amp * 0.25);
       c.lineTo(W, H); c.closePath(); c.fill();
     };
-    colina(HORIZ - 2, 14, 0.5, tom('#8cc9a0'));
-    colina(HORIZ + 8, 9, 2.1, tom('#6fbb86'));
+    colina(HORIZ - 2, 14, 0.5, tom(pal.c1));
+    colina(HORIZ + 8, 9, 2.1, tom(pal.c2));
     // pasto
-    g = c.createLinearGradient(0, HORIZ + 4, 0, H); g.addColorStop(0, tom('#7cd08d')); g.addColorStop(1, tom('#4fa869'));
+    g = c.createLinearGradient(0, HORIZ + 4, 0, H); g.addColorStop(0, tom(pal.g1)); g.addColorStop(1, tom(pal.g2));
     c.fillStyle = g; c.beginPath(); c.moveTo(0, HORIZ + 12);
     for (let x = 0; x <= W; x += 8) c.lineTo(x, HORIZ + 12 + Math.sin(x / 40) * 2);
     c.lineTo(W, H); c.lineTo(0, H); c.closePath(); c.fill();
     // trilha de terra
-    c.fillStyle = tom('#d9bd8a', 0.5); c.beginPath(); c.moveTo(20, H); c.quadraticCurveTo(120, 226, 300, 172); c.lineTo(312, 180); c.quadraticCurveTo(150, 250, 76, H); c.closePath(); c.fill();
+    c.fillStyle = tom(pal.ter, 0.5); c.beginPath(); c.moveTo(20, H); c.quadraticCurveTo(120, 226, 300, 172); c.lineTo(312, 180); c.quadraticCurveTo(150, 250, 76, H); c.closePath(); c.fill();
     // flores
-    flores.forEach(f => { c.fillStyle = tom(f.c, 0.3); c.beginPath(); c.arc(f.x, f.y, f.r, 0, 7); c.fill(); });
+    flores.forEach(f => { c.fillStyle = tom(pal.flor[f.k], 0.3); c.beginPath(); c.arc(f.x, f.y, f.r, 0, 7); c.fill(); });
     bgHora = h;
   }
 
@@ -154,12 +164,75 @@ const Cena = (() => {
     c.save(); c.translate(x, y); sombra(c, 0, 0, 16 * s); c.scale(s, s);
     c.fillStyle = tom('#7a5636'); c.fillRect(-3, -22, 6, 22);
     const bal = reduzido() ? 0 : Math.sin(t * 1.2 + fase) * 1.4;
-    [['#3f9f5e', 0, -34, 17], ['#4fb56d', -9, -27, 12], ['#4fb56d', 10, -28, 12], ['#68cc84', 2, -40, 9]].forEach(a => { c.fillStyle = tom(a[0]); c.beginPath(); c.arc(a[1] + bal * (1 + (-a[2] / 40)), a[2], a[3], 0, 7); c.fill(); });
+    [[pal.arv[0], 0, -34, 17], [pal.arv[1], -9, -27, 12], [pal.arv[2], 10, -28, 12], [pal.arv[3], 2, -40, 9]].forEach(a => { c.fillStyle = tom(a[0]); c.beginPath(); c.arc(a[1] + bal * (1 + (-a[2] / 40)), a[2], a[3], 0, 7); c.fill(); });
     c.restore();
   }
   function cerca(c, x0, x1) {
     c.fillStyle = tom('#9b7a4d'); c.fillRect(x0, 154, x1 - x0, 3); c.fillRect(x0, 162, x1 - x0, 3);
     for (let x = x0; x <= x1; x += 20) { c.fillStyle = tom('#8a6a44'); c.fillRect(x, 148, 3.5, 20); }
+  }
+
+
+  /* ---------- decoração (comprada na aba Obras) ---------- */
+  // Posição final de cada item na faixa visível do pasto (os botões cobrem a parte de baixo da cena).
+  const DECOR_P = { girassol: [212, 203, 214, 262], banco: [326, 203, 318, 238], espantalho: [176, 192, 150, 244], colmeia: [26, 198, 30, 216], lago: [78, 199, 96, 270], balanco: [0, 0, 0, 0], fogueira: [262, 205, 270, 266], estandarte: [124, 206, 96, 218] };
+  function dGirassol(c, t) {
+    [[200, 0], [214, 5], [228, -2]].forEach((p, i) => {
+      const bal = reduzido() ? 0 : Math.sin(t * 1.6 + i) * 1.2;
+      c.strokeStyle = tom('#3f9f5e'); c.lineWidth = 2; c.beginPath(); c.moveTo(p[0], 262 + p[1]); c.lineTo(p[0] + bal, 246 + p[1]); c.stroke();
+      c.fillStyle = tom('#ffc21a', 0.3); for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; c.beginPath(); c.arc(p[0] + bal + Math.cos(a) * 5, 244 + p[1] + Math.sin(a) * 5, 3, 0, 7); c.fill(); }
+      c.fillStyle = tom('#6b3f1d'); c.beginPath(); c.arc(p[0] + bal, 244 + p[1], 3.4, 0, 7); c.fill();
+    });
+  }
+  function dBanco(c) { sombra(c, 318, 238, 18); c.fillStyle = tom('#8a6a44'); c.fillRect(304, 222, 30, 5); c.fillRect(306, 214, 26, 3); c.fillRect(306, 227, 3, 11); c.fillRect(329, 227, 3, 11); c.fillStyle = tom('#a98557'); c.fillRect(304, 220, 30, 3); }
+  function dEspantalho(c, t) {
+    const x = 150, y = 244; sombra(c, x, y, 10); c.strokeStyle = tom('#7a5636'); c.lineWidth = 2.4;
+    c.beginPath(); c.moveTo(x, y); c.lineTo(x, y - 34); c.moveTo(x - 15, y - 26); c.lineTo(x + 15, y - 26); c.stroke();
+    c.fillStyle = tom('#3A6EA5'); c.fillRect(x - 6, y - 30, 12, 14); c.fillStyle = tom('#e9c98a'); c.beginPath(); c.arc(x, y - 38, 6, 0, 7); c.fill();
+    c.fillStyle = tom('#8a6a44'); c.beginPath(); c.ellipse(x, y - 43, 11, 2.6, 0, 0, 7); c.fill(); c.fillRect(x - 5, y - 50, 10, 7);
+    c.fillStyle = '#2b1d00'; c.fillRect(x - 3, y - 39, 1.5, 1.5); c.fillRect(x + 1.5, y - 39, 1.5, 1.5);
+  }
+  function dColmeia(c, t) {
+    const x = 30, y = 216; sombra(c, x, y, 12); c.fillStyle = tom('#8a6a44'); c.fillRect(x - 9, y - 6, 3, 8); c.fillRect(x + 6, y - 6, 3, 8);
+    c.fillStyle = tom('#f0c24a'); [[-10, 0], [-9, -8], [-8, -15]].forEach((p, i) => { c.beginPath(); c.ellipse(x, y + p[1] - 2, 11 - i * 1.5, 4.5, 0, 0, 7); c.fill(); });
+    c.fillStyle = '#4a2f00'; c.beginPath(); c.arc(x, y - 8, 2.2, 0, 7); c.fill();
+    if (!reduzido() && !eco) for (let k = 0; k < 3; k++) { const a = t * 2 + k * 2.1; c.fillStyle = '#2b1d00'; c.beginPath(); c.arc(x + Math.cos(a) * 16, y - 18 + Math.sin(a * 1.3) * 7, 1.3, 0, 7); c.fill(); }
+  }
+  function dLago(c, t) {
+    const x = 96, y = 270; c.fillStyle = tom('#5aa9d8', 0.3); c.beginPath(); c.ellipse(x, y, 34, 11, 0, 0, 7); c.fill();
+    c.strokeStyle = 'rgba(255,255,255,.55)'; c.lineWidth = 1; const r = reduzido() ? 0 : (t * 8) % 14; c.beginPath(); c.ellipse(x - 8, y + 1, 4 + r * 0.6, 1.5 + r * 0.2, 0, 0, 7); c.stroke();
+    c.fillStyle = tom('#3f9f5e'); [[x + 14, y + 2], [x + 22, y - 2], [x - 20, y + 3]].forEach(p => { c.beginPath(); c.ellipse(p[0], p[1], 5, 2, 0, 0, 7); c.fill(); });
+    c.fillStyle = '#000'; c.font = '17px ' + EMOJI; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🦆', x - 2 + (reduzido() ? 0 : Math.sin(t * 0.8) * 8), y - 8);
+  }
+  function dBalanco(c, t) {
+    const a = reduzido() ? 0 : Math.sin(t * 1.8) * 0.35; c.save(); c.translate(30, 142); c.rotate(a);
+    c.strokeStyle = tom('#7a5636'); c.lineWidth = 1.2; c.beginPath(); c.moveTo(-5, 0); c.lineTo(-5, 26); c.moveTo(5, 0); c.lineTo(5, 26); c.stroke();
+    c.fillStyle = tom('#a98557'); c.fillRect(-8, 26, 16, 3); c.restore();
+  }
+  function dFogueira(c, t) {
+    const x = 270, y = 266; sombra(c, x, y, 14); c.fillStyle = tom('#6b4a2d'); c.save(); c.translate(x, y); c.rotate(0.5); c.fillRect(-10, -2, 20, 4); c.rotate(-1); c.fillRect(-10, -2, 20, 4); c.restore();
+    const f = reduzido() ? 1 : 1 + Math.sin(t * 9) * 0.12 + Math.sin(t * 17) * 0.06;
+    c.fillStyle = '#ff7a1a'; c.beginPath(); c.moveTo(x - 8, y - 2); c.quadraticCurveTo(x - 6, y - 16 * f, x, y - 22 * f); c.quadraticCurveTo(x + 6, y - 16 * f, x + 8, y - 2); c.closePath(); c.fill();
+    c.fillStyle = '#ffc21a'; c.beginPath(); c.moveTo(x - 4, y - 2); c.quadraticCurveTo(x - 3, y - 10 * f, x, y - 14 * f); c.quadraticCurveTo(x + 3, y - 10 * f, x + 4, y - 2); c.closePath(); c.fill();
+    if (L < 0.8) { const g = c.createRadialGradient(x, y - 8, 2, x, y - 8, 38); g.addColorStop(0, 'rgba(255,170,60,' + (0.4 * (1 - L)) + ')'); g.addColorStop(1, 'rgba(255,170,60,0)'); c.fillStyle = g; c.beginPath(); c.arc(x, y - 8, 38, 0, 7); c.fill(); }
+  }
+  function dEstandarte(c, t) {
+    const x = 96, y = 218; c.fillStyle = tom('#6b4a2d'); c.fillRect(x, y - 44, 2.5, 46);
+    const o = reduzido() ? 0 : Math.sin(t * 3) * 2; c.fillStyle = '#FFC21A'; c.beginPath(); c.moveTo(x + 2.5, y - 44); c.quadraticCurveTo(x + 14, y - 42 + o, x + 26, y - 40); c.lineTo(x + 24, y - 28); c.quadraticCurveTo(x + 14, y - 30 + o, x + 2.5, y - 28); c.closePath(); c.fill();
+    c.fillStyle = '#4a2f00'; c.font = '700 9px system-ui'; c.textAlign = 'center'; c.fillText('★', x + 14, y - 33);
+  }
+  const DECOR_F = { girassol: dGirassol, banco: dBanco, espantalho: dEspantalho, colmeia: dColmeia, lago: dLago, balanco: dBalanco, fogueira: dFogueira, estandarte: dEstandarte };
+
+  /* ---------- clima da estação: pétalas, folhas, flocos ---------- */
+  function desenharClima(c, dt, t) {
+    const k = info.tema; if (eco || reduzido() || (k !== 'primavera' && k !== 'outono' && k !== 'inverno')) return;
+    clima.forEach(p => {
+      p.y += p.v * dt * (k === 'inverno' ? 0.8 : 1); p.x += (p.vx + Math.sin(t * 1.3 + p.a) * 9) * dt; p.a += dt * 2;
+      if (p.y > H + 6) { p.y = -6; p.x = rnd(0, W); } if (p.x < -6) p.x = W + 4; if (p.x > W + 6) p.x = -4;
+      if (k === 'inverno') { c.fillStyle = 'rgba(255,255,255,.85)'; c.beginPath(); c.arc(p.x, p.y, p.s * 0.55, 0, 7); c.fill(); return; }
+      c.fillStyle = k === 'outono' ? (p.s > 1.9 ? '#d9822b' : '#b8602a') : (p.s > 1.9 ? '#ffb6d3' : '#fff');
+      c.beginPath(); c.ellipse(p.x, p.y, p.s * 1.4, p.s * 0.8, p.a, 0, 7); c.fill();
+    });
   }
 
   /* ---------- seres ---------- */
@@ -216,7 +289,10 @@ const Cena = (() => {
   function quadro(ts) {
     raf = 0;
     if (!cv || !cv.isConnected || document.hidden) return;
-    const dt = Math.min(0.05, (ts - ultimo) / 1000 || 0.016); ultimo = ts; relogio += dt;
+    if (eco && ts - ultDes < 32) { raf = requestAnimationFrame(quadro); return; }
+    ultDes = ts;
+    if (!medido && !eco && ultimo) { const d = (ts - ultimo) / 1000; if (d < 0.5) { medN++; medT += d; } if (medN >= 150) { medido = true; if (medT / medN > 0.027 && cb.lento) cb.lento(); } }
+    const dt = Math.max(0, Math.min(0.05, (ts - ultimo) / 1000 || 0.016)); ultimo = ts; relogio += dt;
     const h = horaFixa == null ? horaAgora() : horaFixa; L = luzDe(h);
     if (Math.abs(h - bgHora) > 0.03) pintarFundo(h);
     const c = cx; c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(bg, 0, 0); c.setTransform(dpr * esc, 0, 0, dpr * esc, 0, 0);
@@ -237,16 +313,18 @@ const Cena = (() => {
     // seres ordenados pela profundidade
     const lista = bichos.map(b => ({ y: b.y, f: () => desenharBicho(c, b, t) }));
     lista.push({ y: fazendeiro.y, f: () => desenharFazendeiro(c, fazendeiro, t) });
+    Object.keys(info.decor || {}).forEach(k => { const f = DECOR_F[k], q = DECOR_P[k]; if (f) lista.push({ y: k === 'balanco' ? 120 : q[1], f: () => { c.save(); c.translate(q[0] - q[2], q[1] - q[3]); f(c, t); c.restore(); } }); });
     lista.sort((a, b) => a.y - b.y).forEach(i => i.f());
     bichos.forEach(b => atualizarBicho(b, dt)); atualizarFazendeiro(fazendeiro, dt);
     // borboletas de dia, vaga-lumes à noite
-    if (L > 0.55 && !reduzido()) borbs.forEach(b => {
+    if (L > 0.55 && !reduzido() && !eco) borbs.forEach(b => {
       b.a += dt * 1.6; b.x += Math.cos(b.a * 0.7) * 14 * dt; b.y += Math.sin(b.a * 1.1) * 9 * dt; b.x = clamp(b.x, 110, 345); b.y = clamp(b.y, 128, 172);
       const bat = Math.abs(Math.sin(t * 14 + b.a)) * 4 + 1; c.fillStyle = b.cor; c.beginPath(); c.ellipse(b.x - 2, b.y, bat, 3, -0.4, 0, 7); c.ellipse(b.x + 2, b.y, bat, 3, 0.4, 0, 7); c.fill();
     });
+    desenharClima(c, dt, t);
     // véu da noite
     if (L < 0.95) { c.fillStyle = 'rgba(14,20,70,' + ((1 - L) * 0.38) + ')'; c.fillRect(0, 0, W, H); }
-    if (L < 0.5) vagas.forEach(v => {
+    if (L < 0.5 && !eco) vagas.forEach(v => {
       v.a += dt * v.v; v.x += Math.cos(v.a) * 9 * dt; v.y += Math.sin(v.a * 1.3) * 6 * dt;
       const al = (0.5 - L) * 2 * (0.5 + 0.5 * Math.sin(t * 3 + v.a * 4)), g = c.createRadialGradient(v.x, v.y, 0, v.x, v.y, 7);
       g.addColorStop(0, 'rgba(255,245,140,' + al + ')'); g.addColorStop(1, 'rgba(255,245,140,0)'); c.fillStyle = g; c.beginPath(); c.arc(v.x, v.y, 7, 0, 7); c.fill();
@@ -266,7 +344,7 @@ const Cena = (() => {
   /* ---------- API ---------- */
   function medir() {
     const r = cv.getBoundingClientRect(); if (!r.width) return;
-    dpr = Math.min(2, window.devicePixelRatio || 1); esc = r.width / W;
+    dpr = eco ? 1 : Math.min(2, window.devicePixelRatio || 1); esc = r.width / W;
     const pw = Math.round(r.width * dpr), ph = Math.round(r.width * H / W * dpr);
     if (cv.width !== pw || cv.height !== ph) { cv.width = pw; cv.height = ph; bg.width = pw; bg.height = ph; bgHora = -9; }
   }
@@ -294,7 +372,13 @@ const Cena = (() => {
   document.addEventListener('visibilitychange', () => { if (!document.hidden) iniciar(); });
   return {
     montar, parar, iniciar,
-    atualizar(i) { info = i; if (cv && cv.isConnected) sincronizar(); },
+    atualizar(i) {
+      info = i;
+      if (i.tema !== temaVisto) { temaVisto = i.tema; pal = PALS[i.tema] || PALS.primavera; bgHora = -9; }
+      if (cv && cv.isConnected) sincronizar();
+    },
+    eco(v) { v = !!v; if (v !== eco) { eco = v; if (cv && cv.isConnected) { medir(); bgHora = -9; } } },
+    pal(t) { pal = PALS[t] || PALS.primavera; temaVisto = t; bgHora = -9; },
     aoTocar(f) { Object.assign(cb, f); },
     posCeleiro() { return cv && cv.isConnected ? pos(62, 118) : null; },
     hora(h) { horaFixa = h; bgHora = -9; },

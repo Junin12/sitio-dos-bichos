@@ -2,10 +2,10 @@
    Entra no mesmo script do jogo (veja build.py --online). Se algo falhar, o jogo continua no modo offline
    com jogadores simulados. Depende de: criarApi (src/api.js), window.SITIO_CONFIG e window.supabase. */
 const ONLINE_ID = 1000;               // marca em S.guilda.id: "estou numa guilda real"
-var ON = window.ON = { ativo: false, e: null, guildas: null, rank: null, msg: '', tE: 0, tR: 0, tG: 0, busy: false, confirmaSair: false };
-let api = null, versaoSave = 0, nivelServ = 1, pend = {}, ultNivel = 0, ultSafra = 0, tPerfil = 0, tSave = 0, saveRodando = false;
-const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const placar = s => s.nivel * 1e8 + s.safra * 1e4 + s.summons;   // quem tem mais progresso vence ao sincronizar
+var ON = window.ON = { ativo: false, e: null, guildas: null, rank: null, gr: null, convite: null, msg: '', tE: 0, tR: 0, tG: 0, tGR: 0, tC: 0, busy: false, confirmaSair: false };
+let prestServ = 0;
+let sbCli = null, api = null, versaoSave = 0, nivelServ = 1, pend = {}, ultNivel = 0, ultSafra = 0, tPerfil = 0, tSave = 0, saveRodando = false;
+const placar = s => (s.prest || 0) * 1e12 + s.nivel * 1e8 + s.safra * 1e4 + s.summons;   // quem tem mais progresso vence ao sincronizar
 
 function pedirNome() {
   return new Promise(res => {
@@ -24,11 +24,11 @@ function pedirNome() {
 async function onlineIniciar() {
   const C = window.SITIO_CONFIG;
   if (!C || !C.url || !window.supabase) return;
-  api = criarApi(window.supabase.createClient(C.url, C.key));
+  sbCli = window.supabase.createClient(C.url, C.key); api = criarApi(sbCli);
   if (!S.nome) await pedirNome();
   const r = await api.entrar(S.nome);
   if (!r.ok) { ON.msg = r.mensagem; setTimeout(onlineIniciar, 60000); return; }
-  nivelServ = r.perfil.nivel;
+  nivelServ = r.perfil.nivel; prestServ = r.perfil.prestigio || 0;
   const c = await api.save.carregar();
   if (c.ok) {
     versaoSave = c.versao;
@@ -40,6 +40,14 @@ async function onlineIniciar() {
   HOOK_PONTOS = (n, m) => { if (S.guilda.id >= 0) pend[m] = (pend[m] || 0) + n; };
   HOOK_CHOQUE = id => { if (S.guilda.id >= 0) api.mural.postar('choque', { pet_id: id }).then(() => { ON.tE = 0; }); };
   ON.ativo = true; ON.msg = '';
+  ON.metrica = n => { api.evento(n); };
+  ON.sync = atualizarPerfil;
+  api.evento('sessao');
+  if (S.convitePend) {                       // chegou por um link de convite
+    const cv = await api.convite.usar(S.convitePend);
+    if (cv.ok) { S.gems += 10; S.convUsado = true; toast('Convite de ' + cv.convidante + ': +10 gemas'); }
+    if (cv.ok || cv.erro !== 'rede') { S.convitePend = null; if (!cv.ok) S.convUsado = true; }
+  }
   await onGuilda();
   salvarNuvem();
   render();
@@ -78,16 +86,20 @@ async function postarEventos() {
   const s10 = Math.floor((S.safra - 1) / 10) * 10;
   if (s10 >= 10 && s10 > ultSafra) { ultSafra = s10; await api.mural.postar('safra', { n: s10 }); }
 }
+const tetoPoder = (nivel, pr) => Math.floor(400 * Math.pow(1.5, nivel) * (1 + pr) + 4000 * pr);
 async function atualizarPerfil() {
   let alvo = S.nivel, guard = 0;
   while (nivelServ < alvo && guard++ < 8) {
     const passo = Math.min(alvo, nivelServ + 5);
-    const r = await api.perfilAtualizar({ nivel: passo, poder: Math.min(poderJogador(S), Math.floor(400 * Math.pow(1.5, passo))) });
+    const r = await api.perfilAtualizar({ nivel: passo, poder: Math.min(poderJogador(S), tetoPoder(passo, prestServ)), prestigio: prestServ });
     if (!r.ok) return;
     nivelServ = passo;
   }
-  const r = await api.perfilAtualizar({ nivel: Math.min(S.nivel, nivelServ + 5), poder: Math.min(poderJogador(S), Math.floor(400 * Math.pow(1.5, S.nivel))) });
-  if (r.ok) nivelServ = Math.min(S.nivel, nivelServ + 5);
+  // o prestígio sobe de 1 em 1; o servidor só aceita depois de ter visto o nível 25
+  const pr = (S.prest || 0) > prestServ && nivelServ >= NIVEL_PRESTIGIO ? prestServ + 1 : prestServ;
+  const nv = Math.min(S.nivel, nivelServ + 5);
+  const r = await api.perfilAtualizar({ nivel: nv, poder: Math.min(poderJogador(S), tetoPoder(nv, pr)), prestigio: pr });
+  if (r.ok) { nivelServ = nv; prestServ = pr; }
 }
 async function salvarNuvem() {
   if (saveRodando || !ON.ativo) return; saveRodando = true;
@@ -118,6 +130,7 @@ async function visitar(forcar) {
   if (forcar || agora - ON.tE > 30000) { await onGuilda(); mudou = true; }
   if (ON.e && !ON.e.guilda && S.nivel >= NIVEL_GUILDA && (forcar || agora - ON.tG > 30000)) { await onLista(); mudou = true; }
   if (subG === 'ranking' && (forcar || agora - ON.tR > 60000)) { await onRanking(); mudou = true; }
+  if (subG === 'guildas' && (forcar || agora - ON.tGR > 60000)) { const r = await api.guildas.ranking(20); if (r.ok) { ON.gr = r; ON.tGR = Date.now(); mudou = true; } }
   const campo = document.activeElement && document.activeElement.tagName === 'INPUT';
   if (mudou && aba === 'guilda' && !campo) render();
 }
@@ -161,14 +174,29 @@ function viewGuildaOn() {
       <div class="chests">${baus}</div>
       <p class="muted">${falta > 0 ? `Você tem ${w.meus_pontos} pontos. Faça mais ${falta} para resgatar os baús.` : `Seus pontos: ${w.meus_pontos}.`} Pontos vêm de chocar ovos, coletar, missões, ajudar vizinhos e doar. A meta zera toda segunda.</p></section>
     <section class="card"><h2>Membros</h2><p class="muted">Pontos da semana. Ajude cada vizinho uma vez por dia para ganhar moedas e pontos.</p>${membros}</section>
-    <section class="card"><h2>Mural da guilda</h2>${mural}</section>
+    <section class="card"><h2>Mural da guilda</h2>${mural}<div class="reacoes">${[['oi', '👋 Oi'], ['parabens', '👏 Parabéns'], ['bora', '💪 Bora!'], ['valeu', '🙏 Valeu'], ['uau', '😮 Uau']].map(r => `<button class="btn mini ghost" data-act="gReagir" data-arg="${r[0]}">${r[1]}</button>`).join('')}</div></section>
     <section class="card"><button class="btn ghost" data-act="gSair">${ON.confirmaSair ? 'Toque de novo para sair da guilda' : 'Sair da guilda'}</button></section>`;
+}
+async function carregarConvite() {
+  if (!ON.ativo || Date.now() - ON.tC < 30000) return; ON.tC = Date.now();
+  const r = await api.convite.codigo(); if (r.ok) { ON.convite = r; if (aba === 'ajustes') render(); }
+}
+function viewGuildasRankOn() {
+  const r = ON.gr;
+  if (!r) return faixa() + '<section class="card"><p class="muted">Carregando o ranking das guildas…</p></section>';
+  const p = r.premio, premioG = p ? [30, 20, 10][p.posicao - 1] : 0;
+  const linha = x => `<div class="mrow ${x.minha ? 'eu' : ''}"><span class="pos">${x.pos}</span><span class="who"><b>${esc(x.nome)}</b><small>Nv ${x.nivel} · ${x.ativos} ativos</small></span><span class="pts num">${fmt(x.pontos)}</span><span></span></div>`;
+  return faixa() + `${p ? `<section class="card guia"><span class="gic">🏆</span><div class="gtx"><b>Sua guilda ficou em ${p.posicao}º lugar!</b><span>Prêmio da semana passada: ${premioG} gemas e ${fmt(Math.max(500, Math.round(prodTotal(S) * 1800)))} moedas.</span></div><button class="btn primary" data-act="gPremio">Resgatar</button></section>` : ''}
+    <section class="card"><div class="between"><h2>Guilda contra guilda</h2><span class="badge on">${r.minha ? r.minha.pos + 'º lugar' : 'fora da disputa'}</span></div>
+      <p class="muted">Soma dos pontos de todos os membros nesta semana. A disputa fecha no domingo à noite (termina em ${duracao(Math.max(0, r.termina_em - (Date.now() - ON.tGR) / 1000))}). O pódio ganha gemas e moedas.</p>
+      <p class="muted">Para entrar na disputa a guilda precisa ter 3 ou mais membros pontuando na semana, e você precisa de 30 pontos para receber o prêmio.</p></section>
+    <section class="card">${r.top.length ? r.top.map(linha).join('') : '<p class="muted">Nenhuma guilda pontuou ainda. Seja a primeira!</p>'}</section>`;
 }
 function viewRankingOn() {
   const r = ON.rank;
   if (!r) return faixa() + '<section class="card"><p class="muted">Carregando o ranking…</p></section>';
   const acima = r.eu.pos && r.eu.pos > 1 ? r.top.find(x => x.pos === r.eu.pos - 1) : null;
-  const linha = x => `<div class="mrow ${x.voce ? 'eu' : ''}"><span class="pos">${x.pos}</span><span class="who"><b>${esc(x.nome)}</b><small>Nv ${x.nivel}</small></span><span class="pts num">${fmt(x.poder)}</span><span></span></div>`;
+  const linha = x => `<div class="mrow ${x.voce ? 'eu' : ''}"><span class="pos">${x.pos}</span><span class="who"><b>${esc(x.nome)}</b><small>Nv ${x.nivel}${x.prestigio ? ' · ⭐' + x.prestigio : ''}</small></span><span class="pts num">${fmt(x.poder)}</span>${x.voce ? '<span></span>' : `<button class="btn mini ghost" data-act="visitarSitio" data-arg="${esc(x.id)}">Visitar</button>`}</div>`;
   return faixa() + `<section class="card"><div class="between"><h2>Ranking dos sítios</h2><span class="badge on">${r.eu.pos ? r.eu.pos + 'º de ' + r.total : 'sem posição'}</span></div>
       <p class="muted">Poder do seu sítio: <b>${fmt(poderJogador(S))}</b>${acima ? `. Faltam ${fmt(acima.poder - r.eu.poder + 1)} para passar ${esc(acima.nome)}.` : r.eu.pos === 1 ? '. Você lidera o ranking.' : '.'}</p>
       <p class="muted">O poder soma produção, nível do fazendeiro, bichos descobertos e safras. Seu poder é enviado ao servidor a cada minuto.</p></section>
@@ -208,6 +236,31 @@ Object.assign(ACOES, {
     S.coins += coins; S.gems += b.g; receber(ganharXP(S, 30 + 10 * +i));
     await onGuilda(); toast('Baú: +' + fmt(coins) + ' moedas, +' + b.g + ' gemas');
   }),
+  gReagir: r => agir(async () => { const x = await api.mural.reagir(r); if (!x.ok) return falhou(x); await onGuilda(); }),
+  gPremio: () => agir(async () => {
+    const x = await api.guildas.premio(); if (!x.ok) return falhou(x);
+    const g = [30, 20, 10][x.posicao - 1], c = Math.max(500, Math.round(prodTotal(S) * 1800));
+    S.gems += g; S.coins += c; ON.tGR = 0; Som.play('bau'); Fx.confete(innerWidth / 2, innerHeight * 0.4, 90, ['#FFC21A', '#fff', '#3DBB6B']);
+    toast('Prêmio da guilda: +' + g + ' gemas e +' + fmt(c) + ' moedas'); await visitar(true);
+  }),
+  visitarSitio: id => agir(async () => { const r = await api.visitar(id); if (!r.ok) return falhou(r); abrirVisita(r.sitio); }),
+  curtirSitio: id => agir(async () => {
+    const r = await api.curtir(id); if (!r.ok) return falhou(r);
+    const c = Math.max(50, Math.round(prodTotal(S) * 40)); S.coins += c; Fx.glifo(innerWidth / 2, innerHeight * 0.3, '♥', 36); Som.play('pop'); toast('Curtida enviada: +' + fmt(c) + ' moedas'); fecharModal();
+  }),
+  convResg: () => agir(async () => {
+    const r = await api.convite.resgatar(); if (!r.ok) return falhou(r);
+    S.gems += r.novos * 15; Som.play('bau'); toast('Convites: +' + (r.novos * 15) + ' gemas'); ON.tC = 0; carregarConvite();
+  }),
+  contaApagar: () => {
+    if (!ON.confirmaApagar) { ON.confirmaApagar = true; render(); setTimeout(() => { ON.confirmaApagar = false; if (aba === 'ajustes') render(); }, 5000); return; }
+    return agir(async () => {
+      const r = await api.conta.apagar(); if (!r.ok) return falhou(r);
+      try { await sbCli.auth.signOut(); } catch (e) {}
+      ON.ativo = false; try { localStorage.removeItem(KEY); } catch (e) {}
+      S = novoEstado(Date.now()); toast('Conta apagada. Reiniciando…'); setTimeout(() => location.reload(), 1200);
+    });
+  },
   gParab: id => agir(async () => {
     const r = await api.mural.parabenizar(+id); if (!r.ok) return falhou(r);
     const coins = Math.max(20, Math.round(prodTotal(S) * 30)); S.coins += coins;
@@ -215,7 +268,7 @@ Object.assign(ACOES, {
   }),
 });
 { const aba0 = ACOES.aba, sub0 = ACOES.subG;
-  ACOES.aba = a => { aba0(a); if (a === 'guilda') visitar(true); };
+  ACOES.aba = a => { aba0(a); if (a === 'guilda') visitar(true); if (a === 'ajustes') carregarConvite(); };
   ACOES.subG = x => { sub0(x); visitar(true); }; }
 
 onlineIniciar();

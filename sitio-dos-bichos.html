@@ -1,3 +1,10 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#3DBB6B">
+<meta name="description" content="Sítio dos Bichos: choque ovos, crie seus bichos, cuide da horta e entre numa guilda.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Sítio dos Bichos</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Mulish:wght@400;600;700;800&display=swap">
 <style>
@@ -105,7 +112,7 @@ h3{font:600 16px/1.2 var(--font-display)}
 .bar.sky>i{background:linear-gradient(180deg,var(--sky2),var(--sky))}
 .bar.green>i{background:linear-gradient(180deg,var(--green2),var(--green))}
 
-.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:color-mix(in srgb,var(--ink) 9%,transparent);border-radius:16px;padding:4px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;background:color-mix(in srgb,var(--ink) 9%,transparent);border-radius:16px;padding:4px}
 .seg button{border:0;border-radius:12px;padding:9px;min-height:42px;font:600 15px var(--font-display);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s}
 .seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 2px 0 var(--line)}
 
@@ -254,6 +261,39 @@ th{font:600 12px var(--font-display);color:var(--muted)}
 }
 .iconbtn .slash{display:none}.iconbtn.off .slash{display:inline}.iconbtn.off .onda{display:none}
 
+/* ===== novidades ===== */
+.seg.n4 button,.seg.n5 button{font-size:13px;padding:8px 2px}
+.seg.n3 button{font-size:14px}
+.row.wrap{flex-wrap:wrap}
+button.slot{font:inherit;color:inherit;cursor:pointer;width:100%}
+button.slot:active{transform:scale(.96)}
+.slot .mood{position:absolute;top:3px;right:4px;font-size:13px;z-index:1}
+.parcela.pronto,.pedido.pronto{box-shadow:0 0 0 3px var(--yolk),var(--shadow)}
+.evtmini .bar{margin:6px 0}
+.evtpet{font-size:72px;text-align:center;line-height:1.1;animation:bob 2.4s ease-in-out infinite}
+.evtpet.sombra{filter:brightness(0) opacity(.22)}
+.evtrew{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.evtrew .num{font:700 17px var(--font-display)}
+.evtrew.ok{opacity:.55}
+.decem{font-size:40px;width:56px;text-align:center;flex:none}
+.ajrow{padding:6px 0}
+.reacoes{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.prest{background:linear-gradient(160deg,var(--surface),color-mix(in srgb,var(--yolk) 18%,var(--surface)))}
+a{color:var(--sky-d)}
+#tut{position:fixed;inset:0;z-index:30;pointer-events:none}
+.tutspot{position:absolute;border-radius:16px;box-shadow:0 0 0 9999px rgba(8,22,14,.58),0 0 0 3px var(--yolk);transition:left .28s,top .28s,width .28s,height .28s}
+#tut[hidden] .tutspot{box-shadow:none}
+.tutbub{position:absolute;left:14px;right:14px;max-width:360px;margin:0 auto;background:var(--surface);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px;pointer-events:auto;box-shadow:0 5px 0 var(--line),0 20px 40px -12px rgba(0,0,0,.55);font-weight:700}
+.tutbub::after{content:'';position:absolute;left:var(--ax,50%);width:16px;height:16px;background:var(--surface);transform:translateX(-50%) rotate(45deg)}
+.tutbub.baixo::after{top:-7px}
+.tutbub.cima::after{bottom:-7px}
+.tutbub .row{justify-content:flex-end}
+.eco .rays,.eco .evtpet,.eco .slot .em,.eco .chest.pronto{animation:none}
+.eco .modal,.eco .toast{backdrop-filter:none;-webkit-backdrop-filter:none}
+.eco main.in>*{animation:none}
+@media (prefers-reduced-motion: reduce){.evtpet{animation:none}}
+.toast{pointer-events:none}
+
 </style>
 
 <div class="shell">
@@ -263,6 +303,7 @@ th{font:600 12px var(--font-display);color:var(--muted)}
     <div class="wallet" aria-label="Saldo">
       <span class="chip" id="chipCoins" title="Moedas"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="gcoin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE27A"/><stop offset="1" stop-color="#F5A300"/></linearGradient></defs><circle cx="12" cy="12" r="10.5" fill="url(#gcoin)" stroke="#D98F00" stroke-width="1.5"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="#D98F00" stroke-width="1.4" opacity=".55"/><path d="M8 8c1.5-1.2 3-1.6 4.4-1.4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" fill="none" opacity=".7"/></svg><span id="vCoins">0</span></span>
       <span class="chip" id="chipGems" title="Gemas"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="ggem" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8FD6FF"/><stop offset="1" stop-color="#1B72D8"/></linearGradient></defs><polygon points="12,1.5 21,9 12,22.5 3,9" fill="url(#ggem)" stroke="#1B5FB5" stroke-width="1.3" stroke-linejoin="round"/><polyline points="3,9 21,9" stroke="#fff" stroke-width="1.2" opacity=".6" fill="none"/><polyline points="8,9 12,1.5 16,9" stroke="#fff" stroke-width="1" opacity=".4" fill="none"/></svg><span id="vGems">0</span></span>
+      <button class="iconbtn" id="btnAj" data-act="aba" data-arg="ajustes" aria-label="Ajustes"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1"/></svg></button>
       <button class="iconbtn" id="btnSom" data-act="som" aria-label="Som ligado ou desligado"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="onda" d="M16.5 9a4 4 0 010 6M19 6.5a8 8 0 010 11"/><path class="slash" d="M17 9l5 6M22 9l-5 6"/></svg></button>
     </div>
   </header>
@@ -294,23 +335,54 @@ const PETS = [
   { id: 'coelho',    nome: 'Coelho',             em: '🐰', r: 0 },
   { id: 'leitao',    nome: 'Leitão',             em: '🐷', r: 0 },
   { id: 'patinho',   nome: 'Patinho',            em: '🦆', r: 0 },
+  { id: 'gato',      nome: 'Gato',               em: '🐱', r: 0 },
+  { id: 'cachorro',  nome: 'Cachorro',           em: '🐶', r: 0 },
+  { id: 'peru',      nome: 'Peru',               em: '🦃', r: 0 },
+  { id: 'sapo',      nome: 'Sapo',               em: '🐸', r: 0 },
   { id: 'ovelha',    nome: 'Ovelha',             em: '🐑', r: 1 },
   { id: 'bezerra',   nome: 'Bezerra',            em: '🐮', r: 1 },
   { id: 'cabrito',   nome: 'Cabrito',            em: '🐐', r: 1 },
   { id: 'galinha',   nome: 'Galinha Caipira',    em: '🐔', r: 1 },
+  { id: 'hamster',   nome: 'Hamster',            em: '🐹', r: 1 },
+  { id: 'tartaruga', nome: 'Tartaruga',          em: '🐢', r: 1 },
+  { id: 'abelha',    nome: 'Abelha',             em: '🐝', r: 1 },
+  { id: 'ourico',    nome: 'Ouriço',             em: '🦔', r: 1 },
   { id: 'raposa',    nome: 'Raposa',             em: '🦊', r: 2 },
   { id: 'potro',     nome: 'Potro',              em: '🐴', r: 2 },
   { id: 'lhama',     nome: 'Lhama',              em: '🦙', r: 2 },
   { id: 'lontra',    nome: 'Lontra',             em: '🦦', r: 2 },
-  { id: 'unicornio', nome: 'Unicórnio',          em: '🦄', r: 3 },
+  { id: 'esquilo',   nome: 'Esquilo',            em: '🐿️', r: 2 },
+  { id: 'gamba',     nome: 'Gambá',              em: '🦨', r: 2 },
+  { id: 'texugo',    nome: 'Texugo',             em: '🦡', r: 2 },
+  { id: 'cisne',     nome: 'Cisne',              em: '🦢', r: 3 },
   { id: 'pavao',     nome: 'Pavão',              em: '🦚', r: 3 },
   { id: 'coruja',    nome: 'Coruja',             em: '🦉', r: 3 },
   { id: 'cervo',     nome: 'Cervo',              em: '🦌', r: 3 },
-  { id: 'dragao',    nome: 'Dragão do Milharal', em: '🐲', r: 4 },
-  { id: 'mamute',    nome: 'Mamute Lanoso',      em: '🦣', r: 4 },
-  { id: 'dino',      nome: 'Dino de Palha',      em: '🦕', r: 4 }
+  { id: 'macaco',    nome: 'Macaco-prego',       em: '🐒', r: 3 },
+  { id: 'preguica',  nome: 'Preguiça',           em: '🦥', r: 3 },
+  { id: 'flamingo',  nome: 'Flamingo',           em: '🦩', r: 3 },
+  { id: 'canguru',   nome: 'Canguru',            em: '🦘', r: 3 },
+  { id: 'arara',     nome: 'Arara-azul',         em: '🦜', r: 4 },
+  { id: 'elefante',  nome: 'Elefante',           em: '🐘', r: 4 },
+  { id: 'onca',      nome: 'Onça-pintada',       em: '🐆', r: 4 },
+  { id: 'panda',     nome: 'Panda',              em: '🐼', r: 4 },
+  { id: 'leao',      nome: 'Leão',               em: '🦁', r: 4 },
+  { id: 'zebra',     nome: 'Zebra',              em: '🦓', r: 4 }
 ];
-const PET_POR_ID = Object.fromEntries(PETS.map(p => [p.id, p]));
+/* Bichos exclusivos dos eventos semanais: não saem dos ovos. */
+const PETS_EVENTO = [
+  { id: 'pinguim',  nome: 'Pinguim',   em: '🐧', r: 3, ev: 1 },
+  { id: 'girafa',   nome: 'Girafa',    em: '🦒', r: 3, ev: 1 },
+  { id: 'koala',    nome: 'Coala',     em: '🐨', r: 3, ev: 1 },
+  { id: 'golfinho', nome: 'Golfinho',  em: '🐬', r: 3, ev: 1 },
+  { id: 'camelo',   nome: 'Camelo',    em: '🐪', r: 3, ev: 1 },
+  { id: 'lobo',     nome: 'Lobo-guará', em: '🐺', r: 3, ev: 1 },
+  { id: 'urso',     nome: 'Urso-pardo', em: '🐻', r: 3, ev: 1 },
+  { id: 'tigre',    nome: 'Tigre',     em: '🐅', r: 3, ev: 1 }
+];
+/* Saves antigos tinham bichos que não existem; viram animais reais da mesma raridade. */
+const PET_MIGRA = { unicornio: 'cisne', dragao: 'arara', mamute: 'elefante', dino: 'onca' };
+const PET_POR_ID = Object.fromEntries(PETS.concat(PETS_EVENTO).map(p => [p.id, p]));
 const OVOS = {
   palha:   { nome: 'Ovo de Palha', moeda: 'coins', base: 120, tempo: 20, pesos: [60, 28, 9, 2.6, 0.4], nivel: 1 },
   dourado: { nome: 'Ovo Dourado',  moeda: 'gems',  base: 5,   tempo: 60, pesos: [0, 38, 40, 19, 3],    nivel: 5 }
@@ -373,7 +445,7 @@ function recSafra(n) { return { coins: Math.round(metaSafra(n) * 0.25), xp: 8 + 
 function prodPet(id, lvl) { return RARIDADES[PET_POR_ID[id].r].prod * (1 + 0.3 * (lvl - 1)); }
 function ativos(S) {
   return Object.keys(S.pets)
-    .map(id => ({ id, lvl: S.pets[id].lvl, prod: prodPet(id, S.pets[id].lvl) }))
+    .map(id => ({ id, lvl: S.pets[id].lvl, prod: prodPet(id, S.pets[id].lvl) * (1 + 0.15 * felicidade(S, id)) }))
     .sort((a, b) => b.prod - a.prod)
     .slice(0, S.slots);
 }
@@ -381,7 +453,7 @@ function setsCompletos(S) { return RARIDADES.map((_, r) => PETS.filter(p => p.r 
 function bonusSets(S) { const c = setsCompletos(S); return c.reduce((a, ok, r) => a + (ok ? SET_BONUS[r] : 0), 0); }
 function bonusGuildaProd(S) { return S.guilda.id >= 0 ? 0.04 * (S.guilda.nivel - 1) : 0; }
 function prodBase(S) { return ativos(S).reduce((a, p) => a + p.prod, 0); }
-function multProd(S) { return multMoinho(S.obras.moinho) * (1 + bonusSets(S)) * (1 + bonusGuildaProd(S)); }
+function multProd(S) { return multMoinho(S.obras.moinho) * (1 + bonusSets(S)) * (1 + bonusGuildaProd(S)) * (1 + 0.25 * (S.prest || 0)) * (1 + bonusDecor(S)) * (S.premium && S.premium.passe ? 1.25 : 1); }
 function prodTotal(S) { return prodBase(S) * multProd(S); }
 function capCeleiro(S) { return Math.max(200, prodTotal(S) * 3600 * horasCeleiro(S.obras.celeiro)); }
 function pastoProx(S) { return S.slots < SLOTS_MAX ? { custo: PASTO_CUSTO[S.slots - SLOTS_INI], nivel: PASTO_NIVEL[S.slots - SLOTS_INI] } : null; }
@@ -512,7 +584,7 @@ function parabenizar(S, key, now) {
   return { ok: true, coins };
 }
 /* ranking dos sítios (jogadores simulados) */
-function poderJogador(S) { return Math.round(prodTotal(S) * 10 + S.nivel * 40 + Object.keys(S.pets).length * 25 + S.safra * 12); }
+function poderJogador(S) { return Math.round(prodTotal(S) * 10 + S.nivel * 40 + Object.keys(S.pets).length * 25 + S.safra * 12 + (S.prest || 0) * 300); }
 function rankingSitios(S, now) {
   const dias = Math.max(0, diaDe(now) - S.criadoDia), l = [];
   for (let i = 0; i < 50; i++) l.push({ nome: NOMES[i % 20] + ' ' + SUFIXOS[Math.floor(i / 20)], poder: Math.round(60 * Math.pow(1.17, i) * (1 + 0.04 * dias)), voce: false });
@@ -571,11 +643,14 @@ function evento(S, t, q, r) {
 /* ----- estado e ações ----- */
 function novoEstado(now) {
   const S = {
-    ts: now, coins: 240, gems: 5, barn: 0, pets: {}, slots: SLOTS_INI, nivel: 1, xp: 0,
+    v: 2, prest: 0, ts: now, coins: 240, gems: 5, barn: 0, pets: {}, slots: SLOTS_INI, nivel: 1, xp: 0,
     obras: { celeiro: 0, chocadeira: 0, moinho: 0, estufa: 0 },
     eggs: [{ tipo: 'palha', pronto: now }, null], pity: 0, summons: 0, cd: { ovo: 0, gemas: 0 },
     safra: 1, safraProg: 0, criadoDia: diaDe(now),
-    ads: { dobro: 0, ovo: 0, gemas: 0, acelerar: 0, missao: 0, diario: 0 },
+    ads: { dobro: 0, ovo: 0, gemas: 0, acelerar: 0, missao: 0, diario: 0, bau: 0, brilho: 0, adubo: 0, pedido: 0 },
+    horta: [null, null], colheita: {}, pedidos: [null, null, null], pedidoCont: 0, evt: { sem: -1, pts: 0, res: [0, 0, 0, 0] },
+    bau: { dia: -1, qtd: 0 }, brilho: { dia: -1 }, premium: { semAnuncios: false, passe: false }, decor: {}, tema: 'auto',
+    tut: { passo: 0, fim: false }, cfg: { eco: 'auto', som: true, vibra: true }, metr: { sessoes: 0, dias: {}, convites: 0 },
     dev: { ecpm: 5, dau: 1000, adsDia: 6 },
     missoes: [null, null, null], mCont: 0, diario: { ultimo: -1, seq: 0 }, stats: { coletado: 0, chocados: 0 },
     guilda: { id: -1, entrou: 0, doado: 0, nivel: 1, pontos: 0, semana: -1, baus: [0, 0, 0, 0], ajudou: {}, parab: {}, parabDia: { dia: -1, qtd: 0 } }
@@ -614,7 +689,7 @@ function coletar(S, mult) {
   const q = Math.floor(S.barn); if (q < 1) return null;
   const ganho = q * (mult || 1);
   S.coins += ganho; S.barn -= q; S.stats.coletado += ganho;
-  evento(S, 'coletar', ganho);
+  evento(S, 'coletar', ganho); pontoEvento(S, Math.max(1, Math.floor(q / 400)));
   addPontos(S, Math.max(1, Math.floor(q / 200)), 'coleta');
   return { q, ganho, ups: ganharXP(S, xpColeta(q)) };
 }
@@ -637,7 +712,7 @@ function abrirOvo(S, i, now, rng) {
   S.pity = r.r >= 3 ? 0 : S.pity + 1;
   const res = aplicarPet(S, r.pet.id);
   evento(S, 'chocar', 1); evento(S, 'melhor', 1, r.r);
-  addPontos(S, 10, 'ovo');
+  addPontos(S, 10, 'ovo'); pontoEvento(S, 3);
   if (HOOK_CHOQUE && r.r >= 2) HOOK_CHOQUE(r.pet.id);
   return { tipo: e.tipo, pet: r.pet, r: r.r, res, ups: ganharXP(S, XP_OVO[r.r] * (res.tipo === 'novo' ? 2 : 1)) };
 }
@@ -679,7 +754,228 @@ function resgatarDiario(S, hoje, dobro) {
   S.diario = { ultimo: hoje, seq };
   return { r, k, seq, ups: ganharXP(S, 20) };
 }
+
+
 function anuncioVisto(S, tipo) { S.ads[tipo] = (S.ads[tipo] || 0) + 1; evento(S, 'anuncio', 1); }
+
+/* ===== Cuidar dos bichos ===== */
+const CUIDADO_H = 36, CARINHO_CD = 4 * HORA;
+function felicidade(S, id) {
+  const p = S.pets[id]; if (!p || !p.cuid) return 0;
+  return Math.max(0, Math.min(1, 1 - (S.ts - p.cuid) / (CUIDADO_H * HORA)));
+}
+function nomeDoBicho(S, id) { return (S.pets[id] && S.pets[id].nome) || PET_POR_ID[id].nome; }
+function limparNome(t) { return String(t || '').replace(/[^\p{L}\p{N} \-']/gu, '').replace(/\s+/g, ' ').trim().slice(0, 14); }
+function renomear(S, id, nome) {
+  if (!S.pets[id]) return { erro: 'sem' };
+  const n = limparNome(nome);
+  if (!n) { delete S.pets[id].nome; return { ok: true, nome: PET_POR_ID[id].nome }; }
+  S.pets[id].nome = n; return { ok: true, nome: n };
+}
+function custoRacao(S) { return Math.max(100, Math.round(prodTotal(S) * 300)); }
+function cuidar(S, id, now, tipo) {
+  const p = S.pets[id]; if (!p) return { erro: 'sem' };
+  if (tipo === 'racao') {
+    const c = custoRacao(S); if (S.coins < c) return { erro: 'moedas', custo: c };
+    S.coins -= c; p.cuid = now + 12 * HORA; p.carinho = now;
+    return { ok: true, custo: c, ups: ganharXP(S, 6) };
+  }
+  if (p.carinho && now - p.carinho < CARINHO_CD) return { erro: 'espera', falta: CARINHO_CD - (now - p.carinho) };
+  p.cuid = now; p.carinho = now;
+  return { ok: true, ups: ganharXP(S, 3) };
+}
+
+/* ===== Horta ===== */
+const CULTIVOS = {
+  cenoura:  { nome: 'Cenoura',  em: '🥕', tempo: 120,   nivel: 4,  semente: 40 },
+  milho:    { nome: 'Milho',    em: '🌽', tempo: 600,   nivel: 4,  semente: 120 },
+  morango:  { nome: 'Morango',  em: '🍓', tempo: 1800,  nivel: 7,  semente: 400 },
+  tomate:   { nome: 'Tomate',   em: '🍅', tempo: 3600,  nivel: 10, semente: 900 },
+  abobora:  { nome: 'Abóbora',  em: '🎃', tempo: 14400, nivel: 14, semente: 3000 }
+};
+const HORTA_NIVEL = [4, 4, 8, 12, 16];
+const parcelasHorta = n => HORTA_NIVEL.filter(l => n >= l).length;
+function ajustarHorta(S) { const n = parcelasHorta(S.nivel); while (S.horta.length < n) S.horta.push(null); }
+const custoSemente = (S, id) => Math.round(CULTIVOS[id].semente * (1 + 0.1 * (S.nivel - 1)));
+function plantar(S, i, id, now) {
+  const c = CULTIVOS[id]; if (!c) return { erro: 'tipo' };
+  if (S.nivel < c.nivel) return { erro: 'nivel', nivel: c.nivel };
+  if (i < 0 || i >= S.horta.length) return { erro: 'parcela' };
+  if (S.horta[i]) return { erro: 'ocupada' };
+  const custo = custoSemente(S, id); if (S.coins < custo) return { erro: 'moedas', custo };
+  S.coins -= custo; S.horta[i] = { id, pronto: now + c.tempo * 1000 };
+  return { ok: true, custo };
+}
+function adubar(S, i, now) {   // anúncio: corta o que falta pela metade
+  const p = S.horta[i]; if (!p || now >= p.pronto) return { erro: 'nada' };
+  p.pronto = now + Math.floor((p.pronto - now) / 2); return { ok: true };
+}
+function colherHorta(S, i, now) {
+  const p = S.horta[i]; if (!p) return { erro: 'vazia' };
+  if (now < p.pronto) return { erro: 'cedo', falta: p.pronto - now };
+  const qtd = 2 + (S.obras.estufa >= 5 ? 1 : 0) + (S.obras.estufa >= 10 ? 1 : 0);
+  S.colheita[p.id] = (S.colheita[p.id] || 0) + qtd; S.horta[i] = null;
+  pontoEvento(S, 2); addPontos(S, 3, 'horta');
+  return { ok: true, id: p.id, qtd, ups: ganharXP(S, 6 + 2 * CULTIVOS[p.id].nivel) };
+}
+
+/* ===== Pedidos de clientes ===== */
+const CLIENTES = [['Dona Cida', '👵'], ['Seu Tonho', '👨‍🌾'], ['Mari', '👩‍🍳'], ['Padeiro Bento', '🧑‍🍳'], ['Tati', '👩‍🌾'], ['Zé do Milho', '🧓']];
+const PEDIDO_NIVEL = 4;
+function novoPedido(S, now, rng) {
+  rng = rng || Math.random;
+  const cl = CLIENTES[Math.floor(rng() * CLIENTES.length)], L = S.nivel, prod = Math.max(1, prodTotal(S));
+  const disp = Object.keys(CULTIVOS).filter(id => CULTIVOS[id].nivel <= L);
+  const temBicho = Object.keys(S.pets).length > 0;
+  let p;
+  if (temBicho && rng() < 0.3) {
+    const r = Math.min(3, Math.floor(rng() * (1 + L / 8))), lv = 2 + Math.floor(rng() * 3);
+    p = { t: 'bicho', r, lvl: lv, rec: { coins: Math.round(prod * 900 * (1 + r)), xp: 25 + 10 * r, gems: 1 + r }, ate: now + 24 * HORA };
+  } else {
+    const id = disp[Math.floor(rng() * disp.length)], qtd = 2 + Math.floor(rng() * 4);
+    const c = CULTIVOS[id];
+    p = { t: 'colheita', id, qtd, rec: { coins: Math.round(Math.max(60, prod * 120) * qtd * (1 + c.nivel / 6)), xp: 10 + 2 * qtd + c.nivel, gems: qtd >= 5 ? 1 : 0 }, ate: now + 12 * HORA };
+  }
+  p.cliente = cl[0]; p.em = cl[1]; return p;
+}
+function ajustarPedidos(S, now, rng) {
+  if (S.nivel < PEDIDO_NIVEL) return;
+  for (let i = 0; i < S.pedidos.length; i++) if (!S.pedidos[i] || now > S.pedidos[i].ate) { S.pedidos[i] = novoPedido(S, now, rng); S.pedidoCont++; }
+}
+function melhorBichoPara(S, p) {
+  return Object.keys(S.pets).find(id => PET_POR_ID[id].r >= p.r && S.pets[id].lvl >= p.lvl) || null;
+}
+function podeEntregar(S, p) {
+  if (!p) return false;
+  return p.t === 'colheita' ? (S.colheita[p.id] || 0) >= p.qtd : !!melhorBichoPara(S, p);
+}
+function entregarPedido(S, i, now, dobro) {
+  const p = S.pedidos[i]; if (!p) return { erro: 'vazio' };
+  if (now > p.ate) return { erro: 'expirou' };
+  if (!podeEntregar(S, p)) return { erro: 'falta' };
+  if (p.t === 'colheita') S.colheita[p.id] -= p.qtd;
+  const k = dobro ? 2 : 1;
+  S.coins += p.rec.coins * k; S.gems += p.rec.gems * k;
+  pontoEvento(S, 5); addPontos(S, 8, 'pedido'); evento(S, 'pedido', 1);
+  const ups = ganharXP(S, p.rec.xp * k);
+  S.pedidos[i] = novoPedido(S, now); S.pedidoCont++;
+  S.stats.pedidos = (S.stats.pedidos || 0) + 1;
+  return { ok: true, rec: p.rec, k, ups };
+}
+
+/* ===== Evento semanal ===== */
+const EVENTOS = [
+  { id: 'polar',    nome: 'Semana Polar',        em: '🧊', pet: 'pinguim' },
+  { id: 'savana',   nome: 'Semana da Savana',    em: '🌾', pet: 'girafa' },
+  { id: 'oceania',  nome: 'Semana da Oceania',   em: '🌏', pet: 'koala' },
+  { id: 'mar',      nome: 'Semana do Mar',       em: '🌊', pet: 'golfinho' },
+  { id: 'deserto',  nome: 'Semana do Deserto',   em: '🏜️', pet: 'camelo' },
+  { id: 'cerrado',  nome: 'Semana do Cerrado',   em: '🌿', pet: 'lobo' },
+  { id: 'floresta', nome: 'Semana da Floresta',  em: '🌲', pet: 'urso' },
+  { id: 'selva',    nome: 'Semana da Selva',     em: '🌴', pet: 'tigre' }
+];
+const EVT_METAS = [20, 60, 130, 240];
+const eventoDaSemana = now => EVENTOS[((semanaDe(now) % EVENTOS.length) + EVENTOS.length) % EVENTOS.length];
+function evtRec(S, k) {
+  const base = Math.max(200, Math.round(prodTotal(S) * 900));
+  return [{ coins: base, gems: 0 }, { coins: base * 3, gems: 2 }, { coins: base * 6, gems: 4 }, { coins: 0, gems: 5, pet: true }][k];
+}
+function ajustarEvento(S, now) {
+  const sem = semanaDe(now);
+  if (!S.evt || S.evt.sem !== sem) S.evt = { sem, pts: 0, res: [0, 0, 0, 0] };
+}
+function pontoEvento(S, n) { if (S.evt && S.evt.sem >= 0 && S.nivel >= 3) S.evt.pts += n; }
+function resgatarEvento(S, k, now) {
+  ajustarEvento(S, now);
+  if (S.evt.res[k]) return { erro: 'ja' };
+  if (S.evt.pts < EVT_METAS[k]) return { erro: 'meta' };
+  const r = evtRec(S, k); S.evt.res[k] = 1;
+  S.coins += r.coins; S.gems += r.gems;
+  let pet = null, res = null;
+  if (r.pet) { pet = PET_POR_ID[eventoDaSemana(now).pet]; res = aplicarPet(S, pet.id); }
+  return { ok: true, r, pet, res, ups: ganharXP(S, 30 + 20 * k) };
+}
+
+/* ===== Baú diário e ovo brilhante (com anúncio) ===== */
+const BAU_DIA_MAX = 3;
+function bauDisponivel(S, hoje) { return (S.bau.dia === hoje ? S.bau.qtd : 0) < BAU_DIA_MAX; }
+function bauPrecisaAnuncio(S, hoje) { return S.bau.dia === hoje && S.bau.qtd >= 1; }   // o primeiro do dia é de graça
+function abrirBau(S, hoje, rng) {
+  rng = rng || Math.random;
+  if (!bauDisponivel(S, hoje)) return { erro: 'limite' };
+  if (S.bau.dia !== hoje) S.bau = { dia: hoje, qtd: 0 };
+  S.bau.qtd++;
+  const base = Math.max(200, Math.round(prodTotal(S) * 480)), k = 1 + Math.floor(rng() * 3);
+  const gems = rng() < 0.35 ? 1 + Math.floor(rng() * 3) : 0;
+  S.coins += base * k; S.gems += gems;
+  return { ok: true, coins: base * k, gems, resta: BAU_DIA_MAX - S.bau.qtd, ups: ganharXP(S, 10) };
+}
+OVOS.brilhante = { nome: 'Ovo Brilhante', moeda: 'anuncio', base: 0, tempo: 30, pesos: [0, 22, 46, 27, 5], nivel: 3 };
+function brilhoDisponivel(S, hoje) { return S.nivel >= OVOS.brilhante.nivel && S.brilho.dia !== hoje; }
+function ganharOvoBrilho(S, hoje, now) {
+  if (S.nivel < OVOS.brilhante.nivel) return { erro: 'nivel', nivel: OVOS.brilhante.nivel };
+  if (!brilhoDisponivel(S, hoje)) return { erro: 'ja' };
+  const i = S.eggs.findIndex(e => !e); if (i < 0) return { erro: 'cheio' };
+  S.eggs[i] = { tipo: 'brilhante', pronto: now + tempoOvo(S, 'brilhante') * 1000 };
+  S.brilho = { dia: hoje }; return { ok: true, i };
+}
+
+/* ===== Premium (SIMULADO neste protótipo: na loja real vira compra pelo Google Play) ===== */
+const PREMIUM = {
+  semAnuncios: { nome: 'Sem anúncios', desc: 'Os bônus de vídeo passam a ser dados direto, sem precisar assistir.', preco: 'R$ 14,90' },
+  passe:       { nome: 'Passe da Temporada', desc: '+25% de produção, +2 gemas por dia e uma decoração exclusiva.', preco: 'R$ 9,90 / mês' }
+};
+function comprarPremium(S, id) { if (!PREMIUM[id]) return { erro: 'tipo' }; S.premium[id] = true; return { ok: true }; }
+const temPasse = S => !!(S.premium && S.premium.passe);
+const semAnuncios = S => !!(S.premium && S.premium.semAnuncios);
+
+/* ===== Decoração ===== */
+const DECORS = {
+  girassol:  { nome: 'Canteiro de girassóis', em: '🌻', moedas: 300,   nivel: 2 },
+  banco:     { nome: 'Banco de madeira',      em: '🪑', moedas: 1200,  nivel: 3 },
+  espantalho:{ nome: 'Espantalho',            em: '🧑‍🌾', moedas: 5000, nivel: 5 },
+  colmeia:   { nome: 'Colmeia',               em: '🐝', moedas: 20000, nivel: 7 },
+  lago:      { nome: 'Lagoa com patos',       em: '🪷', gemas: 25,    nivel: 8 },
+  balanco:   { nome: 'Balanço na árvore',     em: '🪢', gemas: 40,    nivel: 12 },
+  fogueira:  { nome: 'Fogueira de festa junina', em: '🔥', gemas: 60, nivel: 16 },
+  estandarte:{ nome: 'Estandarte do passe',   em: '🚩', passe: true,   nivel: 1 }
+};
+const bonusDecor = S => Math.min(0.08, 0.01 * Object.keys(S.decor || {}).length);
+function comprarDecor(S, id) {
+  const d = DECORS[id]; if (!d) return { erro: 'tipo' };
+  if (S.decor[id]) return { erro: 'ja' };
+  if (S.nivel < d.nivel) return { erro: 'nivel', nivel: d.nivel };
+  if (d.passe) { if (!temPasse(S)) return { erro: 'passe' }; }
+  else if (d.moedas) { if (S.coins < d.moedas) return { erro: 'moedas' }; S.coins -= d.moedas; }
+  else { if (S.gems < d.gemas) return { erro: 'gemas' }; S.gems -= d.gemas; }
+  S.decor[id] = 1; return { ok: true, ups: ganharXP(S, 20) };
+}
+
+/* ===== Estações e temas (hemisfério sul) ===== */
+const TEMAS = { auto: 'Automático', primavera: 'Primavera', verao: 'Verão', outono: 'Outono', inverno: 'Inverno' };
+function estacaoDe(now) {
+  const m = new Date(now - TZ_OFF * 60000).getUTCMonth();   // 0 = janeiro
+  return m === 11 || m <= 1 ? 'verao' : m <= 4 ? 'outono' : m <= 7 ? 'inverno' : 'primavera';
+}
+const temaAtual = (S, now) => (S.tema && S.tema !== 'auto' && TEMAS[S.tema]) ? S.tema : estacaoDe(now);
+
+/* ===== Prestígio ===== */
+const prestigioGemas = S => 40 + 20 * (S.prest || 0);
+const NIVEL_PRESTIGIO = 25;
+function podePrestigiar(S) { return S.nivel >= NIVEL_PRESTIGIO; }
+function prestigiar(S, now) {
+  if (!podePrestigiar(S)) return { erro: 'nivel' };
+  const g = prestigioGemas(S), n = (S.prest || 0) + 1;
+  const keep = { pets: S.pets, gems: S.gems + g, ads: S.ads, dev: S.dev, guilda: S.guilda, stats: S.stats, premium: S.premium, decor: S.decor, tema: S.tema, tut: S.tut, cfg: S.cfg, metr: S.metr, visto: S.visto, nome: S.nome, convUsado: S.convUsado, diario: S.diario, bau: S.bau, brilho: S.brilho, evt: S.evt, colheita: {} };
+  const N = novoEstado(now);
+  Object.assign(N, keep, { prest: n, criadoDia: S.criadoDia });
+  for (const k of Object.keys(S)) delete S[k];
+  Object.assign(S, N);
+  return { ok: true, prest: n, gems: g };
+}
+
+/* ===== Pontos para a guilda semanal já existem em addPontos; rodada geral de ajustes ao carregar/avançar ===== */
+function ajustarTudo(S, now, rng) { ajustarHorta(S); ajustarPedidos(S, now, rng); ajustarEvento(S, now); }
 
 </script>
 
@@ -721,17 +1017,18 @@ const Som = (() => {
     bau() { [NOTAS.mi, NOTAS.sol, NOTAS.do2].forEach((f, i) => tom(f, 0.2, 'triangle', 0.16, i * 0.08)); },
   };
   return {
+    semVibra: false,
     get mudo() { return mudo; },
     alternar() { mudo = !mudo; try { localStorage.setItem('sitio.mudo', mudo ? '1' : '0'); } catch (e) {} if (!mudo) { ligar(); SONS.tap(); } return mudo; },
     play(nome) { try { if (SONS[nome]) SONS[nome](); } catch (e) {} },
-    vibrar(ms) { if (!mudo && navigator.vibrate) try { navigator.vibrate(ms); } catch (e) {} },
+    vibrar(ms) { if (!mudo && !this.semVibra && navigator.vibrate) try { navigator.vibrate(ms); } catch (e) {} },
   };
 })();
 
 /* ===== Efeitos de partículas por cima de toda a tela =====
    Moedas voando até o saldo, confete, brilhos e corações. Um canvas só, que dorme quando não há partículas. */
 const Fx = (() => {
-  let cv = null, cx = null, dpr = 1, parts = [], raf = 0, ultimo = 0;
+  let cv = null, cx = null, dpr = 1, parts = [], raf = 0, ultimo = 0, eco = false;
   const reduzido = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function garantir() {
     if (cv) return true;
@@ -750,7 +1047,7 @@ const Fx = (() => {
   /* alvo: {x,y} em pixels da tela, normalmente o ícone de moedas */
   function moedas(x, y, n, alvo, aoChegar) {
     if (!garantir() || reduzido()) { if (aoChegar) aoChegar(); return; }
-    n = Math.min(n, 18);
+    n = Math.min(eco ? 8 : 18, n);
     for (let i = 0; i < n; i++) {
       const a = rnd(0, Math.PI * 2), v = rnd(90, 230);
       parts.push({ k: 'moeda', x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 140, t: 0, fase: 0, esp: rnd(0.45, 0.7) + i * 0.025, rot: rnd(0, 6), alvo, cb: i === n - 1 ? aoChegar : null, tam: rnd(7, 10) });
@@ -759,6 +1056,7 @@ const Fx = (() => {
   }
   function confete(x, y, n, cores) {
     if (!garantir() || reduzido()) return;
+    if (eco) n = Math.ceil(n / 3);
     for (let i = 0; i < n; i++) {
       const a = rnd(-Math.PI * 0.95, -Math.PI * 0.05), v = rnd(260, 620);
       parts.push({ k: 'confete', x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, vida: rnd(1.4, 2.6), rot: rnd(0, 6), vr: rnd(-9, 9), w: rnd(5, 10), h: rnd(3, 6), cor: cores[i % cores.length] });
@@ -829,7 +1127,7 @@ const Fx = (() => {
     raf = parts.length ? requestAnimationFrame(passo) : 0;
     if (!parts.length) cx.clearRect(0, 0, innerWidth, innerHeight);
   }
-  return { moedas, confete, brilhos, glifo };
+  return { moedas, confete, brilhos, glifo, eco(v) { eco = !!v; } };
 })();
 
 /* ===== Cena do sítio (canvas 2D) =====
@@ -840,10 +1138,11 @@ const Cena = (() => {
   const W = 360, H = 292, HORIZ = 118;
   const EMOJI = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
   let cv = null, cx = null, bg = null, bgx = null, dpr = 1, esc = 1, raf = 0, ultimo = 0, relogio = 0, bgHora = -9;
-  let info = { nivel: 1, tier: 0, obras: { celeiro: 0, chocadeira: 0, moinho: 0, estufa: 0 }, ativos: [], pct: 0 };
+  let info = { nivel: 1, tier: 0, obras: { celeiro: 0, chocadeira: 0, moinho: 0, estufa: 0 }, ativos: [], pct: 0, tema: 'primavera', decor: {} };
+  let eco = false, ultDes = 0, medN = 0, medT = 0, medido = false, clima = [], temaVisto = '';
   let bichos = [], chave = '', nuvens = [], estrelas = [], borbs = [], vagas = [], flores = [], tufos = [];
   let fazendeiro = { x: 80, y: 192, tx: 80, dir: 1, fase: 0, t: 2, acena: 0 };
-  const cb = { celeiro: null, bicho: null, fazendeiro: null };
+  const cb = { celeiro: null, bicho: null, fazendeiro: null, lento: null };
   const reduzido = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const rnd = (a, b) => a + Math.random() * (b - a);
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -856,6 +1155,14 @@ const Cena = (() => {
   const NOITE = hex('#141b4a');
   let L = 1;                                      // luz do dia: 0 noite, 1 dia pleno
   const tom = (h, forca) => rgb(mix(hex(h), NOITE, (1 - L) * (forca == null ? 0.55 : forca)));
+  /* Estações (hemisfério sul): cores do pasto, das árvores e das flores. */
+  const PALS = {
+    primavera: { c1: '#8cc9a0', c2: '#6fbb86', g1: '#7cd08d', g2: '#4fa869', ter: '#d9bd8a', arv: ['#3f9f5e', '#4fb56d', '#4fb56d', '#f7b6d2'], flor: ['#ff7ab6', '#fff', '#ffd23f', '#b69bff'] },
+    verao:     { c1: '#86c98a', c2: '#62bb62', g1: '#8bd45f', g2: '#4fae48', ter: '#d8bd7e', arv: ['#2f9a4f', '#3fae5f', '#57c274', '#6cd388'], flor: ['#ffd23f', '#ffb02e', '#fff', '#ff7a5a'] },
+    outono:    { c1: '#c9b27a', c2: '#b79a58', g1: '#c8b45a', g2: '#a8913f', ter: '#c9a46c', arv: ['#c9742a', '#d98b32', '#e3a23a', '#b8602a'], flor: ['#e58b2b', '#c4563b', '#ffd23f', '#fff'] },
+    inverno:   { c1: '#a8c9bd', c2: '#93b8aa', g1: '#a7d0b2', g2: '#86b496', ter: '#cbb999', arv: ['#5f8a78', '#6f9c89', '#80ad9a', '#a8c4b4'], flor: ['#fff', '#dfe9f5', '#c9d8ee', '#fff'] }
+  };
+  let pal = PALS.primavera;
   const CEU = [[0, '#0a1030', '#1d2b5e'], [5, '#1a2150', '#5b4a86'], [6.5, '#ff9f7a', '#ffd9a0'], [8, '#5fb6f5', '#cdeeff'], [12, '#4aa8f0', '#d6f2ff'], [17, '#5aa5e6', '#ffe2b5'], [18.5, '#ff8a5c', '#8a5aa0'], [20, '#1b2152', '#3a3470'], [24, '#0a1030', '#1d2b5e']];
   function ceuEm(h) {
     for (let i = 0; i < CEU.length - 1; i++) {
@@ -875,7 +1182,8 @@ const Cena = (() => {
     estrelas = [...Array(46)].map(() => ({ x: rnd(0, W), y: rnd(0, 95), r: rnd(0.5, 1.5), f: rnd(0, 6) }));
     borbs = [...Array(3)].map(() => ({ x: rnd(120, 340), y: rnd(120, 170), a: rnd(0, 6), cor: ['#ff7ab6', '#ffb02e', '#8f7bff'][Math.floor(rnd(0, 3))] }));
     vagas = [...Array(12)].map(() => ({ x: rnd(10, 350), y: rnd(125, 185), a: rnd(0, 6), v: rnd(0.4, 1) }));
-    flores = [...Array(34)].map(() => ({ x: rnd(4, 356), y: rnd(HORIZ + 14, 280), c: ['#ff7ab6', '#fff', '#ffd23f', '#b69bff'][Math.floor(rnd(0, 4))], r: rnd(1, 1.8) }));
+    flores = [...Array(34)].map(() => ({ x: rnd(4, 356), y: rnd(HORIZ + 14, 280), k: Math.floor(rnd(0, 4)), r: rnd(1, 1.8) }));
+    clima = [...Array(24)].map(() => ({ x: rnd(0, W), y: rnd(0, H), v: rnd(10, 26), vx: rnd(-8, 8), a: rnd(0, 6), s: rnd(1.2, 2.6) }));
     tufos = [...Array(44)].map(() => ({ x: rnd(2, 358), y: rnd(HORIZ + 8, 284), a: rnd(0, 6), h: rnd(4, 8) }));
   }
 
@@ -915,17 +1223,17 @@ const Cena = (() => {
       for (let x = 0; x <= W; x += 6) c.lineTo(x, base - Math.sin(x / 58 + fase) * amp - Math.sin(x / 23 + fase * 2) * amp * 0.25);
       c.lineTo(W, H); c.closePath(); c.fill();
     };
-    colina(HORIZ - 2, 14, 0.5, tom('#8cc9a0'));
-    colina(HORIZ + 8, 9, 2.1, tom('#6fbb86'));
+    colina(HORIZ - 2, 14, 0.5, tom(pal.c1));
+    colina(HORIZ + 8, 9, 2.1, tom(pal.c2));
     // pasto
-    g = c.createLinearGradient(0, HORIZ + 4, 0, H); g.addColorStop(0, tom('#7cd08d')); g.addColorStop(1, tom('#4fa869'));
+    g = c.createLinearGradient(0, HORIZ + 4, 0, H); g.addColorStop(0, tom(pal.g1)); g.addColorStop(1, tom(pal.g2));
     c.fillStyle = g; c.beginPath(); c.moveTo(0, HORIZ + 12);
     for (let x = 0; x <= W; x += 8) c.lineTo(x, HORIZ + 12 + Math.sin(x / 40) * 2);
     c.lineTo(W, H); c.lineTo(0, H); c.closePath(); c.fill();
     // trilha de terra
-    c.fillStyle = tom('#d9bd8a', 0.5); c.beginPath(); c.moveTo(20, H); c.quadraticCurveTo(120, 226, 300, 172); c.lineTo(312, 180); c.quadraticCurveTo(150, 250, 76, H); c.closePath(); c.fill();
+    c.fillStyle = tom(pal.ter, 0.5); c.beginPath(); c.moveTo(20, H); c.quadraticCurveTo(120, 226, 300, 172); c.lineTo(312, 180); c.quadraticCurveTo(150, 250, 76, H); c.closePath(); c.fill();
     // flores
-    flores.forEach(f => { c.fillStyle = tom(f.c, 0.3); c.beginPath(); c.arc(f.x, f.y, f.r, 0, 7); c.fill(); });
+    flores.forEach(f => { c.fillStyle = tom(pal.flor[f.k], 0.3); c.beginPath(); c.arc(f.x, f.y, f.r, 0, 7); c.fill(); });
     bgHora = h;
   }
 
@@ -988,12 +1296,75 @@ const Cena = (() => {
     c.save(); c.translate(x, y); sombra(c, 0, 0, 16 * s); c.scale(s, s);
     c.fillStyle = tom('#7a5636'); c.fillRect(-3, -22, 6, 22);
     const bal = reduzido() ? 0 : Math.sin(t * 1.2 + fase) * 1.4;
-    [['#3f9f5e', 0, -34, 17], ['#4fb56d', -9, -27, 12], ['#4fb56d', 10, -28, 12], ['#68cc84', 2, -40, 9]].forEach(a => { c.fillStyle = tom(a[0]); c.beginPath(); c.arc(a[1] + bal * (1 + (-a[2] / 40)), a[2], a[3], 0, 7); c.fill(); });
+    [[pal.arv[0], 0, -34, 17], [pal.arv[1], -9, -27, 12], [pal.arv[2], 10, -28, 12], [pal.arv[3], 2, -40, 9]].forEach(a => { c.fillStyle = tom(a[0]); c.beginPath(); c.arc(a[1] + bal * (1 + (-a[2] / 40)), a[2], a[3], 0, 7); c.fill(); });
     c.restore();
   }
   function cerca(c, x0, x1) {
     c.fillStyle = tom('#9b7a4d'); c.fillRect(x0, 154, x1 - x0, 3); c.fillRect(x0, 162, x1 - x0, 3);
     for (let x = x0; x <= x1; x += 20) { c.fillStyle = tom('#8a6a44'); c.fillRect(x, 148, 3.5, 20); }
+  }
+
+
+  /* ---------- decoração (comprada na aba Obras) ---------- */
+  // Posição final de cada item na faixa visível do pasto (os botões cobrem a parte de baixo da cena).
+  const DECOR_P = { girassol: [212, 203, 214, 262], banco: [326, 203, 318, 238], espantalho: [176, 192, 150, 244], colmeia: [26, 198, 30, 216], lago: [78, 199, 96, 270], balanco: [0, 0, 0, 0], fogueira: [262, 205, 270, 266], estandarte: [124, 206, 96, 218] };
+  function dGirassol(c, t) {
+    [[200, 0], [214, 5], [228, -2]].forEach((p, i) => {
+      const bal = reduzido() ? 0 : Math.sin(t * 1.6 + i) * 1.2;
+      c.strokeStyle = tom('#3f9f5e'); c.lineWidth = 2; c.beginPath(); c.moveTo(p[0], 262 + p[1]); c.lineTo(p[0] + bal, 246 + p[1]); c.stroke();
+      c.fillStyle = tom('#ffc21a', 0.3); for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; c.beginPath(); c.arc(p[0] + bal + Math.cos(a) * 5, 244 + p[1] + Math.sin(a) * 5, 3, 0, 7); c.fill(); }
+      c.fillStyle = tom('#6b3f1d'); c.beginPath(); c.arc(p[0] + bal, 244 + p[1], 3.4, 0, 7); c.fill();
+    });
+  }
+  function dBanco(c) { sombra(c, 318, 238, 18); c.fillStyle = tom('#8a6a44'); c.fillRect(304, 222, 30, 5); c.fillRect(306, 214, 26, 3); c.fillRect(306, 227, 3, 11); c.fillRect(329, 227, 3, 11); c.fillStyle = tom('#a98557'); c.fillRect(304, 220, 30, 3); }
+  function dEspantalho(c, t) {
+    const x = 150, y = 244; sombra(c, x, y, 10); c.strokeStyle = tom('#7a5636'); c.lineWidth = 2.4;
+    c.beginPath(); c.moveTo(x, y); c.lineTo(x, y - 34); c.moveTo(x - 15, y - 26); c.lineTo(x + 15, y - 26); c.stroke();
+    c.fillStyle = tom('#3A6EA5'); c.fillRect(x - 6, y - 30, 12, 14); c.fillStyle = tom('#e9c98a'); c.beginPath(); c.arc(x, y - 38, 6, 0, 7); c.fill();
+    c.fillStyle = tom('#8a6a44'); c.beginPath(); c.ellipse(x, y - 43, 11, 2.6, 0, 0, 7); c.fill(); c.fillRect(x - 5, y - 50, 10, 7);
+    c.fillStyle = '#2b1d00'; c.fillRect(x - 3, y - 39, 1.5, 1.5); c.fillRect(x + 1.5, y - 39, 1.5, 1.5);
+  }
+  function dColmeia(c, t) {
+    const x = 30, y = 216; sombra(c, x, y, 12); c.fillStyle = tom('#8a6a44'); c.fillRect(x - 9, y - 6, 3, 8); c.fillRect(x + 6, y - 6, 3, 8);
+    c.fillStyle = tom('#f0c24a'); [[-10, 0], [-9, -8], [-8, -15]].forEach((p, i) => { c.beginPath(); c.ellipse(x, y + p[1] - 2, 11 - i * 1.5, 4.5, 0, 0, 7); c.fill(); });
+    c.fillStyle = '#4a2f00'; c.beginPath(); c.arc(x, y - 8, 2.2, 0, 7); c.fill();
+    if (!reduzido() && !eco) for (let k = 0; k < 3; k++) { const a = t * 2 + k * 2.1; c.fillStyle = '#2b1d00'; c.beginPath(); c.arc(x + Math.cos(a) * 16, y - 18 + Math.sin(a * 1.3) * 7, 1.3, 0, 7); c.fill(); }
+  }
+  function dLago(c, t) {
+    const x = 96, y = 270; c.fillStyle = tom('#5aa9d8', 0.3); c.beginPath(); c.ellipse(x, y, 34, 11, 0, 0, 7); c.fill();
+    c.strokeStyle = 'rgba(255,255,255,.55)'; c.lineWidth = 1; const r = reduzido() ? 0 : (t * 8) % 14; c.beginPath(); c.ellipse(x - 8, y + 1, 4 + r * 0.6, 1.5 + r * 0.2, 0, 0, 7); c.stroke();
+    c.fillStyle = tom('#3f9f5e'); [[x + 14, y + 2], [x + 22, y - 2], [x - 20, y + 3]].forEach(p => { c.beginPath(); c.ellipse(p[0], p[1], 5, 2, 0, 0, 7); c.fill(); });
+    c.fillStyle = '#000'; c.font = '17px ' + EMOJI; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('🦆', x - 2 + (reduzido() ? 0 : Math.sin(t * 0.8) * 8), y - 8);
+  }
+  function dBalanco(c, t) {
+    const a = reduzido() ? 0 : Math.sin(t * 1.8) * 0.35; c.save(); c.translate(30, 142); c.rotate(a);
+    c.strokeStyle = tom('#7a5636'); c.lineWidth = 1.2; c.beginPath(); c.moveTo(-5, 0); c.lineTo(-5, 26); c.moveTo(5, 0); c.lineTo(5, 26); c.stroke();
+    c.fillStyle = tom('#a98557'); c.fillRect(-8, 26, 16, 3); c.restore();
+  }
+  function dFogueira(c, t) {
+    const x = 270, y = 266; sombra(c, x, y, 14); c.fillStyle = tom('#6b4a2d'); c.save(); c.translate(x, y); c.rotate(0.5); c.fillRect(-10, -2, 20, 4); c.rotate(-1); c.fillRect(-10, -2, 20, 4); c.restore();
+    const f = reduzido() ? 1 : 1 + Math.sin(t * 9) * 0.12 + Math.sin(t * 17) * 0.06;
+    c.fillStyle = '#ff7a1a'; c.beginPath(); c.moveTo(x - 8, y - 2); c.quadraticCurveTo(x - 6, y - 16 * f, x, y - 22 * f); c.quadraticCurveTo(x + 6, y - 16 * f, x + 8, y - 2); c.closePath(); c.fill();
+    c.fillStyle = '#ffc21a'; c.beginPath(); c.moveTo(x - 4, y - 2); c.quadraticCurveTo(x - 3, y - 10 * f, x, y - 14 * f); c.quadraticCurveTo(x + 3, y - 10 * f, x + 4, y - 2); c.closePath(); c.fill();
+    if (L < 0.8) { const g = c.createRadialGradient(x, y - 8, 2, x, y - 8, 38); g.addColorStop(0, 'rgba(255,170,60,' + (0.4 * (1 - L)) + ')'); g.addColorStop(1, 'rgba(255,170,60,0)'); c.fillStyle = g; c.beginPath(); c.arc(x, y - 8, 38, 0, 7); c.fill(); }
+  }
+  function dEstandarte(c, t) {
+    const x = 96, y = 218; c.fillStyle = tom('#6b4a2d'); c.fillRect(x, y - 44, 2.5, 46);
+    const o = reduzido() ? 0 : Math.sin(t * 3) * 2; c.fillStyle = '#FFC21A'; c.beginPath(); c.moveTo(x + 2.5, y - 44); c.quadraticCurveTo(x + 14, y - 42 + o, x + 26, y - 40); c.lineTo(x + 24, y - 28); c.quadraticCurveTo(x + 14, y - 30 + o, x + 2.5, y - 28); c.closePath(); c.fill();
+    c.fillStyle = '#4a2f00'; c.font = '700 9px system-ui'; c.textAlign = 'center'; c.fillText('★', x + 14, y - 33);
+  }
+  const DECOR_F = { girassol: dGirassol, banco: dBanco, espantalho: dEspantalho, colmeia: dColmeia, lago: dLago, balanco: dBalanco, fogueira: dFogueira, estandarte: dEstandarte };
+
+  /* ---------- clima da estação: pétalas, folhas, flocos ---------- */
+  function desenharClima(c, dt, t) {
+    const k = info.tema; if (eco || reduzido() || (k !== 'primavera' && k !== 'outono' && k !== 'inverno')) return;
+    clima.forEach(p => {
+      p.y += p.v * dt * (k === 'inverno' ? 0.8 : 1); p.x += (p.vx + Math.sin(t * 1.3 + p.a) * 9) * dt; p.a += dt * 2;
+      if (p.y > H + 6) { p.y = -6; p.x = rnd(0, W); } if (p.x < -6) p.x = W + 4; if (p.x > W + 6) p.x = -4;
+      if (k === 'inverno') { c.fillStyle = 'rgba(255,255,255,.85)'; c.beginPath(); c.arc(p.x, p.y, p.s * 0.55, 0, 7); c.fill(); return; }
+      c.fillStyle = k === 'outono' ? (p.s > 1.9 ? '#d9822b' : '#b8602a') : (p.s > 1.9 ? '#ffb6d3' : '#fff');
+      c.beginPath(); c.ellipse(p.x, p.y, p.s * 1.4, p.s * 0.8, p.a, 0, 7); c.fill();
+    });
   }
 
   /* ---------- seres ---------- */
@@ -1050,7 +1421,10 @@ const Cena = (() => {
   function quadro(ts) {
     raf = 0;
     if (!cv || !cv.isConnected || document.hidden) return;
-    const dt = Math.min(0.05, (ts - ultimo) / 1000 || 0.016); ultimo = ts; relogio += dt;
+    if (eco && ts - ultDes < 32) { raf = requestAnimationFrame(quadro); return; }
+    ultDes = ts;
+    if (!medido && !eco && ultimo) { const d = (ts - ultimo) / 1000; if (d < 0.5) { medN++; medT += d; } if (medN >= 150) { medido = true; if (medT / medN > 0.027 && cb.lento) cb.lento(); } }
+    const dt = Math.max(0, Math.min(0.05, (ts - ultimo) / 1000 || 0.016)); ultimo = ts; relogio += dt;
     const h = horaFixa == null ? horaAgora() : horaFixa; L = luzDe(h);
     if (Math.abs(h - bgHora) > 0.03) pintarFundo(h);
     const c = cx; c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(bg, 0, 0); c.setTransform(dpr * esc, 0, 0, dpr * esc, 0, 0);
@@ -1071,16 +1445,18 @@ const Cena = (() => {
     // seres ordenados pela profundidade
     const lista = bichos.map(b => ({ y: b.y, f: () => desenharBicho(c, b, t) }));
     lista.push({ y: fazendeiro.y, f: () => desenharFazendeiro(c, fazendeiro, t) });
+    Object.keys(info.decor || {}).forEach(k => { const f = DECOR_F[k], q = DECOR_P[k]; if (f) lista.push({ y: k === 'balanco' ? 120 : q[1], f: () => { c.save(); c.translate(q[0] - q[2], q[1] - q[3]); f(c, t); c.restore(); } }); });
     lista.sort((a, b) => a.y - b.y).forEach(i => i.f());
     bichos.forEach(b => atualizarBicho(b, dt)); atualizarFazendeiro(fazendeiro, dt);
     // borboletas de dia, vaga-lumes à noite
-    if (L > 0.55 && !reduzido()) borbs.forEach(b => {
+    if (L > 0.55 && !reduzido() && !eco) borbs.forEach(b => {
       b.a += dt * 1.6; b.x += Math.cos(b.a * 0.7) * 14 * dt; b.y += Math.sin(b.a * 1.1) * 9 * dt; b.x = clamp(b.x, 110, 345); b.y = clamp(b.y, 128, 172);
       const bat = Math.abs(Math.sin(t * 14 + b.a)) * 4 + 1; c.fillStyle = b.cor; c.beginPath(); c.ellipse(b.x - 2, b.y, bat, 3, -0.4, 0, 7); c.ellipse(b.x + 2, b.y, bat, 3, 0.4, 0, 7); c.fill();
     });
+    desenharClima(c, dt, t);
     // véu da noite
     if (L < 0.95) { c.fillStyle = 'rgba(14,20,70,' + ((1 - L) * 0.38) + ')'; c.fillRect(0, 0, W, H); }
-    if (L < 0.5) vagas.forEach(v => {
+    if (L < 0.5 && !eco) vagas.forEach(v => {
       v.a += dt * v.v; v.x += Math.cos(v.a) * 9 * dt; v.y += Math.sin(v.a * 1.3) * 6 * dt;
       const al = (0.5 - L) * 2 * (0.5 + 0.5 * Math.sin(t * 3 + v.a * 4)), g = c.createRadialGradient(v.x, v.y, 0, v.x, v.y, 7);
       g.addColorStop(0, 'rgba(255,245,140,' + al + ')'); g.addColorStop(1, 'rgba(255,245,140,0)'); c.fillStyle = g; c.beginPath(); c.arc(v.x, v.y, 7, 0, 7); c.fill();
@@ -1100,7 +1476,7 @@ const Cena = (() => {
   /* ---------- API ---------- */
   function medir() {
     const r = cv.getBoundingClientRect(); if (!r.width) return;
-    dpr = Math.min(2, window.devicePixelRatio || 1); esc = r.width / W;
+    dpr = eco ? 1 : Math.min(2, window.devicePixelRatio || 1); esc = r.width / W;
     const pw = Math.round(r.width * dpr), ph = Math.round(r.width * H / W * dpr);
     if (cv.width !== pw || cv.height !== ph) { cv.width = pw; cv.height = ph; bg.width = pw; bg.height = ph; bgHora = -9; }
   }
@@ -1128,7 +1504,13 @@ const Cena = (() => {
   document.addEventListener('visibilitychange', () => { if (!document.hidden) iniciar(); });
   return {
     montar, parar, iniciar,
-    atualizar(i) { info = i; if (cv && cv.isConnected) sincronizar(); },
+    atualizar(i) {
+      info = i;
+      if (i.tema !== temaVisto) { temaVisto = i.tema; pal = PALS[i.tema] || PALS.primavera; bgHora = -9; }
+      if (cv && cv.isConnected) sincronizar();
+    },
+    eco(v) { v = !!v; if (v !== eco) { eco = v; if (cv && cv.isConnected) { medir(); bgHora = -9; } } },
+    pal(t) { pal = PALS[t] || PALS.primavera; temaVisto = t; bgHora = -9; },
     aoTocar(f) { Object.assign(cb, f); },
     posCeleiro() { return cv && cv.isConnected ? pos(62, 118) : null; },
     hora(h) { horaFixa = h; bgHora = -9; },
@@ -1138,23 +1520,38 @@ const Cena = (() => {
 TZ_OFF = new Date().getTimezoneOffset();
 const KEY = 'sitio-dos-bichos.v1';
 const $ = s => document.querySelector(s);
+const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function carregar() {
   let s = null;
   try { s = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
   const base = novoEstado(Date.now());
   if (!s || typeof s !== 'object') return base;
   const r = Object.assign(base, s);
-  ['obras', 'cd', 'ads', 'dev', 'stats', 'diario', 'guilda'].forEach(k => { r[k] = Object.assign({}, base[k], s[k]); });
+  ['obras', 'cd', 'ads', 'dev', 'stats', 'diario', 'guilda', 'premium', 'cfg', 'tut', 'bau', 'brilho', 'metr'].forEach(k => { r[k] = Object.assign({}, base[k], s[k]); });
+  // bichos que não existem mais viram animais reais (mantém o maior nível)
+  for (const velho in PET_MIGRA) if (r.pets[velho]) { const novo = PET_MIGRA[velho]; r.pets[novo] = r.pets[novo] ? (r.pets[novo].lvl >= r.pets[velho].lvl ? r.pets[novo] : r.pets[velho]) : r.pets[velho]; delete r.pets[velho]; }
+  for (const id of Object.keys(r.pets)) if (!PET_POR_ID[id] || !r.pets[id] || !(r.pets[id].lvl >= 1)) delete r.pets[id];
+  if (!Array.isArray(r.horta)) r.horta = []; r.horta = r.horta.map(p => p && CULTIVOS[p.id] ? p : null);
+  if (!r.colheita || typeof r.colheita !== 'object') r.colheita = {};
+  if (!Array.isArray(r.pedidos) || r.pedidos.length !== 3) r.pedidos = [null, null, null];
+  if (!r.decor || typeof r.decor !== 'object') r.decor = {};
+  for (const k of Object.keys(r.decor)) if (!DECORS[k]) delete r.decor[k];
+  if (!r.evt || !Array.isArray(r.evt.res)) r.evt = base.evt;
+  r.eggs = r.eggs.map(e => e && OVOS[e.tipo] ? e : null);
+  if (!r.prest) r.prest = 0;
+  if (!TEMAS[r.tema]) r.tema = 'auto';
   if (!Array.isArray(r.eggs)) r.eggs = [null, null];
   if (!r.pets || typeof r.pets !== 'object') r.pets = {};
   if (!Array.isArray(r.missoes) || r.missoes.length !== 3) { r.missoes = [null, null, null]; for (let i = 0; i < 3; i++) r.missoes[i] = novaMissao(r); }
   r.missoes = r.missoes.map(m => m || novaMissao(r));
   if (r.guilda.id >= GUILDAS.length) r.guilda = base.guilda;   // sobra do modo online
-  ajustarIncubadoras(r);
+  ajustarIncubadoras(r); ajustarTudo(r, Date.now());
   return r;
 }
 let S = carregar();
+try { const cv = new URLSearchParams(location.search).get('convite'); if (cv && /^[0-9A-Za-z]{4,12}$/.test(cv) && !S.convitePend && !S.convUsado) { S.convitePend = cv.toUpperCase(); } } catch (e) {}
 let aba = 'sitio', subG = 'guilda', subM = 'missoes';
+Som.semVibra = false;
 let ultimoSalvo = 0, confirmaReset = false;
 function salvar() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} ultimoSalvo = Date.now(); }
 
@@ -1175,8 +1572,8 @@ const erroMsg0 = e => e.erro === 'nivel' ? 'Libera no nível ' + e.nivel : e.err
 
 const PLAY = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5v9l7-4.5z" fill="currentColor"/></svg>';
 function eggSVG(tipo) {
-  const ouro = tipo === 'dourado';
-  const f1 = ouro ? '#FBD35A' : '#D9C48A', f2 = ouro ? '#E39A0B' : '#B79B5B', pinta = ouro ? '#FFF1B8' : '#8F7640', gid = 'g' + tipo;
+  const ouro = tipo === 'dourado', brilho = tipo === 'brilhante';
+  const f1 = brilho ? '#A5EBFF' : ouro ? '#FBD35A' : '#D9C48A', f2 = brilho ? '#3A8FE0' : ouro ? '#E39A0B' : '#B79B5B', pinta = brilho ? '#E6FAFF' : ouro ? '#FFF1B8' : '#8F7640', gid = 'g' + tipo;
   return `<svg class="eggsvg" viewBox="0 0 64 76" aria-hidden="true"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${f1}"/><stop offset="1" stop-color="${f2}"/></linearGradient></defs><path d="M32 3C19 3 7 26 7 47c0 17 11 26 25 26s25-9 25-26C57 26 45 3 32 3z" fill="url(#${gid})"/><ellipse cx="22" cy="24" rx="5" ry="9" fill="#fff" opacity=".35" transform="rotate(20 22 24)"/><circle cx="40" cy="48" r="3" fill="${pinta}" opacity=".6"/><circle cx="28" cy="58" r="2.2" fill="${pinta}" opacity=".6"/><circle cx="44" cy="36" r="1.8" fill="${pinta}" opacity=".6"/></svg>`;
 }
 
@@ -1195,6 +1592,8 @@ function drenar() {
   Som.play('nivel'); Som.vibrar([30, 40, 60]); Fx.confete(innerWidth / 2, innerHeight * 0.4, 110, ['#FFC21A', '#3DBB6B', '#2F9BE8', '#FF7AB6', '#fff']);
 }
 function anuncio(tipo, titulo, recompensa) {
+  if (semAnuncios(S)) { evento(S, 'anuncio', 1); recompensa(); salvar(); render(); return; }
+  metrica('anuncio');
   adReward = recompensa; adTipo = tipo;
   abrirModal(`<div class="sheet"><p class="eyebrow">Anúncio simulado</p><h2>${titulo}</h2>
     <div><div class="bar"><i id="adBar"></i></div><p class="muted" id="adMsg" style="margin-top:8px">Assistindo… 3s</p></div>
@@ -1241,6 +1640,7 @@ function processar(r, semDrenar) {
 const ACOES = {
   aba(a) { aba = a; confirmaReset = false; render(); $('#view').scrollTop = 0; },
   subG(x) { subG = x; render(); },
+  subOAba() { aba = 'obras'; subO = 'horta'; render(); },
   subM(x) { subM = x; render(); },
   fechar() { fecharModal(); },
   adok() {
@@ -1287,8 +1687,8 @@ const ACOES = {
   ajudar(i) { const r = ajudar(S, +i, Date.now()); if (!r.ok) return toast(erroMsg(r)); receber(r.ups); salvar(); render(); toast('Você ajudou ' + membroNome(S.guilda.id, +i) + ': +' + fmt(r.coins) + ' moedas'); },
   parabens(k) { const r = parabenizar(S, k, Date.now()); if (!r.ok) return toast(erroMsg(r)); salvar(); render(); toast('Parabéns enviado: +' + fmt(r.coins) + ' moedas'); },
   resetar() {
-    if (!confirmaReset) { confirmaReset = true; render(); setTimeout(() => { if (confirmaReset) { confirmaReset = false; if (aba === 'dev') render(); } }, 4000); return; }
-    S = novoEstado(Date.now()); confirmaReset = false; fila = []; salvar(); aba = 'sitio'; render(); toast('Progresso zerado');
+    if (!confirmaReset) { confirmaReset = true; render(); setTimeout(() => { if (confirmaReset) { confirmaReset = false; if (aba === 'dev' || aba === 'ajustes') render(); } }, 4000); return; }
+    S = novoEstado(Date.now()); ajustarTudo(S, Date.now()); confirmaReset = false; fila = []; salvar(); aba = 'sitio'; subO = 'obras'; render(); toast('Progresso zerado');
   }
 };
 document.addEventListener('click', e => {
@@ -1300,6 +1700,362 @@ document.addEventListener('input', e => {
   const k = e.target.dataset && e.target.dataset.dev; if (!k) return;
   S.dev[k] = Math.max(0, parseFloat(e.target.value) || 0); calcDev(); salvar();
 });
+
+/* ===== Telas e sistemas novos =====
+   Horta, pedidos, evento semanal, presentes do dia, decoração, cuidar dos bichos, ajustes, prestígio,
+   convites, visitas, tutorial guiado, modo econômico e lembretes. Entra no mesmo script do jogo (veja build.py). */
+let subO = 'obras', confirmaPrest = false;
+const URL_JOGO = 'https://junin12.github.io/sitio-dos-bichos/';
+const hojeN = () => diaDe(Date.now());
+const trunc = (t, n) => String(t).length > n ? String(t).slice(0, n - 1) + '…' : String(t);
+function metrica(n) {
+  try { S.metr[n] = (S.metr[n] || 0) + 1; if (window.ON && ON.ativo && ON.metrica) ON.metrica(n); } catch (e) {}
+}
+const fimSemanaMs = now => (semanaDe(now) * 7 - 3 + 7) * DIA + TZ_OFF * 60000;
+
+/* ---------- revelar bicho (evento, pedido etc.) ---------- */
+function revelarPet(pet, res, topo) {
+  const r = pet.r, cor = COR_RAR[r];
+  const msg = res.tipo === 'novo' ? 'Novo bicho na coleção!' : res.tipo === 'nivel' ? 'Repetido: subiu para o nível ' + res.lvl : 'Nível máximo: +' + fmt(res.reembolso) + ' moedas';
+  abrirModal(`<div class="sheet" style="--rc:var(--r${r})"><div class="reveal pop"><div class="rays"></div><div class="face">${pet.em}</div>${res.tipo === 'novo' ? '<span class="novo">NOVO!</span>' : ''}<p class="rlabel">${topo || RARIDADES[r].nome}</p><h2>${esc(pet.nome)}</h2><p class="muted">${msg}</p></div><button class="btn primary xl" data-act="fechar">Continuar</button></div>`);
+  Som.play(['comum', 'comum', 'raro', 'epico', 'lendario'][r]); Som.vibrar([30, 30, 80]);
+  Fx.brilhos(innerWidth / 2, innerHeight * 0.42, 14, cor); Fx.confete(innerWidth / 2, innerHeight * 0.42, 70, [cor, '#FFC21A', '#fff', '#FF7AB6']);
+}
+
+/* ---------- cuidar dos bichos ---------- */
+function humor(f) { return f > 0.66 ? '😊' : f > 0.25 ? '🙂' : '😐'; }
+function modalBicho(id) {
+  const p = PET_POR_ID[id], o = S.pets[id]; if (!p || !o) return;
+  const f = felicidade(S, id), agora = Date.now(), esp = o.carinho && agora - o.carinho < CARINHO_CD ? CARINHO_CD - (agora - o.carinho) : 0;
+  abrirModal(`<div class="sheet" style="--rc:var(--r${p.r})"><div class="reveal"><div class="face">${p.em}</div><p class="rlabel">${RARIDADES[p.r].nome}</p><h2>${esc(nomeDoBicho(S, id))}</h2>
+    <p class="muted">Nv ${o.lvl} · ${fmt1(prodPet(id, o.lvl))} moedas/s base</p></div>
+    <div><div class="bar"><i style="width:${(f * 100).toFixed(0)}%"></i></div><p class="muted" style="margin-top:6px">${humor(f)} Felicidade ${Math.round(f * 100)}%: até +15% de produção enquanto estiver feliz.</p></div>
+    <div class="row"><button class="btn primary" data-act="carinho" data-arg="${id}" ${esp ? 'disabled' : ''}>${esp ? 'Carinho em ' + duracao(esp / 1000) : 'Fazer carinho'}</button>
+      <button class="btn ghost" data-act="racao" data-arg="${id}">Ração · ${fmt(custoRacao(S))}</button></div>
+    <input id="petNome" class="inp" maxlength="14" placeholder="Dar um nome" value="${esc(o.nome || '')}" aria-label="Nome do bicho">
+    <div class="row"><button class="btn ghost" data-act="renomear" data-arg="${id}">Salvar nome</button><button class="btn ghost" data-act="fechar">Fechar</button></div></div>`);
+}
+
+/* ---------- Sítio: evento e presentes do dia ---------- */
+function cardEventoMini() {
+  if (S.nivel < 3) return '';
+  const now = Date.now(), ev = eventoDaSemana(now), pet = PET_POR_ID[ev.pet];
+  const prox = EVT_METAS.findIndex((m, k) => !S.evt.res[k]);
+  const pronto = EVT_METAS.some((m, k) => !S.evt.res[k] && S.evt.pts >= m);
+  const alvo = prox < 0 ? EVT_METAS[3] : EVT_METAS[prox];
+  return `<section class="card evtmini"><div class="between"><h3>${ev.em} ${ev.nome}</h3><span class="muted">termina em ${duracao((fimSemanaMs(now) - now) / 1000)}</span></div>
+    <div class="bar"><i style="width:${Math.min(100, S.evt.pts / EVT_METAS[3] * 100)}%"></i></div>
+    <div class="between"><span class="muted num">${S.evt.pts}/${EVT_METAS[3]} pontos · prêmio final: ${pet.em} ${esc(pet.nome)}</span>
+    <button class="btn mini ${pronto ? 'primary' : 'ghost'}" data-act="subMetas" data-arg="evento">${pronto ? 'Resgatar' : 'Ver'}</button></div></section>`;
+}
+function cardPresentes() {
+  const hoje = hojeN(), bau = bauDisponivel(S, hoje), br = brilhoDisponivel(S, hoje);
+  if (!bau && !br && S.nivel >= OVOS.brilhante.nivel) return '';
+  const bBau = !bau ? '<button class="btn ghost" disabled>Baú: volte amanhã</button>'
+    : bauPrecisaAnuncio(S, hoje) ? `<button class="btn ad" data-act="bauDia">${PLAY}Baú extra (${BAU_DIA_MAX - S.bau.qtd}) <span class="tag">${semAnuncios(S) ? 'Passe' : 'Anúncio'}</span></button>`
+    : '<button class="btn primary" data-act="bauDia">🎁 Baú do dia grátis</button>';
+  const bBri = S.nivel < OVOS.brilhante.nivel ? '' : br ? `<button class="btn ad" data-act="brilho">${PLAY}Ovo brilhante <span class="tag">${semAnuncios(S) ? 'Passe' : 'Anúncio'}</span></button>` : '<button class="btn ghost" disabled>Ovo brilhante: amanhã</button>';
+  return `<section class="card"><div class="between"><h3>Presentes do dia</h3><span class="muted">renovam todo dia</span></div><div class="row">${bBau}${bBri}</div></section>`;
+}
+
+/* ---------- Obras: Horta e Decoração ---------- */
+function viewObrasTab() {
+  const seg = segHTML('subO', subO, [['obras', 'Obras'], ['horta', 'Horta'], ['decor', 'Decoração']]);
+  return seg + (subO === 'horta' ? viewHorta() : subO === 'decor' ? viewDecor() : viewObras());
+}
+function viewHorta() {
+  if (S.nivel < CULTIVOS.cenoura.nivel) return `<section class="card"><h2>Horta</h2><p class="muted">Plante legumes e frutas, colha e entregue aos clientes por moedas e gemas. Libera no nível ${CULTIVOS.cenoura.nivel}.</p></section>`;
+  const now = Date.now();
+  const disp = Object.keys(CULTIVOS).filter(id => CULTIVOS[id].nivel <= S.nivel);
+  const parcelas = S.horta.map((p, i) => {
+    if (!p) return `<div class="card parcela"><div class="between"><h3>Canteiro ${i + 1}</h3><span class="muted">livre</span></div><div class="row wrap">${disp.map(id => { const c = CULTIVOS[id], custo = custoSemente(S, id); return `<button class="btn mini ghost" data-act="plantar" data-arg="${i}:${id}" ${S.coins < custo ? 'disabled' : ''}>${c.em} ${fmt(custo)}</button>`; }).join('')}</div><p class="muted">Escolha o que plantar. ${disp.map(id => CULTIVOS[id].em + ' ' + duracao(CULTIVOS[id].tempo)).join(' · ')}</p></div>`;
+    const c = CULTIVOS[p.id], pronto = now >= p.pronto;
+    return `<div class="card parcela ${pronto ? 'pronto' : ''}"><div class="between"><h3>${c.em} ${c.nome}</h3><span class="muted num"><span data-hort="${i}" data-ready="${pronto ? 1 : 0}">${pronto ? 'Pronto!' : mmss(p.pronto - now)}</span></span></div>
+      <div class="bar green"><i data-hortbar="${i}" style="width:${Math.min(100, (1 - (p.pronto - now) / (c.tempo * 1000)) * 100)}%"></i></div>
+      <div class="row">${pronto ? `<button class="btn primary" data-act="colher" data-arg="${i}">Colher</button>` : `<button class="btn ad" data-act="adubar" data-arg="${i}">${PLAY}Adubar <span class="tag">${semAnuncios(S) ? 'Passe' : 'Anúncio'}</span></button>`}</div></div>`;
+  }).join('');
+  const est = Object.keys(S.colheita).filter(id => S.colheita[id] > 0 && CULTIVOS[id]).map(id => `<span class="badge on">${CULTIVOS[id].em} ${S.colheita[id]}</span>`).join(' ') || '<span class="muted">Nada colhido ainda.</span>';
+  const prox = HORTA_NIVEL.find(l => l > S.nivel);
+  return `<section class="card"><div class="between"><h2>Horta</h2><span class="muted">${S.horta.length} canteiros</span></div><p class="muted">Colha e entregue aos clientes na aba Metas, em Pedidos. A Estufa rende mais por colheita.</p><div class="row wrap">${est}</div>${prox ? `<p class="muted">Próximo canteiro no nível ${prox}.</p>` : ''}</section>${parcelas}`;
+}
+function viewDecor() {
+  const n = Object.keys(S.decor).length;
+  const itens = Object.keys(DECORS).map(id => {
+    const d = DECORS[id], tem = S.decor[id], trava = S.nivel < d.nivel;
+    const custo = d.passe ? 'Passe da Temporada' : d.moedas ? fmt(d.moedas) + ' moedas' : d.gemas + ' gemas';
+    const btn = tem ? '<button class="btn ghost" disabled>No seu sítio</button>' : trava ? `<button class="btn ghost" disabled>Nível ${d.nivel}</button>` : d.passe && !temPasse(S) ? '<button class="btn ghost" disabled>Exige o Passe</button>' : `<button class="btn primary" data-act="decorar" data-arg="${id}">Comprar · ${custo}</button>`;
+    return `<div class="card egg"><div class="decem">${d.em}</div><div class="info"><h3>${esc(d.nome)}</h3>${btn}</div></div>`;
+  }).join('');
+  return `<section class="card"><div class="between"><h2>Decoração</h2><span class="badge on">+${Math.round(bonusDecor(S) * 100)}% moedas</span></div><p class="muted">${n} de ${Object.keys(DECORS).length} itens. Cada item deixa o sítio mais bonito e dá +1% de moedas (até +8%).</p></section>${itens}`;
+}
+
+/* ---------- Metas: Pedidos e Evento ---------- */
+function viewPedidos() {
+  if (S.nivel < PEDIDO_NIVEL) return `<section class="card"><h2>Pedidos</h2><p class="muted">Clientes pedem colheitas e querem conhecer seus bichos. Libera no nível ${PEDIDO_NIVEL}.</p></section>`;
+  const now = Date.now();
+  const est = Object.keys(S.colheita).filter(id => S.colheita[id] > 0 && CULTIVOS[id]).map(id => `<span class="badge on">${CULTIVOS[id].em} ${S.colheita[id]}</span>`).join(' ') || '<span class="muted">Sem colheita guardada. Plante na aba Obras, em Horta.</span>';
+  const cards = S.pedidos.map((p, i) => {
+    if (!p) return '';
+    const ok = podeEntregar(S, p), falta = (p.ate - now) / 1000;
+    const quer = p.t === 'colheita' ? `${CULTIVOS[p.id].em} ${p.qtd} ${CULTIVOS[p.id].nome}` : `Um bicho ${RARIDADES[p.r].nome} ou melhor, nível ${p.lvl}+`;
+    const tem = p.t === 'colheita' ? `${Math.min(p.qtd, S.colheita[p.id] || 0)}/${p.qtd}` : (ok ? 'Você tem!' : 'Ainda não');
+    return `<section class="card pedido ${ok ? 'pronto' : ''}"><div class="between"><h3>${p.em} ${esc(p.cliente)}</h3><span class="muted num" ${falta < 1800 ? 'style="color:var(--bad)"' : ''}>${duracao(falta)}</span></div>
+      <p>${quer} <span class="muted">(${tem})</span></p><p class="muted">${textoRec(p.rec)}</p>
+      <div class="row"><button class="btn primary" data-act="entregar" data-arg="${i}" ${ok ? '' : 'disabled'}>Entregar</button>
+      <button class="btn ad" data-act="entregar2x" data-arg="${i}" ${ok ? '' : 'disabled'}>${PLAY}Em dobro <span class="tag">${semAnuncios(S) ? 'Passe' : 'Anúncio'}</span></button></div></section>`;
+  }).join('');
+  return `<section class="card"><div class="between"><h2>Pedidos</h2><span class="muted">${S.stats.pedidos || 0} entregues</span></div><p class="muted">Pedidos vencidos são trocados por outros. Pedidos de bicho não gastam o bicho.</p><div class="row wrap">${est}</div></section>${cards}`;
+}
+function viewEvento() {
+  if (S.nivel < 3) return '<section class="card"><h2>Evento da semana</h2><p class="muted">Todo domingo à noite um tema novo e um bicho exclusivo. Libera no nível 3.</p></section>';
+  const now = Date.now(), ev = eventoDaSemana(now), pet = PET_POR_ID[ev.pet], tem = !!S.pets[pet.id];
+  const premios = EVT_METAS.map((m, k) => {
+    const r = evtRec(S, k), feito = S.evt.res[k], pronto = !feito && S.evt.pts >= m;
+    const txt = r.pet ? `${pet.em} ${esc(pet.nome)} + ${r.gems} gemas` : textoRec({ coins: r.coins, gems: r.gems, xp: 0 });
+    return `<div class="evtrew ${pronto ? 'pronto' : ''} ${feito ? 'ok' : ''}"><span class="num">${m}</span><span class="muted">${txt}</span><button class="btn mini ${pronto ? 'primary' : 'ghost'}" data-act="evtResg" data-arg="${k}" ${pronto ? '' : 'disabled'}>${feito ? 'Pego' : pronto ? 'Resgatar' : 'Trava'}</button></div>`;
+  }).join('');
+  return `<section class="card evthead"><div class="between"><h2>${ev.em} ${ev.nome}</h2><span class="muted">termina em ${duracao((fimSemanaMs(now) - now) / 1000)}</span></div>
+      <div class="evtpet ${tem ? '' : 'sombra'}">${pet.em}</div><p class="muted" style="text-align:center">Bicho exclusivo da semana: <b>${esc(pet.nome)}</b>${tem ? ' (você já tem)' : ''}</p>
+      <div class="bar"><i style="width:${Math.min(100, S.evt.pts / EVT_METAS[3] * 100)}%"></i></div>
+      <p class="muted num">${S.evt.pts} pontos. Ganhe pontos chocando ovos (+3), coletando, colhendo (+2) e entregando pedidos (+5).</p></section>
+    <section class="card"><h3>Prêmios</h3>${premios}</section>`;
+}
+
+/* ---------- Ajustes ---------- */
+function ecoAtivo() {
+  const c = S.cfg.eco;
+  if (c === 'on') return true; if (c === 'off') return false;
+  return !!S.cfg.ecoAuto || (navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 3) || false;
+}
+function aplicarEco() { const v = ecoAtivo(); Cena.eco(v); Fx.eco(v); document.body.classList.toggle('eco', v); }
+function viewAjustes() {
+  const on = window.ON && ON.ativo, p = S.prest || 0;
+  const tema = S.tema || 'auto';
+  const nStat = Notif.estado();
+  const notifTxt = nStat === 'app' || nStat === 'granted' ? (S.cfg.notif ? 'Lembretes ligados' : 'Ligar lembretes') : nStat === 'denied' ? 'Bloqueado no navegador' : nStat === 'nao' ? 'Não disponível aqui' : 'Ligar lembretes';
+  const loja = Object.keys(PREMIUM).map(id => {
+    const x = PREMIUM[id], tem = S.premium[id];
+    return `<div class="card"><div class="between"><h3>${x.nome}</h3><span class="badge ${tem ? 'on' : ''}">${tem ? 'Ativo' : x.preco}</span></div><p class="muted">${x.desc}</p>${tem ? '<button class="btn ghost" data-act="premiumOff" data-arg="' + id + '">Desativar (teste)</button>' : '<button class="btn primary" data-act="premiumOn" data-arg="' + id + '">Simular compra</button>'}</div>`;
+  }).join('');
+  const conv = on && ON.convite ? `<p class="muted">Seu código: <b class="num">${esc(ON.convite.codigo)}</b> · ${ON.convite.ativos} amigo(s) ativo(s) de ${ON.convite.convidados}</p>` : '';
+  const sit = `${S.nome ? esc(S.nome) + ' · ' : ''}${on ? 'online' : 'offline'}`;
+  return `<section class="card"><h2>Ajustes</h2><p class="muted">${sit}</p>
+      <div class="between ajrow"><b>Som</b><button class="btn mini ${Som.mudo ? 'ghost' : 'primary'}" data-act="som">${Som.mudo ? 'Desligado' : 'Ligado'}</button></div>
+      <div class="between ajrow"><b>Vibração</b><button class="btn mini ${S.cfg.vibra ? 'primary' : 'ghost'}" data-act="cfgVibra">${S.cfg.vibra ? 'Ligada' : 'Desligada'}</button></div>
+      <div><b>Modo econômico</b><p class="muted">Menos efeitos e animações em aparelhos mais simples. No automático, o jogo mede o desempenho e liga sozinho se precisar.</p>${segHTML('cfgEco', S.cfg.eco, [['auto', 'Automático'], ['on', 'Ligado'], ['off', 'Desligado']])}</div>
+      <div><b>Estação do sítio</b>${segHTML('cfgTema', tema, [['auto', 'Auto'], ['primavera', 'Prim.'], ['verao', 'Verão'], ['outono', 'Outono'], ['inverno', 'Inverno']])}</div></section>
+    <section class="card"><h2>Lembretes</h2><p class="muted">Avisos de ovo pronto, celeiro cheio, horta e bônus diário. No app instalado pela loja eles chegam com o jogo fechado; no navegador, só enquanto o jogo estiver aberto ou em segundo plano.</p>
+      <button class="btn ${S.cfg.notif ? 'ghost' : 'primary'}" data-act="notif" ${nStat === 'denied' || nStat === 'nao' ? 'disabled' : ''}>${S.cfg.notif ? 'Desligar lembretes' : notifTxt}</button></section>
+    <section class="card"><h2>Convidar amigos</h2><p class="muted">Quem entra pelo seu link ganha 10 gemas, e você ganha 15 gemas por amigo que chegar ao nível 3 (até 20 amigos).</p>${conv}
+      <div class="row"><button class="btn primary" data-act="convidar">Compartilhar convite</button>${on ? '<button class="btn ghost" data-act="convResg">Resgatar prêmios</button>' : ''}</div>
+      ${on ? '' : '<p class="muted">Entre no modo online para ter seu código pessoal.</p>'}</section>
+    <section class="card prest"><div class="between"><h2>Prestígio</h2><span class="badge ${p ? 'on' : ''}">${p ? '×' + (1 + 0.25 * p).toLocaleString('pt-BR') + ' moedas' : 'nunca feito'}</span></div>
+      <p class="muted">No nível ${NIVEL_PRESTIGIO} você pode recomeçar o sítio. Você mantém todos os bichos, o álbum, a decoração e as gemas, ganha <b>${prestigioGemas(S)} gemas</b> e um bônus permanente de <b>+25% de moedas</b>. Perde o nível, as obras, as moedas e a horta.</p>
+      <button class="btn ${podePrestigiar(S) ? 'primary' : 'ghost'}" data-act="prestigio" ${podePrestigiar(S) ? '' : 'disabled'}>${podePrestigiar(S) ? (confirmaPrest ? 'Toque de novo para confirmar' : 'Fazer prestígio') : 'Chegue ao nível ' + NIVEL_PRESTIGIO + ' (você: ' + S.nivel + ')'}</button></section>
+    <section class="card"><h2>Loja <span class="tag" style="background:var(--yolk);color:var(--yolk-ink)">Simulação</span></h2><p class="muted">Neste protótipo, "comprar" apenas liga o benefício, sem cobrança. No app da loja entram as compras reais do Google Play.</p>${loja}</section>
+    <section class="card"><h2>Mais</h2><div class="row wrap"><button class="btn ghost" data-act="aba" data-arg="dev">Painel e métricas</button><button class="btn ghost" data-act="tutorial">Rever tutorial</button></div>
+      <p class="muted"><a href="${URL_JOGO}privacidade.html" target="_blank" rel="noopener">Política de privacidade</a></p>
+      <button class="btn ghost" data-act="resetar">${confirmaReset ? 'Toque de novo para confirmar' : 'Zerar progresso'}</button>
+      ${on ? `<button class="btn ghost" data-act="contaApagar">${ON.confirmaApagar ? 'Toque de novo: apagar conta e dados online' : 'Apagar minha conta e dados online'}</button>` : ''}</section>`;
+}
+
+/* ---------- Visitas ---------- */
+function abrirVisita(s) {
+  const ids = Object.keys(s.pets || {}).filter(id => PET_POR_ID[id]).sort((a, b) => PET_POR_ID[b].r - PET_POR_ID[a].r || s.pets[b].lvl - s.pets[a].lvl);
+  const bichos = ids.slice(0, 24).map(id => { const p = PET_POR_ID[id], o = s.pets[id]; return `<div class="cell" style="--rc:var(--r${p.r})" title="${esc(o.nome || p.nome)}"><span class="em">${p.em}</span><span class="nm">${esc(trunc(o.nome || p.nome, 9))}</span></div>`; }).join('');
+  const dec = Object.keys(s.decor || {}).filter(k => DECORS[k]).map(k => DECORS[k].em).join(' ');
+  abrirModal(`<div class="sheet"><p class="eyebrow">Visita ao sítio</p><h2>${esc(s.nome)}</h2>
+    <p class="muted">Nível ${s.nivel}${s.prestigio ? ' · Prestígio ' + s.prestigio : ''} · Poder ${fmt(s.poder)} · ♥ ${s.curtidas}</p>
+    ${dec ? `<p style="font-size:24px">${dec}</p>` : ''}
+    <div class="cgrid">${bichos || '<p class="muted">Ainda sem bichos.</p>'}</div>${ids.length > 24 ? `<p class="muted">e mais ${ids.length - 24} bichos</p>` : ''}
+    <div class="row"><button class="btn primary" data-act="curtirSitio" data-arg="${esc(s.id)}" ${s.curtiu_hoje ? 'disabled' : ''}>${s.curtiu_hoje ? 'Curtido hoje' : '♥ Curtir (+moedas)'}</button><button class="btn ghost" data-act="fechar">Fechar</button></div></div>`);
+}
+
+/* ---------- Notificações (abstração) ---------- */
+const Notif = (() => {
+  const cap = () => window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications;
+  const web = () => 'Notification' in window;
+  let timers = [];
+  const estado = () => cap() ? 'app' : !web() ? 'nao' : Notification.permission;
+  async function pedir() {
+    try {
+      if (cap()) { const r = await cap().requestPermissions(); return r.display === 'granted'; }
+      if (web()) return (await Notification.requestPermission()) === 'granted';
+    } catch (e) {}
+    return false;
+  }
+  function proximaHora(h, now, diasMais) { const d = new Date(now); d.setHours(h, 0, 0, 0); if (d.getTime() <= now) d.setDate(d.getDate() + 1); if (diasMais) d.setDate(d.getDate() + diasMais); return d.getTime(); }
+  function agenda(now) {
+    const l = [], p = prodTotal(S), cap0 = capCeleiro(S);
+    const ovo = S.eggs.filter(e => e && e.pronto > now).sort((a, b) => a.pronto - b.pronto)[0];
+    if (ovo) l.push({ id: 1, ts: ovo.pronto, t: 'Seu ovo chocou!', c: 'Venha descobrir qual bicho nasceu.' });
+    if (p > 0 && S.barn < cap0 - 1) l.push({ id: 2, ts: now + (cap0 - S.barn) / p * 1000, t: 'Celeiro cheio', c: 'Suas moedas estão esperando para serem coletadas.' });
+    const hort = S.horta.filter(x => x && x.pronto > now).sort((a, b) => a.pronto - b.pronto)[0];
+    if (hort) l.push({ id: 3, ts: hort.pronto, t: 'Hora da colheita', c: CULTIVOS[hort.id].em + ' ' + CULTIVOS[hort.id].nome + ' pronto na horta.' });
+    l.push({ id: 4, ts: proximaHora(9, now), t: 'Bônus do dia', c: 'Seu prêmio diário está esperando.' });
+    const seg = fimSemanaMs(now); if (seg > now) l.push({ id: 5, ts: seg + 9 * HORA, t: 'Novo evento semanal', c: 'Tem bicho exclusivo e prêmios novos no sítio.' });
+    return l.filter(n => n.ts > now + 30000);
+  }
+  async function mostrar(n) {
+    try {
+      const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
+      if (reg && reg.showNotification) return reg.showNotification(n.t, { body: n.c, icon: 'icon-192.png', tag: 'sitio' + n.id });
+      new Notification(n.t, { body: n.c });
+    } catch (e) {}
+  }
+  function cancelar() {
+    timers.forEach(clearTimeout); timers = [];
+    try { if (cap()) cap().cancel({ notifications: [1, 2, 3, 4, 5].map(id => ({ id })) }); } catch (e) {}
+  }
+  function agendar() {
+    cancelar(); if (!S.cfg.notif) return;
+    const now = Date.now(), l = agenda(now);
+    try {
+      if (cap()) cap().schedule({ notifications: l.map(n => ({ id: n.id, title: n.t, body: n.c, schedule: { at: new Date(n.ts) } })) });
+      else if (web() && Notification.permission === 'granted') l.forEach(n => { if (n.ts - now < 6 * HORA) timers.push(setTimeout(() => mostrar(n), n.ts - now)); });
+    } catch (e) {}
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) agendar(); else cancelar(); });
+  return { estado, pedir, agendar, cancelar, agenda };
+})();
+
+/* ---------- Tutorial guiado ---------- */
+const TUT = [
+  { aba: 'sitio', sel: '#guia', txt: 'Este cartão sempre mostra o próximo passo. É só seguir o botão amarelo!', manual: true },
+  { aba: 'ovos', sel: '.egg.pronto [data-act="abrir"]', txt: 'Seu primeiro ovo já está pronto. Toque em Abrir!', ok: () => S.summons >= 1 },
+  { aba: 'sitio', sel: '#btnColetar', txt: 'Os bichos produzem moedas no celeiro. Toque em Coletar!', ok: () => S.stats.coletado > 0 },
+  { aba: 'obras', sel: '[data-act="melhorar"][data-arg="celeiro"]', txt: 'Gaste as moedas melhorando o sítio. O celeiro guarda mais moedas.', ok: () => Object.keys(S.obras).some(k => S.obras[k] > 0) },
+  { aba: 'metas', sel: '[data-act="diario"]', txt: 'Missões e bônus diários dão gemas. Pegue o bônus de hoje!', ok: () => S.diario.ultimo >= diaDe(Date.now()) }
+];
+const NOME_ABA = { sitio: 'Sítio', ovos: 'Ovos', obras: 'Obras', guilda: 'Guilda', metas: 'Metas' };
+let tutEl = null, tutPasso = -1;
+function tutGarantir() {
+  if (tutEl) return tutEl;
+  tutEl = document.createElement('div'); tutEl.id = 'tut'; tutEl.hidden = true;
+  tutEl.innerHTML = '<div class="tutspot"></div><div class="tutbub"><p></p><div class="row"><button class="btn mini ghost" data-act="tutPular">Pular</button><button class="btn mini primary" data-act="tutProx" id="tutOk">Entendi</button></div></div>';
+  document.body.appendChild(tutEl); return tutEl;
+}
+function ocultarTut(el) { if (!el.hidden) { el.hidden = true; el.querySelector('.tutspot').style.cssText = 'width:0;height:0'; } }
+function tickTutorial() {
+  const el = tutGarantir();
+  if (S.tut.fim || !S.visto || !MODAL.hidden || (window.SITIO_CONFIG && !S.nome)) { ocultarTut(el); return; }
+  while (S.tut.passo < TUT.length && TUT[S.tut.passo].ok && TUT[S.tut.passo].ok()) S.tut.passo++;
+  if (S.tut.passo >= TUT.length) { S.tut.fim = true; S.gems += 5; salvar(); ocultarTut(el); toast('Tutorial concluído! +5 gemas'); metrica('tutorial_fim'); return; }
+  const st = TUT[S.tut.passo];
+  let alvo, txt = st.txt, manual = !!st.manual;
+  if (aba !== st.aba) { alvo = document.querySelector('#nav [data-arg="' + st.aba + '"]'); txt = 'Toque na aba ' + NOME_ABA[st.aba] + '.'; manual = false; }
+  else alvo = document.querySelector(st.sel);
+  if (!alvo) { ocultarTut(el); return; }
+  const r = alvo.getBoundingClientRect();
+  if (r.bottom > innerHeight - 90 || r.top < 60) { if (tutPasso !== S.tut.passo + aba) { alvo.scrollIntoView({ block: 'center', behavior: 'smooth' }); } }
+  tutPasso = S.tut.passo + aba;
+  const sp = el.querySelector('.tutspot'), bub = el.querySelector('.tutbub');
+  sp.style.cssText = `left:${r.left - 6}px;top:${r.top - 6}px;width:${r.width + 12}px;height:${r.height + 12}px`;
+  el.querySelector('p').textContent = txt;
+  el.querySelector('#tutOk').hidden = !manual;
+  const acima = r.top + r.height / 2 > innerHeight * 0.5;
+  bub.className = 'tutbub ' + (acima ? 'cima' : 'baixo');
+  bub.style.top = acima ? 'auto' : (r.bottom + 16) + 'px'; bub.style.bottom = acima ? (innerHeight - r.top + 16) + 'px' : 'auto';
+  bub.style.setProperty('--ax', Math.max(24, Math.min(r.left + r.width / 2 - bub.getBoundingClientRect().left, bub.getBoundingClientRect().width - 24)) + 'px');
+  el.hidden = false;
+}
+
+/* ---------- ciclo ---------- */
+let ultHort = 0;
+function tickTelas(now) {
+  tickTutorial();
+  if (aba === 'obras' && subO === 'horta') {
+    let refazer = false;
+    document.querySelectorAll('[data-hort]').forEach(el => {
+      const p = S.horta[+el.dataset.hort]; if (!p) { refazer = true; return; }
+      const pronto = now >= p.pronto;
+      if ((el.dataset.ready === '1') !== pronto) refazer = true; else if (!pronto) el.textContent = mmss(p.pronto - now);
+    });
+    document.querySelectorAll('[data-hortbar]').forEach(el => { const p = S.horta[+el.dataset.hortbar]; if (p) el.style.width = Math.min(100, (1 - (p.pronto - now) / (CULTIVOS[p.id].tempo * 1000)) * 100) + '%'; });
+    if (refazer) render();
+  }
+  if (now - ultHort > 4000) { ultHort = now; ajustarTudo(S, now); }
+}
+function temPendenciaMetas() {
+  const now = Date.now();
+  return S.pedidos.some(p => p && podeEntregar(S, p) && now <= p.ate) || EVT_METAS.some((m, k) => !S.evt.res[k] && S.evt.pts >= m && S.nivel >= 3);
+}
+function hortaPronta() { const now = Date.now(); return S.horta.some(p => p && now >= p.pronto); }
+
+/* ---------- ações ---------- */
+function dobroPedido(i) { return entregarPedido(S, +i, Date.now(), true); }
+Object.assign(ACOES, {
+  subO(x) { subO = x; render(); },
+  subMetas(x) { aba = 'metas'; subM = x; render(); },
+  bicho(id) { modalBicho(id); },
+  carinho(id) { const r = cuidar(S, id, Date.now(), 'carinho'); if (!r.ok) return toast('Ele já está relaxado. Volte em ' + duracao((r.falta || 0) / 1000)); receber(r.ups); salvar(); Fx.glifo(innerWidth / 2, innerHeight * 0.3, '❤️', 34); Som.play('pop'); modalBicho(id); render(); },
+  racao(id) { const r = cuidar(S, id, Date.now(), 'racao'); if (!r.ok) return toast(erroMsg(r)); receber(r.ups); salvar(); Som.play('coin'); modalBicho(id); render(); toast('Bicho bem alimentado: felicidade por mais tempo'); },
+  renomear(id) { const r = renomear(S, id, ($('#petNome') || {}).value); if (!r.ok) return; salvar(); modalBicho(id); render(); toast('Nome salvo: ' + r.nome); },
+  bauDia() {
+    const hoje = hojeN(); if (!bauDisponivel(S, hoje)) return toast('Volte amanhã para mais baús');
+    const abrir = () => { const r = abrirBau(S, hoje); if (!r.ok) return; receber(r.ups); salvar(); Som.play('bau'); Fx.confete(innerWidth / 2, innerHeight * 0.5, 40, ['#FFC21A', '#fff', '#3DBB6B']); toast('Baú: +' + fmt(r.coins) + ' moedas' + (r.gems ? ', +' + r.gems + ' gemas' : '')); };
+    if (bauPrecisaAnuncio(S, hoje)) anuncio('bau', 'Baú extra do dia', abrir); else { abrir(); render(); }
+  },
+  brilho() {
+    if (!brilhoDisponivel(S, hojeN())) return toast('Amanhã tem outro');
+    if (S.eggs.findIndex(e => !e) < 0) return toast(ERROS.cheio);
+    anuncio('brilho', 'Ovo brilhante', () => { const r = ganharOvoBrilho(S, hojeN(), Date.now()); toast(r.ok ? 'Ovo brilhante na incubadora' : 'Não foi possível'); });
+  },
+  plantar(a) { const [i, id] = String(a).split(':'); const r = plantar(S, +i, id, Date.now()); if (!r.ok) return toast(erroMsg(r)); salvar(); render(); Som.play('pop'); },
+  adubar(i) { const p = S.horta[+i]; if (!p) return; anuncio('adubo', 'Adubo: metade do tempo', () => { adubar(S, +i, Date.now()); toast('Cresce em metade do tempo'); }); },
+  colher(i) { const r = colherHorta(S, +i, Date.now()); if (!r.ok) return; receber(r.ups); salvar(); render(); Som.play('coin'); Fx.glifo(innerWidth / 2, innerHeight * 0.4, CULTIVOS[r.id].em + ' +' + r.qtd, 30); metrica('horta'); },
+  decorar(id) { const r = comprarDecor(S, id); if (!r.ok) return toast(r.erro === 'passe' ? 'Exige o Passe da Temporada' : erroMsg(r)); receber(r.ups); salvar(); render(); Som.play('bau'); toast(DECORS[id].nome + ' no seu sítio!'); },
+  entregar(i) { const r = entregarPedido(S, +i, Date.now(), false); if (!r.ok) return toast(r.erro === 'falta' ? 'Faltam itens' : 'Pedido vencido'); receber(r.ups); salvar(); render(); Som.play('coin'); toast('Entregue! ' + textoRec(r.rec)); metrica('pedido'); },
+  entregar2x(i) {
+    const p = S.pedidos[+i]; if (!p || !podeEntregar(S, p)) return;
+    anuncio('pedido', 'Recompensa em dobro', () => { const r = dobroPedido(i); if (r.ok) { receber(r.ups); toast('Em dobro! ' + textoRec({ coins: r.rec.coins * 2, gems: r.rec.gems * 2, xp: 0 })); metrica('pedido'); } });
+  },
+  evtResg(k) {
+    const r = resgatarEvento(S, +k, Date.now()); if (!r.ok) return toast(r.erro === 'meta' ? 'Faltam pontos' : 'Já resgatado');
+    receber(r.ups); salvar(); render(); metrica('evento_semana');
+    if (r.pet) revelarPet(r.pet, r.res, 'Bicho do evento'); else { Som.play('bau'); toast('Prêmio: ' + textoRec({ coins: r.r.coins, gems: r.r.gems, xp: 0 })); }
+  },
+  cfgVibra() { S.cfg.vibra = !S.cfg.vibra; Som.semVibra = !S.cfg.vibra; salvar(); render(); },
+  cfgEco(v) { S.cfg.eco = v; if (v !== 'auto') S.cfg.ecoAuto = false; aplicarEco(); salvar(); render(); },
+  cfgTema(v) { S.tema = v; salvar(); render(); },
+  premiumOn(id) { comprarPremium(S, id); metrica('compra_simulada'); salvar(); render(); toast(PREMIUM[id].nome + ' ativado (simulação)'); },
+  premiumOff(id) { S.premium[id] = false; salvar(); render(); },
+  tutorial() { S.tut = { passo: 0, fim: false }; aba = 'sitio'; salvar(); render(); },
+  tutPular() { S.tut.fim = true; salvar(); ocultarTut(tutGarantir()); },
+  tutProx() { S.tut.passo++; salvar(); tickTutorial(); },
+  async notif() {
+    if (S.cfg.notif) { S.cfg.notif = false; Notif.cancelar(); salvar(); return render(); }
+    const ok = await Notif.pedir(); S.cfg.notif = ok; salvar(); render();
+    toast(ok ? 'Lembretes ligados' : 'Permissão negada');
+  },
+  async convidar() {
+    const cod = window.ON && ON.ativo && ON.convite ? ON.convite.codigo : '';
+    const url = URL_JOGO + (cod ? '?convite=' + encodeURIComponent(cod) : '');
+    const texto = 'Venha criar bichos no Sítio dos Bichos! ' + (cod ? 'Use meu código ' + cod + ' e ganhe gemas.' : '');
+    try {
+      if (navigator.share) { await navigator.share({ title: 'Sítio dos Bichos', text: texto, url }); metrica('convite'); return; }
+      await navigator.clipboard.writeText(texto + ' ' + url); toast('Convite copiado!'); metrica('convite');
+    } catch (e) { if (!(e && e.name === 'AbortError')) toast('Copie o link: ' + url); }
+  },
+  async prestigio() {
+    if (!podePrestigiar(S)) return toast('Chegue ao nível ' + NIVEL_PRESTIGIO);
+    if (!confirmaPrest) { confirmaPrest = true; render(); setTimeout(() => { if (confirmaPrest) { confirmaPrest = false; if (aba === 'ajustes') render(); } }, 5000); return; }
+    confirmaPrest = false;
+    if (window.ON && ON.ativo && ON.sync) { try { await ON.sync(); } catch (e) {} }
+    const r = prestigiar(S, Date.now()); if (!r.ok) return;
+    ajustarTudo(S, Date.now()); fila = []; salvar(); aba = 'sitio'; subO = 'obras'; render(); metrica('prestigio');
+    abrirModal(`<div class="sheet pop"><p class="eyebrow">Prestígio ${r.prest}</p><h2>Sítio renovado!</h2><p class="muted">+${r.gems} gemas e bônus permanente de <b>+${r.prest * 25}% de moedas</b>. Seus bichos continuam com você.</p><button class="btn primary xl" data-act="fechar">Recomeçar</button></div>`);
+    Som.play('lendario'); Fx.confete(innerWidth / 2, innerHeight * 0.4, 140, ['#FFC21A', '#3DBB6B', '#2F9BE8', '#FF7AB6', '#fff']);
+  },
+});
+
+/* Guilda contra guilda no modo offline: as três guildas simuladas disputam entre si. */
+function viewGuildasSim() {
+  const now = Date.now();
+  const lista = GUILDAS.map(g => { let t = 0; for (let i = 0; i < N_MEMBROS; i++) t += pontosMembro(g.id, i, now); if (S.guilda.id === g.id) t += S.guilda.pontos; return { nome: g.nome, pontos: t, minha: S.guilda.id === g.id }; }).sort((a, b) => b.pontos - a.pontos);
+  return `<section class="card"><h2>Guilda contra guilda</h2><p class="muted">No modo online, guildas de jogadores reais disputam o pódio da semana e ganham prêmios. Aqui, as três guildas simuladas mostram como funciona.</p></section>
+    <section class="card">${lista.map((x, k) => `<div class="mrow ${x.minha ? 'eu' : ''}"><span class="pos">${k + 1}</span><span class="who"><b>${x.nome}</b></span><span class="pts num">${fmt(x.pontos)}</span><span></span></div>`).join('')}</section>`;
+}
 
 /* ---------- telas ---------- */
 function cardDiario(hoje) {
@@ -1331,12 +2087,20 @@ function proximoPasso() {
   if (pronto >= 0) return { ic: '🥚', t: 'Seu ovo está pronto!', d: 'Abra para descobrir qual bicho nasceu.', btn: 'Abrir', act: 'abrir', arg: pronto };
   if (Object.keys(S.pets).length === 0 && podeOvo) return { ic: '🛒', t: 'Compre seu primeiro ovo', d: 'Custa ' + fmt(custoPalha) + ' moedas. Bichos produzem moedas para você.', btn: 'Comprar', act: 'comprar', arg: 'palha' };
   if (S.diario.ultimo !== hoje) return { ic: '🎁', t: 'Bônus do dia', d: 'Entre todo dia para ganhar prêmios maiores.', btn: 'Pegar', act: 'diario' };
+  const hp = S.horta.findIndex(p => p && now >= p.pronto);
+  if (hp >= 0) return { ic: CULTIVOS[S.horta[hp].id].em, t: 'Colheita pronta na horta', d: 'Colha para entregar pedidos aos clientes.', btn: 'Ver horta', act: 'subOAba' };
+  const ped = S.pedidos.findIndex(p => p && podeEntregar(S, p) && now <= p.ate);
+  if (ped >= 0) return { ic: S.pedidos[ped].em, t: S.pedidos[ped].cliente + ' espera sua entrega', d: 'Você já tem o que ele pediu. Entregue e ganhe moedas e gemas.', btn: 'Entregar', act: 'entregar', arg: ped };
+  const ev = EVT_METAS.findIndex((m, k) => !S.evt.res[k] && S.evt.pts >= m && S.nivel >= 3);
+  if (ev >= 0) return { ic: eventoDaSemana(now).em, t: 'Prêmio do evento da semana', d: 'Você bateu uma meta do evento. Resgate!', btn: 'Resgatar', act: 'evtResg', arg: ev };
   const mi = S.missoes.findIndex(m => m && m.feita);
   if (mi >= 0) return { ic: '⭐', t: 'Missão concluída!', d: 'Resgate sua recompensa.', btn: 'Resgatar', act: 'resgatar', arg: mi };
   if (q >= Math.max(20, cap * 0.3)) return { ic: '🌾', t: 'Moedas esperando no celeiro', d: '+' + fmt(q) + ' moedas prontas para coletar.', btn: 'Coletar', act: 'coletar' };
   if (podeOvo) return { ic: '🥚', t: 'Tem incubadora livre', d: 'Compre um ovo por ' + fmt(custoPalha) + ' moedas e ganhe mais bichos.', btn: 'Comprar ovo', act: 'comprar', arg: 'palha' };
   const mo = melhorOferta();
   if (mo) return { ic: '🔨', t: mo.t, d: 'Custa ' + fmt(mo.custo) + ' moedas e deixa o sítio mais forte.', btn: 'Melhorar', act: mo.act, arg: mo.arg };
+  if (podePrestigiar(S)) return { ic: '🌟', t: 'Prestígio disponível', d: 'Recomece com bônus permanente e mantenha seus bichos.', btn: 'Ver', act: 'aba', arg: 'ajustes' };
+  if (bauDisponivel(S, hoje) && !bauPrecisaAnuncio(S, hoje)) return { ic: '🎁', t: 'Baú do dia', d: 'Um presente grátis por dia, sem precisar de anúncio.', btn: 'Abrir', act: 'bauDia' };
   if (bauPronto(now)) return { ic: '🎁', t: 'Baú da guilda pronto', d: 'A guilda bateu a meta. Resgate seu prêmio.', btn: 'Ver baús', act: 'aba', arg: 'guilda' };
   if (S.nivel >= NIVEL_GUILDA && S.guilda.id < 0) return { ic: '🛡️', t: 'Entre numa guilda', d: 'Jogue com outros fazendeiros e ganhe baús toda semana.', btn: 'Ver guildas', act: 'aba', arg: 'guilda' };
   const ovo = S.eggs.filter(e => e && now < e.pronto).sort((a, b) => a.pronto - b.pronto)[0];
@@ -1353,11 +2117,11 @@ function viewSitio() {
   for (let i = 0; i < SLOTS_MAX; i++) {
     if (i < S.slots) {
       const a = at[i];
-      if (a) { const p = PET_POR_ID[a.id]; tiles += `<div class="slot" style="--rc:var(--r${p.r})"><span class="em" style="animation-delay:${(i * 0.3).toFixed(1)}s">${p.em}</span><span class="lvl">Nv ${a.lvl}</span><span class="rate">${fmt1(a.prod * mp)}/s</span></div>`; }
+      if (a) { const p = PET_POR_ID[a.id]; tiles += `<button class="slot" data-act="bicho" data-arg="${a.id}" style="--rc:var(--r${p.r})" aria-label="${esc(nomeDoBicho(S, a.id))}, cuidar"><span class="mood">${humor(felicidade(S, a.id))}</span><span class="em" style="animation-delay:${(i * 0.3).toFixed(1)}s">${p.em}</span><span class="lvl">Nv ${a.lvl}</span><span class="rate">${fmt1(a.prod * mp)}/s</span></button>`; }
       else tiles += '<div class="slot empty">vazio</div>';
     } else tiles += '<div class="slot lock">🔒</div>';
   }
-  const vazio = Object.keys(S.pets).length === 0 ? '<p class="muted">Nenhum bicho trabalhando ainda. Abra seu primeiro ovo na aba Ovos.</p>' : '';
+  const vazio = Object.keys(S.pets).length === 0 ? '<p class="muted">Nenhum bicho trabalhando ainda. Abra seu primeiro ovo na aba Ovos.</p>' : '<p class="muted">Toque em um bicho para fazer carinho, dar ração ou escolher um nome.</p>';
   return `
     <section class="card scenecard"><div id="cenaHost"></div>
       <div class="cenatop"><span class="pill dark num" id="prodTxt">+0/s</span><span class="pill num" id="lvTit"></span></div>
@@ -1366,6 +2130,7 @@ function viewSitio() {
     </section>
     <section class="card guia" id="guia" aria-live="polite">${guiaHTML()}</section>
     ${S.diario.ultimo !== hoje ? cardDiario(hoje) : ''}
+    ${cardEventoMini()}${cardPresentes()}
     <section class="card"><div class="between"><h2>Safra <span id="safNum">1</span></h2><span class="muted num" id="safEta"></span></div>
       <div class="bar green"><i id="safBar"></i></div>
       <p class="muted">Avança sozinha com a produção. Ao concluir: <b id="safRec"></b></p></section>
@@ -1388,7 +2153,7 @@ function viewOvos() {
   const falta = PITY_LIMIT - S.pity;
   const pityTxt = falta <= 1 ? 'Próxima invocação: Épico ou melhor garantido' : `Épico ou melhor garantido em ${falta} invocações`;
   let inc = ''; for (let i = 0; i < S.eggs.length; i++) inc += incubadora(i);
-  const loja = Object.keys(OVOS).map(id => {
+  const loja = Object.keys(OVOS).filter(id => OVOS[id].moeda !== 'anuncio').map(id => {
     const o = OVOS[id], c = custoOvo(S, id), custo = o.moeda === 'coins' ? fmt(c) + ' moedas' : c + ' gemas', trava = S.nivel < o.nivel;
     return `<div class="card egg">${eggSVG(id)}<div class="info"><div class="between"><h3>${o.nome}</h3><span class="muted num">${tempoOvo(S, id)}s</span></div>
       <div class="chips">${chancesChips(o.pesos)}</div>
@@ -1400,9 +2165,9 @@ function viewOvos() {
     <section class="card"><h2>Loja de ovos</h2>${loja}<p class="muted">O preço do Ovo de Palha sobe com seu nível e com cada ovo chocado.</p></section>
     <section class="card"><h2>Recompensas</h2><div class="row">
         <button class="btn ad" data-cd="ovo" data-label="Ovo grátis" data-act="ovoGratis">${PLAY}<span class="cdl">Ovo grátis</span> <span class="tag">Anúncio</span></button>
-        <button class="btn ad" data-cd="gemas" data-label="+2 gemas" data-act="gemasGratis">${PLAY}<span class="cdl">+2 gemas</span> <span class="tag">Anúncio</span></button></div></section>
+        <button class="btn ad" data-cd="gemas" data-label="+2 gemas" data-act="gemasGratis">${PLAY}<span class="cdl">+2 gemas</span> <span class="tag">Anúncio</span></button></div>${S.nivel >= OVOS.brilhante.nivel && brilhoDisponivel(S, diaDe(Date.now())) ? `<div class="row" style="margin-top:8px"><button class="btn ad" data-act="brilho">${PLAY}Ovo brilhante do dia <span class="tag">Anúncio</span></button></div>` : ''}</section>
     <section class="card"><details><summary>Chances de cada ovo</summary>
-      <div class="scroll-x"><table><thead><tr><th>Raridade</th><th>Palha</th><th>Dourado</th><th>Produção</th></tr></thead><tbody>${linhas}</tbody></table></div>
+      <div class="scroll-x"><table><thead><tr><th>Raridade</th>${Object.keys(OVOS).map(id => '<th>' + OVOS[id].nome.replace('Ovo de ', '').replace('Ovo ', '') + '</th>').join('')}<th>Produção</th></tr></thead><tbody>${linhas}</tbody></table></div>
       <p class="muted" style="margin-top:8px">Garantia: a cada ${PITY_LIMIT} invocações sem Épico ou melhor, a próxima é Épico (92%) ou Lendário (8%). Bicho repetido sobe 1 nível, até o nível ${LVL_MAX}.</p></details></section>`;
 }
 function efTexto(id, l) {
@@ -1431,11 +2196,12 @@ function viewObras() {
     <section class="card"><div class="between"><h3>Pasto</h3><span class="muted num">${S.slots}/${SLOTS_MAX} vagas</span></div><p class="muted">Mais vagas deixam mais bichos trabalhando ao mesmo tempo.</p>${pb}</section>
     ${Object.keys(OBRAS).map(cardObra).join('')}`;
 }
-const segHTML = (acao, atual, itens) => `<div class="seg" role="tablist">${itens.map(([k, t]) => `<button role="tab" class="${atual === k ? 'on' : ''}" data-act="${acao}" data-arg="${k}" aria-selected="${atual === k}">${t}</button>`).join('')}</div>`;
+const segHTML = (acao, atual, itens) => `<div class="seg n${itens.length}" role="tablist">${itens.map(([k, t]) => `<button role="tab" class="${atual === k ? 'on' : ''}" data-act="${acao}" data-arg="${k}" aria-selected="${atual === k}">${t}</button>`).join('')}</div>`;
 const relTempo = ms => { const m = Math.max(1, Math.round(ms / 60000)); return m < 60 ? 'há ' + m + ' min' : 'há ' + Math.floor(m / 60) + ' h'; };
 function viewGuilda() {
-  const seg = segHTML('subG', subG, [['guilda', 'Guilda'], ['ranking', 'Ranking']]);
+  const seg = segHTML('subG', subG, [['guilda', 'Guilda'], ['ranking', 'Sítios'], ['guildas', 'Guildas']]);
   if (subG === 'ranking') return seg + viewRanking();
+  if (subG === 'guildas') return seg + (window.ON && ON.ativo ? viewGuildasRankOn() : viewGuildasSim());
   if (window.ON && ON.ativo) return seg + viewGuildaOn();
   const g = S.guilda, now = Date.now();
   if (g.id < 0) {
@@ -1486,15 +2252,19 @@ function missaoDesc(m) {
   return m.t === 'coletar' ? 'Colete ' + fmt(m.meta) + ' moedas' : m.t === 'chocar' ? 'Choque ' + m.meta + (m.meta > 1 ? ' ovos' : ' ovo') : m.t === 'obra' ? 'Melhore ' + m.meta + (m.meta > 1 ? ' obras' : ' obra') : m.t === 'anuncio' ? 'Assista 1 anúncio recompensado' : 'Consiga um bicho ' + RARIDADES[m.min].nome + ' ou melhor';
 }
 function viewMetas() {
-  const seg = segHTML('subM', subM, [['missoes', 'Missões'], ['album', 'Álbum']]);
+  const seg = segHTML('subM', subM, [['missoes', 'Missões'], ['pedidos', 'Pedidos'], ['evento', 'Evento'], ['album', 'Álbum']]);
+  if (subM === 'pedidos') return seg + viewPedidos();
+  if (subM === 'evento') return seg + viewEvento();
   if (subM === 'album') {
     const comp = setsCompletos(S), tem = Object.keys(S.pets).length;
     const grupos = RARIDADES.map((r, i) => {
       const lista = PETS.filter(p => p.r === i), got = lista.filter(p => S.pets[p.id]).length;
-      const cel = lista.map(p => { const o = S.pets[p.id]; return o ? `<div class="cell" style="--rc:var(--r${i})" title="${p.nome}"><span class="em">${p.em}</span><span class="nm">Nv ${o.lvl}</span></div>` : `<div class="cell off" style="--rc:var(--r${i})" title="Ainda não descoberto"><span class="em">${p.em}</span><span class="nm">???</span></div>`; }).join('');
+      const cel = lista.map(p => { const o = S.pets[p.id]; return o ? `<div class="cell" style="--rc:var(--r${i})" title="${esc(nomeDoBicho(S, p.id))}"><span class="em">${p.em}</span><span class="nm">${o.nome ? esc(trunc(o.nome, 9)) : 'Nv ' + o.lvl}</span></div>` : `<div class="cell off" style="--rc:var(--r${i})" title="Ainda não descoberto"><span class="em">${p.em}</span><span class="nm">???</span></div>`; }).join('');
       return `<section class="card" style="--rc:var(--r${i})"><div class="between"><h3><i class="dot"></i>${r.nome} <span class="muted num">${got}/${lista.length}</span></h3><span class="badge ${comp[i] ? 'on' : ''}">${comp[i] ? 'Completo' : ''} +${Math.round(SET_BONUS[i] * 100)}% moedas</span></div><div class="cgrid">${cel}</div></section>`;
     }).join('');
-    return seg + `<section class="card"><div class="between"><h2>Álbum</h2><span class="big">${tem}/${PETS.length}</span></div><div class="bar"><i style="width:${tem / PETS.length * 100}%"></i></div><p class="muted">Complete uma raridade inteira para ganhar um bônus permanente de moedas. Bônus atual: <b>+${Math.round(bonusSets(S) * 100)}%</b>.</p></section>${grupos}`;
+    const evc = PETS_EVENTO.map(p => { const o = S.pets[p.id]; return o ? `<div class="cell" style="--rc:var(--r3)" title="${esc(p.nome)}"><span class="em">${p.em}</span><span class="nm">Nv ${o.lvl}</span></div>` : `<div class="cell off" style="--rc:var(--r3)" title="Exclusivo de evento"><span class="em">${p.em}</span><span class="nm">evento</span></div>`; }).join('');
+    const grupoEv = `<section class="card" style="--rc:var(--r3)"><div class="between"><h3>🎪 Exclusivos de evento <span class="muted num">${PETS_EVENTO.filter(p => S.pets[p.id]).length}/${PETS_EVENTO.length}</span></h3></div><div class="cgrid">${evc}</div></section>`;
+    return seg + `<section class="card"><div class="between"><h2>Álbum</h2><span class="big">${tem}/${PETS.length + PETS_EVENTO.length}</span></div><div class="bar"><i style="width:${tem / (PETS.length + PETS_EVENTO.length) * 100}%"></i></div><p class="muted">Complete uma raridade inteira para ganhar um bônus permanente de moedas. Bônus atual: <b>+${Math.round(bonusSets(S) * 100)}%</b>.</p></section>${grupos}${grupoEv}`;
   }
   const hoje = diaDe(Date.now());
   const cards = S.missoes.map((m, i) => `<section class="card"><div class="between"><h3>${missaoDesc(m)}</h3></div>
@@ -1510,8 +2280,11 @@ function viewDev() {
   return `<section class="card"><h2>Painel de anúncios</h2>
       <p class="muted">Valores simulados para estimar o potencial do jogo. O eCPM real varia por país, rede de anúncios e público.</p>
       <div class="scroll-x"><table><thead><tr><th>Anúncio recompensado</th><th>Assistidos</th></tr></thead><tbody>
-        ${linha('Coletar em dobro', a.dobro)}${linha('Chocar agora', a.acelerar)}${linha('Ovo grátis', a.ovo)}${linha('+2 gemas', a.gemas)}${linha('Missão em dobro', a.missao)}${linha('Bônus diário em dobro', a.diario)}
+        ${linha('Coletar em dobro', a.dobro)}${linha('Chocar agora', a.acelerar)}${linha('Ovo grátis', a.ovo)}${linha('+2 gemas', a.gemas)}${linha('Missão em dobro', a.missao)}${linha('Bônus diário em dobro', a.diario)}${linha('Baú extra do dia', a.bau)}${linha('Ovo brilhante', a.brilho)}${linha('Adubo da horta', a.adubo)}${linha('Pedido em dobro', a.pedido)}
         <tr><td><b>Total</b></td><td><b>${tot}</b></td></tr></tbody></table></div></section>
+    <section class="card"><h2>Suas métricas</h2><div class="scroll-x"><table><tbody>
+        ${linha('Dias jogados', Object.keys(S.metr.dias || {}).length)}${linha('Sessões', S.metr.sessoes || 0)}${linha('Ovos chocados', S.stats.chocados)}${linha('Pedidos entregues', S.stats.pedidos || 0)}${linha('Prestígios', S.prest || 0)}${linha('Compras simuladas', S.metr.compra_simulada || 0)}${linha('Convites compartilhados', S.metr.convite || 0)}</tbody></table></div>
+      <p class="muted">Métricas do jogo todo (retenção D1/D7/D30, anúncios por dia, funil do tutorial) ficam no servidor: rode backend/metricas.sql no editor SQL do Supabase.</p></section>
     <section class="card"><h2>Calculadora de receita</h2>
       <div class="field-in"><label for="devEcpm">eCPM (US$ por mil anúncios)</label><input id="devEcpm" data-dev="ecpm" type="number" inputmode="decimal" min="0" step="0.5" value="${S.dev.ecpm}"></div>
       <div class="field-in"><label for="devDau">Jogadores ativos por dia</label><input id="devDau" data-dev="dau" type="number" inputmode="numeric" min="0" step="100" value="${S.dev.dau}"></div>
@@ -1521,7 +2294,8 @@ function viewDev() {
       <div class="kpi"><span class="muted">Projeção por mês</span><span class="big" id="devMes">—</span></div></section>
     <section class="card"><h2>Sobre o modo social</h2><p class="muted">${window.ON && ON.ativo ? 'Conectado ao servidor: guilda, ranking e mural usam jogadores reais, e seu progresso é salvo na nuvem.' : 'Guilda, ranking e mural usam jogadores simulados que seguem o relógio real. Na versão online, esses dados vêm de um servidor com contas e salvamento na nuvem.'}</p></section>
     <section class="card"><h2>Dados do jogo</h2><p class="muted">O progresso fica salvo neste navegador.</p>
-      <button class="btn ghost" data-act="resetar">${confirmaReset ? 'Toque de novo para confirmar' : 'Zerar progresso'}</button></section>`;
+      <button class="btn ghost" data-act="resetar">${confirmaReset ? 'Toque de novo para confirmar' : 'Zerar progresso'}</button>
+      <button class="btn ghost" data-act="aba" data-arg="ajustes">Voltar aos ajustes</button></section>`;
 }
 function calcDev() {
   const a = S.ads, tot = Object.keys(a).reduce((x, k) => x + a[k], 0), e = S.dev.ecpm / 1000, dia = S.dev.dau * S.dev.adsDia * e;
@@ -1534,7 +2308,7 @@ let abaVista = '', entrouT = 0;
 function render() {
   const v = $('#view');
   if (aba !== abaVista) { abaVista = aba; v.classList.add('in'); clearTimeout(entrouT); entrouT = setTimeout(() => v.classList.remove('in'), 650); }
-  v.innerHTML = aba === 'sitio' ? viewSitio() : aba === 'ovos' ? viewOvos() : aba === 'obras' ? viewObras() : aba === 'guilda' ? viewGuilda() : aba === 'metas' ? viewMetas() : viewDev();
+  v.innerHTML = aba === 'sitio' ? viewSitio() : aba === 'ovos' ? viewOvos() : aba === 'obras' ? viewObrasTab() : aba === 'guilda' ? viewGuilda() : aba === 'metas' ? viewMetas() : aba === 'ajustes' ? viewAjustes() : viewDev();
   document.querySelectorAll('#nav button').forEach(b => {
     const on = b.dataset.arg === aba; b.classList.toggle('on', on);
     if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
@@ -1553,21 +2327,21 @@ function tick() {
   const now = Date.now();
   processar(avancar(S, now));
   const navBtn = k => document.querySelector('#nav button[data-arg="' + k + '"]');
-  const pend = S.missoes.some(m => m && m.feita) || S.diario.ultimo !== diaDe(now);
+  const pend = S.missoes.some(m => m && m.feita) || S.diario.ultimo !== diaDe(now) || temPendenciaMetas();
   navBtn('metas').classList.toggle('has', pend);
-  navBtn('obras').classList.toggle('has', temMelhoria());
+  navBtn('obras').classList.toggle('has', temMelhoria() || hortaPronta());
   navBtn('guilda').classList.toggle('has', bauPronto(now));
   navBtn('ovos').classList.toggle('has', S.eggs.some(e => e && now >= e.pronto));
   const cap = capCeleiro(S), q = Math.floor(S.barn), p = prodTotal(S), max = S.nivel >= NIVEL_MAX, prox = xpProx(S.nivel);
   $('#hudLv').textContent = S.nivel; $('#hudTit').textContent = tituloDe(S.nivel);
   const xpPct = max ? 100 : Math.min(100, S.xp / prox * 100);
   $('#hudRing').style.setProperty('--p', xpPct.toFixed(1)); $('#hudXp').style.width = xpPct + '%';
-  const fab = $('#fab'), mostrarFab = aba !== 'sitio' && aba !== 'dev' && q >= Math.max(20, cap * 0.25);
+  const fab = $('#fab'), mostrarFab = aba !== 'sitio' && aba !== 'dev' && aba !== 'ajustes' && q >= Math.max(20, cap * 0.25);
   if (fab.hidden === mostrarFab) fab.hidden = !mostrarFab;
   if (mostrarFab) $('#fabQtd').textContent = '+' + fmt(q);
   if (aba === 'sitio') {
     const at = ativos(S);
-    Cena.atualizar({ nivel: S.nivel, tier: tierDe(S.nivel), obras: S.obras, pct: S.barn / cap, ativos: at.map(a => ({ id: a.id, em: PET_POR_ID[a.id].em, r: PET_POR_ID[a.id].r })) });
+    Cena.atualizar({ nivel: S.nivel, tier: tierDe(S.nivel), obras: S.obras, tema: temaAtual(S, now), decor: S.decor, pct: S.barn / cap, ativos: at.map(a => ({ id: a.id, em: PET_POR_ID[a.id].em, r: PET_POR_ID[a.id].r })) });
     $('#prodTxt').textContent = '+' + fmt1(p) + ' moedas/s';
     $('#lvTit').textContent = tituloDe(S.nivel);
     $('#btnColetar').disabled = q < 1; $('#btnDobro').disabled = q < 1;
@@ -1591,6 +2365,7 @@ function tick() {
     });
     if (refazer) { render(); return; }
   }
+  tickTelas(now);
   if (now - ultimoSalvo > 5000) salvar();
 }
 /* saldo com contagem suave e "pulinho" quando muda */
@@ -1635,13 +2410,17 @@ function boasVindas() {
   drenar();
   if (!S.visto && !(window.SITIO_CONFIG && !S.nome)) boasVindas();
 })();
+(function () { const hj = diaDe(Date.now()); S.metr.sessoes = (S.metr.sessoes || 0) + 1; S.metr.dias[hj] = 1; const ks = Object.keys(S.metr.dias); if (ks.length > 120) ks.slice(0, ks.length - 120).forEach(k => delete S.metr.dias[k]); })();
+Som.semVibra = !S.cfg.vibra; aplicarEco();
 atualizarSom(); hudLoop();
 Cena.aoTocar({
   celeiro: () => ACOES.coletar(),
-  bicho: (b, p) => { Fx.glifo(p.x, p.y, '❤️', 22); Fx.brilhos(p.x, p.y + 12, 6, '#FFD23F'); Som.play('pop'); Som.vibrar(8); },
+  lento: () => { if (S.cfg.eco === 'auto' && !S.cfg.ecoAuto) { S.cfg.ecoAuto = true; aplicarEco(); toast('Modo econômico ligado para o jogo ficar mais leve'); salvar(); } },
+  bicho: (b, p) => { if (S.pets[b.id]) { const r = cuidar(S, b.id, Date.now(), 'carinho'); if (r.ok) { receber(r.ups); Fx.glifo(p.x, p.y - 20, humor(1), 24); } } Fx.glifo(p.x, p.y, '❤️', 22); Fx.brilhos(p.x, p.y + 12, 6, '#FFD23F'); Som.play('pop'); Som.vibrar(8); },
   fazendeiro: () => { const p = Cena.posCeleiro() || { x: innerWidth / 2, y: 200 }; Fx.glifo(p.x + 30, p.y + 40, '👋', 26); Som.play('tap'); }
 });
 
 setInterval(tick, 250);
+if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
 document.addEventListener('visibilitychange', () => { if (document.hidden) salvar(); else tick(); });
 </script>

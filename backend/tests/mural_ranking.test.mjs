@@ -18,8 +18,8 @@ test('mural: choque só de raro+ do catálogo, nível, safra, repetido', async (
   const { a } = await dupla('Mural1');
   assert.equal((await a.rpc('jogo_mural_postar', { p_tipo: 'choque', p_params: { pet_id: 'pintinho' } })).data.erro, 'params_invalidos');
   assert.equal((await a.rpc('jogo_mural_postar', { p_tipo: 'choque', p_params: { pet_id: 'naoexiste' } })).data.erro, 'params_invalidos');
-  assert.equal((await a.rpc('jogo_mural_postar', { p_tipo: 'choque', p_params: { pet_id: 'dragao' } })).data.ok, true);
-  assert.equal((await a.rpc('jogo_mural_postar', { p_tipo: 'choque', p_params: { pet_id: 'dragao' } })).data.erro, 'repetido');
+  assert.equal((await a.rpc('jogo_mural_postar', { p_tipo: 'choque', p_params: { pet_id: 'arara' } })).data.ok, true);
+  assert.equal((await a.rpc('jogo_mural_postar', { p_tipo: 'choque', p_params: { pet_id: 'arara' } })).data.erro, 'repetido');
   assert.equal((await a.rpc('jogo_mural_postar', { p_tipo: 'nivel', p_params: { nivel: 13 } })).data.erro, 'params_invalidos');
   assert.equal((await a.rpc('jogo_mural_postar', { p_tipo: 'nivel', p_params: { nivel: 12 } })).data.ok, true);
   assert.equal((await a.rpc('jogo_mural_postar', { p_tipo: 'safra', p_params: { n: 15 } })).data.erro, 'params_invalidos');
@@ -29,7 +29,7 @@ test('mural: choque só de raro+ do catálogo, nível, safra, repetido', async (
   const solo = await jogador(db, 'SoloM', 5);
   assert.equal((await solo.rpc('jogo_mural_postar', { p_tipo: 'safra', p_params: { n: 10 } })).data.erro, 'sem_guilda');
   const mural = (await a.rpc('jogo_guilda_estado')).data.mural;
-  assert.ok(mural.some(m => m.texto.includes('Dragão do Milharal') && m.texto.includes('Lendário')));
+  assert.ok(mural.some(m => m.texto.includes('Arara-azul') && m.texto.includes('Lendário')));
 });
 
 test('parabenizar: uma vez, não o próprio, inexistente, limite diário', async () => {

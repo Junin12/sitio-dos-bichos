@@ -34,9 +34,10 @@ const Som = (() => {
     bau() { [NOTAS.mi, NOTAS.sol, NOTAS.do2].forEach((f, i) => tom(f, 0.2, 'triangle', 0.16, i * 0.08)); },
   };
   return {
+    semVibra: false,
     get mudo() { return mudo; },
     alternar() { mudo = !mudo; try { localStorage.setItem('sitio.mudo', mudo ? '1' : '0'); } catch (e) {} if (!mudo) { ligar(); SONS.tap(); } return mudo; },
     play(nome) { try { if (SONS[nome]) SONS[nome](); } catch (e) {} },
-    vibrar(ms) { if (!mudo && navigator.vibrate) try { navigator.vibrate(ms); } catch (e) {} },
+    vibrar(ms) { if (!mudo && !this.semVibra && navigator.vibrate) try { navigator.vibrate(ms); } catch (e) {} },
   };
 })();
