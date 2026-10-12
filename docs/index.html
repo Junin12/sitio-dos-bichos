@@ -1,0 +1,1395 @@
+<title>Sítio dos Bichos</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Mulish:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: app de uma coluna (até 480px). Topo com saldo, conteúdo rolável e 5 abas: Sítio, Ovos, Obras, Guilda, Metas. */
+:root{
+  --bg:#E4EEE8; --surface:#F6FAF7; --surface2:#D6E5DB; --ink:#12301F; --muted:#4D6657; --line:#BFD3C6;
+  --grass:#BCDDC4; --yolk:#F4B31F; --yolk-ink:#2B1D00; --sky:#1F78B8; --good:#23834A; --bad:#C0392B;
+  --r0:#6F8478; --r1:#23834A; --r2:#1F78B8; --r3:#7A4CC8; --r4:#B87400;
+  --sky-a:#BFE3F5; --sky-b:#EAF6EE; --sun:#F8D45C; --hill:#A7D2B0; --ground:#8CC59A; --ground2:#79B78A;
+  --barn:#C95A4B; --roof:#7B3A32; --door:#F3E7D3; --silo:#D7DDE0; --wall:#E9E1CE; --glass:#BFE8F2; --fence:#8A6A44;
+  --font-display:'Fredoka',system-ui,sans-serif; --font-body:'Mulish',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1A13; --surface:#15271D; --surface2:#1E3427; --ink:#E4F1E8; --muted:#9DB8A7; --line:#2A4435;
+    --grass:#1B3A28; --sky:#2D7FC2; --good:#4FC17F; --bad:#EE7A6F;
+    --r0:#9BB0A2; --r1:#4FC17F; --r2:#5DB4F0; --r3:#B18BF2; --r4:#F7BC3A;
+    --sky-a:#0B1F3A; --sky-b:#1B3A4B; --sun:#E8EEF2; --hill:#1E4630; --ground:#1B3A28; --ground2:#15301F;
+    --barn:#8E3F36; --roof:#4D2420; --door:#C9BFAA; --silo:#7C8A90; --wall:#A89F8A; --glass:#6FB3C4; --fence:#6B5638;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1A13; --surface:#15271D; --surface2:#1E3427; --ink:#E4F1E8; --muted:#9DB8A7; --line:#2A4435;
+  --grass:#1B3A28; --sky:#2D7FC2; --good:#4FC17F; --bad:#EE7A6F;
+  --r0:#9BB0A2; --r1:#4FC17F; --r2:#5DB4F0; --r3:#B18BF2; --r4:#F7BC3A;
+  --sky-a:#0B1F3A; --sky-b:#1B3A4B; --sun:#E8EEF2; --hill:#1E4630; --ground:#1B3A28; --ground2:#15301F;
+  --barn:#8E3F36; --roof:#4D2420; --door:#C9BFAA; --silo:#7C8A90; --wall:#A89F8A; --glass:#6FB3C4; --fence:#6B5638;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 var(--font-body);-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+h1,h2,h3,p{margin:0}
+.shell{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;padding-inline:16px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px 12px;padding-block:12px 8px;flex-wrap:wrap}
+.brand{font:700 19px/1 var(--font-display);letter-spacing:.01em}
+.wallet{display:flex;gap:6px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 11px 4px 7px;font:600 14px var(--font-display);font-variant-numeric:tabular-nums}
+.iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.iconbtn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+main{flex:1;min-height:0;overflow-y:auto;padding-block:8px 16px;display:flex;flex-direction:column;gap:14px}
+nav{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;border-top:1px solid var(--line);padding-block:6px 8px}
+nav button{position:relative;background:none;border:0;border-top:3px solid transparent;color:var(--muted);font:600 12px var(--font-display);letter-spacing:.03em;padding:8px 0 4px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;min-height:48px}
+nav button.on{color:var(--ink);border-top-color:var(--yolk)}
+nav button.has::after{content:'';position:absolute;top:8px;right:calc(50% - 20px);width:9px;height:9px;border-radius:50%;background:var(--bad);border:2px solid var(--bg)}
+nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+button{font-family:inherit}
+:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.card.lock{opacity:.7}
+.eyebrow{font:600 12px var(--font-display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h2{font:600 18px/1.2 var(--font-display)}
+h3{font:600 16px/1.2 var(--font-display)}
+.muted{color:var(--muted);font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>*{flex:1 1 140px;min-width:0}
+.between{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.btn{border:0;border-radius:12px;padding:10px 14px;min-height:44px;font:600 15px var(--font-display);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.primary{background:var(--yolk);color:var(--yolk-ink)}
+.btn.ad{background:var(--sky);color:#fff}
+.btn.ghost{background:var(--surface2);color:var(--ink)}
+.btn.mini{min-height:36px;padding:6px 10px;font-size:13px;border-radius:10px}
+.btn svg{width:12px;height:12px;flex:none}
+.tag{font:600 10px var(--font-display);letter-spacing:.08em;text-transform:uppercase;border:1px solid currentColor;border-radius:4px;padding:1px 4px;opacity:.85}
+.bar{position:relative;height:12px;border-radius:999px;background:var(--surface2);overflow:hidden}
+.bar>i{display:block;height:100%;width:0;background:var(--yolk);transition:width .25s}
+.bar .mk{position:absolute;top:0;bottom:0;width:2px;background:var(--surface)}
+.bar.sky>i{background:var(--sky)}
+.num{font-variant-numeric:tabular-nums}
+.big{font:700 28px/1 var(--font-display);font-variant-numeric:tabular-nums}
+.grow{flex:1;min-width:0}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:3px;background:var(--surface2);border-radius:12px;padding:3px}
+.seg button{border:0;border-radius:9px;padding:9px;min-height:40px;font:600 14px var(--font-display);background:transparent;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--surface);color:var(--ink)}
+/* cenário */
+.scenecard{padding:0;overflow:hidden;gap:0}
+.scene{display:block;width:100%;height:auto}
+.c-sun{fill:var(--sun)} .c-hill{fill:var(--hill)} .c-ground{fill:var(--ground)} .c-ground2{fill:var(--ground2)}
+.c-barn{fill:var(--barn)} .c-roof{fill:var(--roof)} .c-roofgold{fill:var(--yolk)} .c-door{fill:var(--door)}
+.c-silo{fill:var(--silo)} .c-wall{fill:var(--wall)} .c-glass{fill:var(--glass);fill-opacity:.8;stroke:var(--wall);stroke-width:1.5}
+.c-fence{fill:var(--fence)} .c-blade{fill:var(--roof)} .c-sail{fill:var(--wall)} .c-x{stroke:var(--roof);stroke-width:2;fill:none}
+.c-plant{fill:#3FA061} .c-egg{fill:var(--yolk)}
+.spin{transform-origin:0 0;animation:spin 8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.petem{animation:bob 2.4s ease-in-out infinite}
+.strip{display:flex;align-items:center;gap:12px;padding:12px 14px}
+.lvbadge{width:52px;height:52px;border-radius:14px;background:var(--yolk);color:var(--yolk-ink);display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none;line-height:1}
+.lvbadge small{font:600 10px var(--font-display);letter-spacing:.08em;text-transform:uppercase}
+.lvbadge b{font:700 24px var(--font-display)}
+/* pasto */
+.field{background:var(--grass);border-radius:14px;padding:10px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.slot{aspect-ratio:1;border-radius:12px;background:var(--surface);border:2px solid var(--rc,var(--line));display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;min-width:0}
+.slot .em{font-size:30px;line-height:1.1;display:block;animation:bob 2.4s ease-in-out infinite}
+.slot .lvl{font:600 11px var(--font-display);color:var(--muted)}
+.slot .rate{font:600 11px var(--font-display);color:var(--ink);font-variant-numeric:tabular-nums}
+.slot.empty,.slot.lock{background:transparent;border:2px dashed var(--line);color:var(--muted);font:600 11px var(--font-display);text-align:center}
+.slot.lock{opacity:.6}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+/* ovos */
+.egg{display:flex;gap:12px;align-items:center}
+.egg svg.eggsvg{width:52px;height:60px;flex:none}
+.egg .info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.chips{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px;color:var(--muted)}
+.chips b{color:var(--ink);font-weight:700}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;background:var(--rc)}
+details summary{cursor:pointer;font:600 15px var(--font-display);min-height:32px;display:flex;align-items:center}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:right;padding:6px 4px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}
+th{font:600 12px var(--font-display);color:var(--muted)}
+.scroll-x{overflow-x:auto}
+/* álbum */
+.cgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.cell{aspect-ratio:1;border-radius:12px;background:var(--surface);border:2px solid var(--rc);display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0}
+.cell .em{font-size:30px;line-height:1.1}
+.cell.off{border-style:dashed;border-color:var(--line)}
+.cell.off .em{filter:brightness(0);opacity:.18}
+.cell .nm{font:600 10px var(--font-display);color:var(--muted);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-inline:2px}
+.badge{font:600 12px var(--font-display);border-radius:999px;padding:2px 10px;background:var(--surface2);color:var(--muted)}
+.badge.on{background:var(--yolk);color:var(--yolk-ink)}
+/* missões e bônus */
+.dd{width:100%;aspect-ratio:1;max-width:34px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font:600 12px var(--font-display);color:var(--muted)}
+.dd.f{background:var(--yolk);border-color:var(--yolk);color:var(--yolk-ink)}
+.dd.hoje{border-color:var(--yolk);color:var(--ink)}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;justify-items:center}
+/* guilda */
+.field{display:block;width:100%;margin:8px 0;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);font:inherit}
+.mrow{display:grid;grid-template-columns:24px minmax(0,1fr) auto auto;gap:8px;align-items:center;padding-block:6px;border-bottom:1px solid var(--line)}
+.mrow:last-child{border-bottom:0}
+.mrow.eu{background:color-mix(in srgb,var(--yolk) 18%,transparent);border-radius:10px;padding-inline:6px;margin-inline:-6px}
+.mrow .pos{font:700 14px var(--font-display);color:var(--muted);text-align:center}
+.mrow .who{display:flex;flex-direction:column;min-width:0}
+.mrow .who b{font:600 15px var(--font-display);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow .who small{color:var(--muted);font-size:12px}
+.mrow .pts{font:600 14px var(--font-display);text-align:right}
+.chests{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.chest{border:2px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:12px;padding:8px 4px;min-height:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:600 13px var(--font-display);cursor:pointer}
+.chest small{font:600 11px var(--font-body);color:var(--muted)}
+.chest.pronto{background:var(--yolk);border-color:var(--yolk);color:var(--yolk-ink)}
+.chest.pronto small{color:var(--yolk-ink)}
+.chest.ok{opacity:.55}
+.chest:disabled{cursor:default}
+.evt{display:flex;gap:10px;align-items:center;justify-content:space-between;padding-block:6px;border-bottom:1px solid var(--line)}
+.evt:last-child{border-bottom:0}
+.evt p{font-size:14px;min-width:0}
+.evt small{color:var(--muted);font-size:12px;display:block}
+/* painel */
+.field-in{display:flex;flex-direction:column;gap:4px}
+.field-in label{font:600 13px var(--font-display)}
+.field-in input{font:600 16px var(--font-body);padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);min-height:44px;width:100%}
+.kpi{display:flex;flex-direction:column;gap:2px}
+/* modal e toast */
+.modal{position:fixed;inset:0;background:rgba(5,15,10,.62);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;width:100%;max-width:360px;max-height:100%;overflow-y:auto;display:flex;flex-direction:column;gap:14px;text-align:center}
+.reveal{display:flex;flex-direction:column;align-items:center;gap:6px}
+.reveal .face{width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:64px;background:var(--surface2);border:4px solid var(--rc);box-shadow:0 0 0 6px color-mix(in srgb,var(--rc) 22%,transparent)}
+.shake{animation:shake .5s ease-in-out infinite}
+@keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+.pop{animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+.rlabel{font:700 13px var(--font-display);letter-spacing:.08em;text-transform:uppercase;color:var(--rc)}
+.lvbig{font:700 56px/1 var(--font-display);color:var(--ink)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font:600 14px var(--font-display);z-index:20;max-width:calc(100% - 32px);text-align:center}
+@media (prefers-reduced-motion:reduce){
+  .slot .em,.shake,.pop,.petem,.spin{animation:none}
+  .bar>i{transition:none}
+}
+</style>
+
+<div class="shell">
+  <header class="top">
+    <div class="brand">Sítio dos Bichos</div>
+    <div class="wallet" aria-label="Saldo">
+      <span class="chip" title="Moedas"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="var(--yolk)"/><circle cx="10" cy="10" r="5.5" fill="none" stroke="var(--yolk-ink)" stroke-width="1.5" opacity=".5"/></svg><span id="vCoins">0</span></span>
+      <span class="chip" title="Gemas"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><polygon points="10,1 18,8 10,19 2,8" fill="var(--sky)"/><polyline points="2,8 18,8" stroke="#fff" stroke-width="1.2" opacity=".6" fill="none"/></svg><span id="vGems">0</span></span>
+      <button class="iconbtn" data-act="aba" data-arg="dev" aria-label="Painel de anúncios"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V11M12 20V4M19 20v-6"/></svg></button>
+    </div>
+  </header>
+  <main id="view"></main>
+  <nav id="nav" aria-label="Seções">
+    <button data-act="aba" data-arg="sitio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9H3z"/><path d="M9 20v-6h6v6"/></svg>Sítio</button>
+    <button data-act="aba" data-arg="ovos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C8 3 5 10 5 14.5 5 18.5 8 21 12 21s7-2.5 7-6.5C19 10 16 3 12 3z"/></svg>Ovos</button>
+    <button data-act="aba" data-arg="obras"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l9-9"/><path d="M12 4l5 1 2 5-3 3-4-4z"/></svg>Obras</button>
+    <button data-act="aba" data-arg="guilda"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 19c0-3 3-5 6-5s6 2 6 5M15 15c3 0 6 1.500 6 4"/></svg>Guilda</button>
+    <button data-act="aba" data-arg="metas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6l2 2 3-3M5 14l2 2 3-3M13 7h6M13 15h6"/></svg>Metas</button>
+  </nav>
+</div>
+<div id="modal" class="modal" hidden></div>
+<div id="toast" class="toast" hidden role="status"></div>
+
+<script id="logic">
+/* ===== Regras do jogo (sem DOM) ===== */
+const RARIDADES = [
+  { id: 'comum',    nome: 'Comum',    prod: 0.5 },
+  { id: 'incomum',  nome: 'Incomum',  prod: 1.5 },
+  { id: 'raro',     nome: 'Raro',     prod: 4 },
+  { id: 'epico',    nome: 'Épico',    prod: 12 },
+  { id: 'lendario', nome: 'Lendário', prod: 40 }
+];
+const PETS = [
+  { id: 'pintinho',  nome: 'Pintinho',           em: '🐥', r: 0 },
+  { id: 'coelho',    nome: 'Coelho',             em: '🐰', r: 0 },
+  { id: 'leitao',    nome: 'Leitão',             em: '🐷', r: 0 },
+  { id: 'patinho',   nome: 'Patinho',            em: '🦆', r: 0 },
+  { id: 'ovelha',    nome: 'Ovelha',             em: '🐑', r: 1 },
+  { id: 'bezerra',   nome: 'Bezerra',            em: '🐮', r: 1 },
+  { id: 'cabrito',   nome: 'Cabrito',            em: '🐐', r: 1 },
+  { id: 'galinha',   nome: 'Galinha Caipira',    em: '🐔', r: 1 },
+  { id: 'raposa',    nome: 'Raposa',             em: '🦊', r: 2 },
+  { id: 'potro',     nome: 'Potro',              em: '🐴', r: 2 },
+  { id: 'lhama',     nome: 'Lhama',              em: '🦙', r: 2 },
+  { id: 'lontra',    nome: 'Lontra',             em: '🦦', r: 2 },
+  { id: 'unicornio', nome: 'Unicórnio',          em: '🦄', r: 3 },
+  { id: 'pavao',     nome: 'Pavão',              em: '🦚', r: 3 },
+  { id: 'coruja',    nome: 'Coruja',             em: '🦉', r: 3 },
+  { id: 'cervo',     nome: 'Cervo',              em: '🦌', r: 3 },
+  { id: 'dragao',    nome: 'Dragão do Milharal', em: '🐲', r: 4 },
+  { id: 'mamute',    nome: 'Mamute Lanoso',      em: '🦣', r: 4 },
+  { id: 'dino',      nome: 'Dino de Palha',      em: '🦕', r: 4 }
+];
+const PET_POR_ID = Object.fromEntries(PETS.map(p => [p.id, p]));
+const OVOS = {
+  palha:   { nome: 'Ovo de Palha', moeda: 'coins', base: 120, tempo: 20, pesos: [60, 28, 9, 2.6, 0.4], nivel: 1 },
+  dourado: { nome: 'Ovo Dourado',  moeda: 'gems',  base: 5,   tempo: 60, pesos: [0, 38, 40, 19, 3],    nivel: 5 }
+};
+const PITY_LIMIT = 30, PITY_PESOS = [0, 0, 0, 92, 8], LVL_MAX = 10;
+const SLOTS_INI = 3, SLOTS_MAX = 8;
+const PASTO_CUSTO = [500, 4000, 30000, 200000, 1500000];
+const PASTO_NIVEL = [2, 4, 7, 10, 14];
+const NIVEL_MAX = 30;
+const XP_OVO = [8, 12, 25, 60, 200];
+const SET_BONUS = [0.10, 0.20, 0.35, 0.60, 1.00];
+const DIARIO = [{ k: 1, g: 0 }, { k: 0, g: 2 }, { k: 2, g: 0 }, { k: 0, g: 3 }, { k: 3, g: 0 }, { k: 0, g: 4 }, { k: 4, g: 8 }];
+const TITULOS = [[1, 'Aprendiz de Roça'], [3, 'Peão Esperto'], [6, 'Sitiante'], [10, 'Fazendeiro'], [15, 'Capataz-Mor'], [20, 'Barão da Colheita'], [25, 'Duque dos Bichos'], [30, 'Lenda do Campo']];
+const OBRAS = {
+  celeiro:    { nome: 'Celeiro',    nivel: 1, max: 10, base: 150, cresc: 2.0 },
+  chocadeira: { nome: 'Chocadeira', nivel: 2, max: 8,  base: 300, cresc: 2.1 },
+  moinho:     { nome: 'Moinho',     nivel: 3, max: 10, base: 400, cresc: 2.2 },
+  estufa:     { nome: 'Estufa',     nivel: 5, max: 10, base: 700, cresc: 2.15 }
+};
+const NIVEL_GUILDA = 5;
+
+/* ----- tempo ----- */
+let TZ_OFF = 0;
+const HORA = 3600000, DIA = 86400000;
+const diaDe = now => Math.floor((now - TZ_OFF * 60000) / DIA);
+const semanaDe = now => Math.floor((diaDe(now) + 3) / 7);
+const horasSemana = now => ((now - TZ_OFF * 60000) - (semanaDe(now) * 7 - 3) * DIA) / HORA;
+
+/* ----- sorteio ----- */
+function sortearRaridade(pesos, pity, rng) {
+  rng = rng || Math.random;
+  const p = pity >= PITY_LIMIT - 1 ? PITY_PESOS : pesos;
+  const t = p.reduce((a, b) => a + b, 0);
+  let x = rng() * t;
+  for (let i = 0; i < p.length; i++) { if (x < p[i]) return i; x -= p[i]; }
+  return p.length - 1;
+}
+function sortearPet(ovoId, pity, rng) {
+  rng = rng || Math.random;
+  const r = sortearRaridade(OVOS[ovoId].pesos, pity, rng);
+  const lista = PETS.filter(p => p.r === r);
+  return { r, pet: lista[Math.floor(rng() * lista.length)] };
+}
+
+/* ----- fórmulas ----- */
+const horasCeleiro = l => 1 + 0.5 * l;
+const multMoinho = l => 1 + 0.1 * l;
+const fatorChocar = l => Math.max(0.36, 1 - 0.08 * l);
+const multXP = l => 1 + 0.1 * l;
+const xpProx = l => Math.round(60 * Math.pow(1.45, l - 1));
+const nivelParaObra = l => 3 * l + 1;   // nível do fazendeiro para subir a obra do nível l para l+1
+const tituloDe = l => TITULOS.filter(t => l >= t[0]).pop()[1];
+const tierDe = l => Math.min(5, Math.floor((l - 1) / 5));
+const incubadoras = n => 2 + (n >= 6 ? 1 : 0) + (n >= 12 ? 1 : 0);
+const custoObra = (id, l) => Math.round(OBRAS[id].base * Math.pow(OBRAS[id].cresc, l));
+const custoOvo = (S, id) => OVOS[id].moeda === 'coins' ? Math.round(OVOS[id].base * (1 + 0.2 * (S.nivel - 1)) * Math.pow(1.03, S.summons)) : OVOS[id].base;
+const tempoOvo = (S, id) => Math.max(5, Math.round(OVOS[id].tempo * fatorChocar(S.obras.chocadeira)));
+const metaSafra = n => Math.round(120 * Math.pow(1.2, n - 1));
+function recSafra(n) { return { coins: Math.round(metaSafra(n) * 0.25), xp: 8 + 2 * n, gems: n % 10 === 0 ? 15 : n % 5 === 0 ? 5 : n % 3 === 0 ? 1 : 0 }; }
+function prodPet(id, lvl) { return RARIDADES[PET_POR_ID[id].r].prod * (1 + 0.3 * (lvl - 1)); }
+function ativos(S) {
+  return Object.keys(S.pets)
+    .map(id => ({ id, lvl: S.pets[id].lvl, prod: prodPet(id, S.pets[id].lvl) }))
+    .sort((a, b) => b.prod - a.prod)
+    .slice(0, S.slots);
+}
+function setsCompletos(S) { return RARIDADES.map((_, r) => PETS.filter(p => p.r === r).every(p => S.pets[p.id])); }
+function bonusSets(S) { const c = setsCompletos(S); return c.reduce((a, ok, r) => a + (ok ? SET_BONUS[r] : 0), 0); }
+function bonusGuildaProd(S) { return S.guilda.id >= 0 ? 0.04 * (S.guilda.nivel - 1) : 0; }
+function prodBase(S) { return ativos(S).reduce((a, p) => a + p.prod, 0); }
+function multProd(S) { return multMoinho(S.obras.moinho) * (1 + bonusSets(S)) * (1 + bonusGuildaProd(S)); }
+function prodTotal(S) { return prodBase(S) * multProd(S); }
+function capCeleiro(S) { return Math.max(200, prodTotal(S) * 3600 * horasCeleiro(S.obras.celeiro)); }
+function pastoProx(S) { return S.slots < SLOTS_MAX ? { custo: PASTO_CUSTO[S.slots - SLOTS_INI], nivel: PASTO_NIVEL[S.slots - SLOTS_INI] } : null; }
+function desbloqueios(n) {
+  const r = [];
+  for (const id in OBRAS) if (OBRAS[id].nivel === n && n > 1) r.push(OBRAS[id].nome);
+  PASTO_NIVEL.forEach((l, i) => { if (l === n) r.push('Pasto ' + (i + 4)); });
+  if (n === OVOS.dourado.nivel) r.push('Ovo Dourado');
+  if (n === NIVEL_GUILDA) r.push('Guilda');
+  if (n === 6 || n === 12) r.push('Nova incubadora');
+  return r;
+}
+function ajustarIncubadoras(S) { const n = incubadoras(S.nivel); while (S.eggs.length < n) S.eggs.push(null); }
+
+/* ----- pseudo-aleatório determinístico (jogadores simulados) ----- */
+function h32(x) { x = (x ^ 61) ^ (x >>> 16); x = x + (x << 3); x = x ^ (x >>> 4); x = Math.imul(x, 0x27d4eb2d); x = x ^ (x >>> 15); return x >>> 0; }
+const rnd01 = (a, b) => (h32(Math.imul(a, 7919) + Math.imul(b, 104729) + 12345) % 100000) / 100000;
+
+/* ----- guilda (jogadores simulados) ----- */
+const GUILDAS = [
+  { id: 0, nome: 'Liga do Celeiro',  lema: 'Um ovo novo por dia' },
+  { id: 1, nome: 'Raposas da Roça',  lema: 'Espertas e sempre no pasto' },
+  { id: 2, nome: 'Os Colhedores',    lema: 'Quem planta, colhe' }
+];
+const NOMES = ['Mari', 'Zé do Milho', 'Tati', 'Duda', 'Bento', 'Lia', 'Caco', 'Nina', 'Teco', 'Gabi', 'Rafa', 'Joaquim', 'Bia', 'Pipo', 'Dona Cida', 'Tonho', 'Léo', 'Sol', 'Vitória', 'Nando'];
+const SUFIXOS = ['do Vale', 'da Serra', 'do Riacho'];
+const N_MEMBROS = 14;
+const BAUS = [{ p: 0.25, k: 2, g: 2 }, { p: 0.5, k: 4, g: 3 }, { p: 0.75, k: 8, g: 5 }, { p: 1, k: 15, g: 10 }];
+const MIN_PONTOS_BAU = 30;
+const membroNome = (gid, i) => NOMES[(i + gid * 4) % NOMES.length];
+const membroPapel = i => i === 0 ? 'Líder' : i === 1 ? 'Vice' : 'Membro';
+const membroTaxa = (gid, i) => 0.8 + rnd01(gid * 100 + i, 1) * 3.4;
+const pontosMembro = (gid, i, now) => Math.floor(membroTaxa(gid, i) * horasSemana(now));
+const membroNivel = (S, i, now) => 4 + Math.floor(rnd01(S.guilda.id * 100 + i, 2) * 22) + Math.floor(Math.max(0, diaDe(now) - S.criadoDia) * 0.2);
+function fundoGuilda(S, now) {
+  const g = S.guilda; let soma = 0;
+  for (let i = 0; i < N_MEMBROS; i++) soma += membroTaxa(g.id, i);
+  return soma * 0.4 * Math.max(0, (now - g.entrou) / HORA) + g.doado;
+}
+const fundoNivel = n => Math.round(2500 * Math.pow(1.7, n - 1));  // fundo necessário para passar do nível n para n+1
+function nivelPorFundo(f) { let n = 1; while (n < 20 && f >= fundoNivel(n)) n++; return n; }
+function atualizarGuilda(S, now) {
+  const g = S.guilda; if (g.id < 0 || g.id >= GUILDAS.length) return;   // guilda online: o servidor manda
+  g.nivel = nivelPorFundo(fundoGuilda(S, now));
+  const sem = semanaDe(now);
+  if (g.semana !== sem) { g.semana = sem; g.pontos = 0; g.baus = [0, 0, 0, 0]; }
+}
+const metaSemana = S => Math.round(9000 * (1 + 0.1 * (S.guilda.nivel - 1)));
+function totalSemana(S, now) {
+  let t = S.guilda.pontos;
+  for (let i = 0; i < N_MEMBROS; i++) t += pontosMembro(S.guilda.id, i, now);
+  return t;
+}
+/* Ganchos do modo online (src/online.js): recebem os pontos e os choques raros para enviar ao servidor. */
+let HOOK_PONTOS = null, HOOK_CHOQUE = null;
+function addPontos(S, n, motivo) {
+  if (S.guilda.id >= 0) S.guilda.pontos += n;
+  if (motivo && HOOK_PONTOS) HOOK_PONTOS(n, motivo);
+}
+function membrosOrdenados(S, now) {
+  const l = [];
+  for (let i = 0; i < N_MEMBROS; i++) l.push({ i, nome: membroNome(S.guilda.id, i), papel: membroPapel(i), nivel: membroNivel(S, i, now), pontos: pontosMembro(S.guilda.id, i, now), voce: false });
+  l.push({ i: -1, nome: 'Você', papel: 'Membro', nivel: S.nivel, pontos: S.guilda.pontos, voce: true });
+  return l.sort((a, b) => b.pontos - a.pontos);
+}
+function entrarGuilda(S, id, now) {
+  if (S.nivel < NIVEL_GUILDA) return { erro: 'nivel' };
+  if (S.guilda.id >= 0) return { erro: 'ja' };
+  S.guilda = { id, entrou: now, doado: 0, nivel: 1, pontos: 0, semana: -1, baus: [0, 0, 0, 0], ajudou: {}, parab: {}, parabDia: { dia: -1, qtd: 0 } };
+  atualizarGuilda(S, now);
+  return { ok: true, ups: ganharXP(S, 40) };
+}
+function doar(S, valor, now) {
+  if (S.guilda.id < 0) return { erro: 'sem' };
+  if (S.coins < valor) return { erro: 'moedas' };
+  S.coins -= valor; S.guilda.doado += valor;
+  addPontos(S, Math.floor(valor / 50));
+  atualizarGuilda(S, now);
+  return { ok: true, ups: ganharXP(S, Math.ceil(Math.sqrt(valor) / 2)) };
+}
+function ajudar(S, i, now) {
+  const g = S.guilda, dia = diaDe(now);
+  if (g.id < 0) return { erro: 'sem' };
+  if (g.ajudou[i] === dia) return { erro: 'ja' };
+  g.ajudou[i] = dia;
+  const coins = Math.max(30, Math.round(prodTotal(S) * 60));
+  S.coins += coins; addPontos(S, 15);
+  return { ok: true, coins, ups: ganharXP(S, 5) };
+}
+function resgatarBau(S, i, now) {
+  const g = S.guilda;
+  if (g.id < 0) return { erro: 'sem' };
+  if (g.baus[i]) return { erro: 'ja' };
+  if (g.pontos < MIN_PONTOS_BAU) return { erro: 'min' };
+  if (totalSemana(S, now) < BAUS[i].p * metaSemana(S)) return { erro: 'meta' };
+  const base = Math.max(200, Math.round(prodTotal(S) * 600)), b = BAUS[i];
+  S.coins += b.k * base; S.gems += b.g; g.baus[i] = 1;
+  return { ok: true, coins: b.k * base, gems: b.g, ups: ganharXP(S, 30 + 10 * i) };
+}
+/* mural: um evento novo a cada 25 minutos, sempre igual para o mesmo horário */
+const SLOT_MURAL = 25 * 60000;
+function muralEventos(S, now, n) {
+  const g = S.guilda, atual = Math.floor(now / SLOT_MURAL), out = [];
+  if (g.id < 0) return out;
+  for (let j = 0; j < n; j++) {
+    const slot = atual - j, hh = h32(g.id * 997 + slot);
+    const i = hh % N_MEMBROS, nome = membroNome(g.id, i), tipo = (hh >>> 4) % 5;
+    let txt;
+    if (tipo === 0) { const r = 2 + ((hh >>> 8) % 20 < 15 ? 0 : (hh >>> 8) % 20 < 19 ? 1 : 2); const l = PETS.filter(p => p.r === r); const p = l[(hh >>> 12) % l.length]; txt = `${nome} chocou ${p.em} ${p.nome} (${RARIDADES[r].nome})!`; }
+    else if (tipo === 1) txt = `${nome} subiu para o nível ${membroNivel(S, i, slot * SLOT_MURAL)}.`;
+    else if (tipo === 2) txt = `${nome} doou ${(1 + (hh >>> 9) % 9) * 500} moedas ao fundo da guilda.`;
+    else if (tipo === 3) txt = `${nome} completou a safra ${5 + (hh >>> 10) % 40}.`;
+    else txt = `${nome} ajudou ${membroNome(g.id, (i + 3) % N_MEMBROS)} no sítio.`;
+    out.push({ key: slot, txt, t: slot * SLOT_MURAL });
+  }
+  return out;
+}
+function parabenizar(S, key, now) {
+  const g = S.guilda, dia = diaDe(now);
+  if (g.id < 0) return { erro: 'sem' };
+  if (g.parab[key]) return { erro: 'ja' };
+  if (g.parabDia.dia !== dia) g.parabDia = { dia, qtd: 0 };
+  if (g.parabDia.qtd >= 10) return { erro: 'limite' };
+  g.parabDia.qtd++; g.parab[key] = 1;
+  const ks = Object.keys(g.parab); if (ks.length > 40) ks.slice(0, ks.length - 40).forEach(k => delete g.parab[k]);
+  const coins = Math.max(20, Math.round(prodTotal(S) * 30));
+  S.coins += coins;
+  return { ok: true, coins };
+}
+/* ranking dos sítios (jogadores simulados) */
+function poderJogador(S) { return Math.round(prodTotal(S) * 10 + S.nivel * 40 + Object.keys(S.pets).length * 25 + S.safra * 12); }
+function rankingSitios(S, now) {
+  const dias = Math.max(0, diaDe(now) - S.criadoDia), l = [];
+  for (let i = 0; i < 50; i++) l.push({ nome: NOMES[i % 20] + ' ' + SUFIXOS[Math.floor(i / 20)], poder: Math.round(60 * Math.pow(1.17, i) * (1 + 0.04 * dias)), voce: false });
+  l.push({ nome: 'Você', poder: poderJogador(S), voce: true });
+  l.sort((a, b) => b.poder - a.poder);
+  return l.map((x, k) => Object.assign(x, { pos: k + 1 }));
+}
+
+/* ----- progressão do fazendeiro ----- */
+function ganharXP(S, n) {
+  const ups = [];
+  if (S.nivel >= NIVEL_MAX) return ups;
+  S.xp += Math.round(n * multXP(S.obras.estufa));
+  while (S.nivel < NIVEL_MAX && S.xp >= xpProx(S.nivel)) {
+    S.xp -= xpProx(S.nivel); S.nivel++;
+    const g = S.nivel % 5 === 0 ? 10 : 3; S.gems += g;
+    ups.push({ nivel: S.nivel, gems: g });
+  }
+  if (S.nivel >= NIVEL_MAX) S.xp = 0;
+  ajustarIncubadoras(S);
+  return ups;
+}
+const xpColeta = q => Math.max(1, Math.ceil(Math.sqrt(q) * 0.4));
+
+/* ----- missões ----- */
+const MISSOES_INI = [{ t: 'chocar', meta: 1 }, { t: 'coletar', meta: 100 }, { t: 'obra', meta: 1 }];
+function arred(n) { if (n < 20) return Math.max(1, Math.round(n)); const p = Math.pow(10, Math.floor(Math.log10(n)) - 1); return Math.round(n / p) * p; }
+function recMissao(t, meta, L) {
+  if (t === 'coletar') return { coins: Math.round(meta * 0.35), xp: 25 + 4 * L, gems: 1 };
+  if (t === 'chocar')  return { coins: 60 * meta, xp: 30 + 6 * L, gems: meta >= 3 ? 2 : 1 };
+  if (t === 'obra')    return { coins: 150 + 40 * L, xp: 35 + 6 * L, gems: 1 };
+  if (t === 'anuncio') return { coins: 0, xp: 20 + 3 * L, gems: 3 };
+  return { coins: 100 + 50 * L, xp: 60 + 8 * L, gems: 3 };
+}
+function novaMissao(S, rng) {
+  rng = rng || Math.random;
+  const L = S.nivel; let t, meta;
+  if (S.mCont < MISSOES_INI.length) { t = MISSOES_INI[S.mCont].t; meta = MISSOES_INI[S.mCont].meta; }
+  else {
+    const tipos = ['coletar', 'chocar', 'obra', 'anuncio', 'melhor'].filter(x => !S.missoes.some(m => m && m.t === x));
+    t = tipos[Math.floor(rng() * tipos.length)];
+    meta = t === 'coletar' ? arred(Math.max(150, prodTotal(S) * 900)) : t === 'chocar' ? 2 + Math.floor(L / 4) : t === 'obra' ? 1 + Math.floor(L / 8) : 1;
+  }
+  S.mCont++;
+  return { t, meta, prog: 0, min: L < 6 ? 1 : 2, rec: recMissao(t, meta, L), feita: false };
+}
+function evento(S, t, q, r) {
+  for (const m of S.missoes) {
+    if (!m || m.feita || m.t !== t) continue;
+    if (t === 'melhor' && r < m.min) continue;
+    m.prog = Math.min(m.meta, m.prog + q);
+    if (m.prog >= m.meta) m.feita = true;
+  }
+}
+
+/* ----- estado e ações ----- */
+function novoEstado(now) {
+  const S = {
+    ts: now, coins: 240, gems: 5, barn: 0, pets: {}, slots: SLOTS_INI, nivel: 1, xp: 0,
+    obras: { celeiro: 0, chocadeira: 0, moinho: 0, estufa: 0 },
+    eggs: [{ tipo: 'palha', pronto: now }, null], pity: 0, summons: 0, cd: { ovo: 0, gemas: 0 },
+    safra: 1, safraProg: 0, criadoDia: diaDe(now),
+    ads: { dobro: 0, ovo: 0, gemas: 0, acelerar: 0, missao: 0, diario: 0 },
+    dev: { ecpm: 5, dau: 1000, adsDia: 6 },
+    missoes: [null, null, null], mCont: 0, diario: { ultimo: -1, seq: 0 }, stats: { coletado: 0, chocados: 0 },
+    guilda: { id: -1, entrou: 0, doado: 0, nivel: 1, pontos: 0, semana: -1, baus: [0, 0, 0, 0], ajudou: {}, parab: {}, parabDia: { dia: -1, qtd: 0 } }
+  };
+  for (let i = 0; i < 3; i++) S.missoes[i] = novaMissao(S);
+  return S;
+}
+/* avança o relógio: produção do celeiro e progresso das safras */
+function avancar(S, now) {
+  const dt = Math.max(0, (now - S.ts) / 1000), out = { safras: [], ups: [] };
+  S.ts = now;
+  atualizarGuilda(S, now);
+  const prod = prodTotal(S);
+  S.barn = Math.min(capCeleiro(S), S.barn + prod * dt);
+  S.safraProg += prod * dt;
+  let guard = 0;
+  while (S.safraProg >= metaSafra(S.safra) && guard++ < 300) {
+    S.safraProg -= metaSafra(S.safra);
+    const r = recSafra(S.safra);
+    S.coins += r.coins; S.gems += r.gems; addPontos(S, 5, 'safra');
+    out.safras.push({ n: S.safra, rec: r });
+    out.ups.push(...ganharXP(S, r.xp));
+    S.safra++;
+  }
+  return out;
+}
+function aplicarPet(S, id) {
+  const cur = S.pets[id];
+  if (!cur) { S.pets[id] = { lvl: 1 }; return { tipo: 'novo' }; }
+  if (cur.lvl < LVL_MAX) { cur.lvl++; return { tipo: 'nivel', lvl: cur.lvl }; }
+  const reembolso = Math.round(50 * Math.pow(3, PET_POR_ID[id].r));
+  S.coins += reembolso;
+  return { tipo: 'max', reembolso };
+}
+function coletar(S, mult) {
+  const q = Math.floor(S.barn); if (q < 1) return null;
+  const ganho = q * (mult || 1);
+  S.coins += ganho; S.barn -= q; S.stats.coletado += ganho;
+  evento(S, 'coletar', ganho);
+  addPontos(S, Math.max(1, Math.floor(q / 200)), 'coleta');
+  return { q, ganho, ups: ganharXP(S, xpColeta(q)) };
+}
+function comprarOvo(S, tipo, now) {
+  const o = OVOS[tipo];
+  if (S.nivel < o.nivel) return { erro: 'nivel', nivel: o.nivel };
+  const i = S.eggs.findIndex(e => !e);
+  if (i < 0) return { erro: 'cheio' };
+  const c = custoOvo(S, tipo);
+  if (o.moeda === 'coins') { if (S.coins < c) return { erro: 'moedas' }; S.coins -= c; }
+  else { if (S.gems < c) return { erro: 'gemas' }; S.gems -= c; }
+  S.eggs[i] = { tipo, pronto: now + tempoOvo(S, tipo) * 1000 };
+  return { ok: true, i };
+}
+function abrirOvo(S, i, now, rng) {
+  const e = S.eggs[i];
+  if (!e || now < e.pronto) return null;
+  const r = sortearPet(e.tipo, S.pity, rng);
+  S.eggs[i] = null; S.summons++; S.stats.chocados++;
+  S.pity = r.r >= 3 ? 0 : S.pity + 1;
+  const res = aplicarPet(S, r.pet.id);
+  evento(S, 'chocar', 1); evento(S, 'melhor', 1, r.r);
+  addPontos(S, 10, 'ovo');
+  if (HOOK_CHOQUE && r.r >= 2) HOOK_CHOQUE(r.pet.id);
+  return { tipo: e.tipo, pet: r.pet, r: r.r, res, ups: ganharXP(S, XP_OVO[r.r] * (res.tipo === 'novo' ? 2 : 1)) };
+}
+function melhorarObra(S, id) {
+  const o = OBRAS[id];
+  if (S.nivel < o.nivel) return { erro: 'nivel', nivel: o.nivel };
+  const l = S.obras[id];
+  if (l >= o.max) return { erro: 'max' };
+  if (S.nivel < nivelParaObra(l)) return { erro: 'cap', nivel: nivelParaObra(l) };
+  const c = custoObra(id, l);
+  if (S.coins < c) return { erro: 'moedas' };
+  S.coins -= c; S.obras[id] = l + 1;
+  evento(S, 'obra', 1);
+  return { ok: true, lvl: l + 1, ups: ganharXP(S, 15 + 3 * (l + 1)) };
+}
+function comprarPasto(S) {
+  const p = pastoProx(S);
+  if (!p) return { erro: 'max' };
+  if (S.nivel < p.nivel) return { erro: 'nivel', nivel: p.nivel };
+  if (S.coins < p.custo) return { erro: 'moedas' };
+  S.coins -= p.custo; S.slots++;
+  return { ok: true, ups: ganharXP(S, 25 + 5 * S.slots) };
+}
+function resgatarMissao(S, i, dobro) {
+  const m = S.missoes[i]; if (!m || !m.feita) return null;
+  const k = dobro ? 2 : 1;
+  S.coins += m.rec.coins * k; S.gems += m.rec.gems * k;
+  addPontos(S, 30, 'missao');
+  const ups = ganharXP(S, m.rec.xp * k);
+  S.missoes[i] = novaMissao(S);
+  return { rec: m.rec, k, ups };
+}
+function seqDiaria(S, hoje) { return S.diario.ultimo === hoje ? S.diario.seq : (S.diario.ultimo === hoje - 1 ? S.diario.seq + 1 : 1); }
+function recDiario(S, seq) { const d = DIARIO[(seq - 1) % 7], base = Math.max(150, Math.round(prodTotal(S) * 600)); return { coins: d.k * base, gems: d.g }; }
+function resgatarDiario(S, hoje, dobro) {
+  if (S.diario.ultimo === hoje) return null;
+  const seq = seqDiaria(S, hoje), r = recDiario(S, seq), k = dobro ? 2 : 1;
+  S.coins += r.coins * k; S.gems += r.gems * k;
+  S.diario = { ultimo: hoje, seq };
+  return { r, k, seq, ups: ganharXP(S, 20) };
+}
+function anuncioVisto(S, tipo) { S.ads[tipo] = (S.ads[tipo] || 0) + 1; evento(S, 'anuncio', 1); }
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* ===== Interface ===== */
+TZ_OFF = new Date().getTimezoneOffset();
+const KEY = 'sitio-dos-bichos.v1';
+const $ = s => document.querySelector(s);
+function carregar() {
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+  const base = novoEstado(Date.now());
+  if (!s || typeof s !== 'object') return base;
+  const r = Object.assign(base, s);
+  ['obras', 'cd', 'ads', 'dev', 'stats', 'diario', 'guilda'].forEach(k => { r[k] = Object.assign({}, base[k], s[k]); });
+  if (!Array.isArray(r.eggs)) r.eggs = [null, null];
+  if (!r.pets || typeof r.pets !== 'object') r.pets = {};
+  if (!Array.isArray(r.missoes) || r.missoes.length !== 3) { r.missoes = [null, null, null]; for (let i = 0; i < 3; i++) r.missoes[i] = novaMissao(r); }
+  r.missoes = r.missoes.map(m => m || novaMissao(r));
+  if (r.guilda.id >= GUILDAS.length) r.guilda = base.guilda;   // sobra do modo online
+  ajustarIncubadoras(r);
+  return r;
+}
+let S = carregar();
+let aba = 'sitio', subG = 'guilda', subM = 'missoes';
+let ultimoSalvo = 0, confirmaReset = false;
+function salvar() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} ultimoSalvo = Date.now(); }
+
+const fmt = n => n >= 1e6 ? (n / 1e6).toFixed(2).replace('.', ',') + ' mi' : Math.floor(n).toLocaleString('pt-BR');
+const fmt1 = n => n.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const pct = n => n.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%';
+const usd = n => 'US$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const mmss = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+const duracao = s => { s = Math.max(0, Math.round(s)); if (s < 60) return s + ' s'; if (s < 3600) return Math.round(s / 60) + ' min'; if (s < 86400) return Math.floor(s / 3600) + ' h ' + Math.round((s % 3600) / 60) + ' min'; return Math.floor(s / 86400) + ' d ' + Math.round((s % 86400) / 3600) + ' h'; };
+const reduzMov = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const textoRec = r => [r.coins > 0 ? '+' + fmt(r.coins) + ' moedas' : '', r.gems > 0 ? '+' + r.gems + ' gemas' : '', r.xp > 0 ? '+' + r.xp + ' XP' : ''].filter(Boolean).join(' · ');
+
+let toastT = null;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 2400); }
+const ERROS = { moedas: 'Moedas insuficientes', gemas: 'Gemas insuficientes', cheio: 'Incubadoras cheias. Abra um ovo primeiro.', max: 'Já está no máximo', min: 'Faça ' + MIN_PONTOS_BAU + ' pontos na semana para resgatar baús', meta: 'A guilda ainda não chegou nessa meta', ja: 'Você já fez isso hoje', limite: 'Limite diário de parabéns atingido', sem: 'Entre numa guilda primeiro' };
+const erroMsg = e => e.erro === 'nivel' ? 'Libera no nível ' + e.nivel : e.erro === 'cap' ? 'Precisa de fazendeiro nível ' + e.nivel : (ERROS[e.erro] || 'Não foi possível');
+
+const PLAY = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5v9l7-4.5z" fill="currentColor"/></svg>';
+function eggSVG(tipo) {
+  const ouro = tipo === 'dourado';
+  const f1 = ouro ? '#FBD35A' : '#D9C48A', f2 = ouro ? '#E39A0B' : '#B79B5B', pinta = ouro ? '#FFF1B8' : '#8F7640', gid = 'g' + tipo;
+  return `<svg class="eggsvg" viewBox="0 0 64 76" aria-hidden="true"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${f1}"/><stop offset="1" stop-color="${f2}"/></linearGradient></defs><path d="M32 3C19 3 7 26 7 47c0 17 11 26 25 26s25-9 25-26C57 26 45 3 32 3z" fill="url(#${gid})"/><ellipse cx="22" cy="24" rx="5" ry="9" fill="#fff" opacity=".35" transform="rotate(20 22 24)"/><circle cx="40" cy="48" r="3" fill="${pinta}" opacity=".6"/><circle cx="28" cy="58" r="2.2" fill="${pinta}" opacity=".6"/><circle cx="44" cy="36" r="1.8" fill="${pinta}" opacity=".6"/></svg>`;
+}
+
+/* ---------- modais ---------- */
+const MODAL = $('#modal');
+let fila = [], adT = null, adReward = null, adTipo = null;
+function abrirModal(h) { MODAL.hidden = false; MODAL.innerHTML = h; }
+function fecharModal() { clearInterval(adT); adReward = null; MODAL.hidden = true; MODAL.innerHTML = ''; drenar(); }
+function receber(ups) { if (ups && ups.length) fila.push(...ups); }
+function drenar() {
+  if (!MODAL.hidden || !fila.length) return;
+  const u = fila.shift(), d = desbloqueios(u.nivel);
+  abrirModal(`<div class="sheet pop"><p class="eyebrow">Você subiu de nível</p><div class="lvbig">${u.nivel}</div><h2>${tituloDe(u.nivel)}</h2>
+    <p class="muted">+${u.gems} gemas${d.length ? '<br>Liberou: <b>' + d.join(', ') + '</b>' : ''}</p>
+    <button class="btn primary" data-act="fechar">Continuar</button></div>`);
+}
+function anuncio(tipo, titulo, recompensa) {
+  adReward = recompensa; adTipo = tipo;
+  abrirModal(`<div class="sheet"><p class="eyebrow">Anúncio simulado</p><h2>${titulo}</h2>
+    <div><div class="bar"><i id="adBar"></i></div><p class="muted" id="adMsg" style="margin-top:8px">Assistindo… 3s</p></div>
+    <p class="muted">No app publicado, aqui entra um anúncio recompensado de verdade (AdMob).</p>
+    <div class="row"><button class="btn ghost" data-act="fechar">Cancelar</button><button class="btn primary" id="adOk" data-act="adok" disabled>Receber</button></div></div>`);
+  const dur = 3000, ini = Date.now();
+  clearInterval(adT);
+  adT = setInterval(() => {
+    const p = Math.min(1, (Date.now() - ini) / dur), bar = $('#adBar');
+    if (!bar) { clearInterval(adT); return; }
+    bar.style.width = (p * 100) + '%';
+    if (p >= 1) { clearInterval(adT); $('#adMsg').textContent = 'Pronto! Receba sua recompensa.'; $('#adOk').disabled = false; }
+    else $('#adMsg').textContent = 'Assistindo… ' + Math.ceil((dur - (Date.now() - ini)) / 1000) + 's';
+  }, 100);
+}
+function abrirOvoUI(i) {
+  const r = abrirOvo(S, i, Date.now());
+  if (!r) return;
+  receber(r.ups); salvar();
+  abrirModal(`<div class="sheet"><div class="reveal ${reduzMov() ? '' : 'shake'}">${eggSVG(r.tipo)}</div><p class="muted">Chocando…</p></div>`);
+  setTimeout(() => {
+    if (MODAL.hidden) return;
+    const msg = r.res.tipo === 'novo' ? 'Novo bicho na coleção!' : r.res.tipo === 'nivel' ? 'Repetido: subiu para o nível ' + r.res.lvl : 'Nível máximo: +' + fmt(r.res.reembolso) + ' moedas';
+    abrirModal(`<div class="sheet" style="--rc:var(--r${r.r})"><div class="reveal pop"><div class="face">${r.pet.em}</div><p class="rlabel">${RARIDADES[r.r].nome}</p><h2>${r.pet.nome}</h2><p class="muted">${msg}</p><p class="muted">Produz ${fmt1(prodPet(r.pet.id, S.pets[r.pet.id].lvl))} moedas/s base</p></div><button class="btn primary" data-act="fechar">Continuar</button></div>`);
+  }, reduzMov() ? 200 : 1300);
+  render();
+}
+
+/* ---------- ações ---------- */
+function processar(r, semDrenar) {
+  if (r.ups.length) receber(r.ups);
+  if (r.safras.length) {
+    const c = r.safras.reduce((a, s) => a + s.rec.coins, 0);
+    toast(r.safras.length === 1 ? `Safra ${r.safras[0].n} concluída! +${fmt(c)} moedas` : `${r.safras.length} safras concluídas! +${fmt(c)} moedas`);
+  }
+  if (!semDrenar) drenar();
+}
+const ACOES = {
+  aba(a) { aba = a; confirmaReset = false; render(); $('#view').scrollTop = 0; },
+  subG(x) { subG = x; render(); },
+  subM(x) { subM = x; render(); },
+  fechar() { fecharModal(); },
+  adok() {
+    const f = adReward, t = adTipo; if (!f) return;
+    anuncioVisto(S, t); f(); fecharModal(); salvar(); render();
+  },
+  coletar() { const r = coletar(S, 1); if (!r) return; receber(r.ups); toast('+' + fmt(r.ganho) + ' moedas'); salvar(); render(); },
+  coletar2x() {
+    if (Math.floor(S.barn) < 1) return;
+    anuncio('dobro', 'Coletar em dobro', () => { const r = coletar(S, 2); if (r) { receber(r.ups); toast('+' + fmt(r.ganho) + ' moedas (dobro)'); } });
+  },
+  pasto() { const r = comprarPasto(S); if (!r.ok) return toast(erroMsg(r)); receber(r.ups); salvar(); render(); toast('Novo pasto liberado'); },
+  melhorar(id) { const r = melhorarObra(S, id); if (!r.ok) return toast(erroMsg(r)); receber(r.ups); salvar(); render(); toast(OBRAS[id].nome + ' no nível ' + r.lvl); },
+  comprar(tipo) { const r = comprarOvo(S, tipo, Date.now()); if (!r.ok) return toast(erroMsg(r)); salvar(); render(); },
+  abrir(i) { abrirOvoUI(+i); },
+  acelerar(i) { const e = S.eggs[+i]; if (!e || Date.now() >= e.pronto) return; anuncio('acelerar', 'Chocar agora', () => { if (S.eggs[+i]) S.eggs[+i].pronto = Date.now(); }); },
+  ovoGratis() {
+    if (S.cd.ovo > Date.now()) return;
+    if (S.eggs.findIndex(e => !e) < 0) return toast(ERROS.cheio);
+    anuncio('ovo', 'Ovo de Palha grátis', () => { const i = S.eggs.findIndex(e => !e); if (i >= 0) { S.eggs[i] = { tipo: 'palha', pronto: Date.now() }; S.cd.ovo = Date.now() + 90000; toast('Ovo pronto na incubadora'); } });
+  },
+  gemasGratis() { if (S.cd.gemas > Date.now()) return; anuncio('gemas', '+2 gemas', () => { S.gems += 2; S.cd.gemas = Date.now() + 60000; toast('+2 gemas'); }); },
+  resgatar(i) { const r = resgatarMissao(S, +i, false); if (!r) return; receber(r.ups); salvar(); render(); toast('Missão concluída: ' + textoRec(r.rec)); },
+  resgatar2x(i) {
+    const m = S.missoes[+i]; if (!m || !m.feita) return;
+    anuncio('missao', 'Recompensa em dobro', () => { const r = resgatarMissao(S, +i, true); if (r) { receber(r.ups); toast('Em dobro! ' + textoRec({ coins: r.rec.coins * 2, gems: r.rec.gems * 2, xp: 0 })); } });
+  },
+  diario() { const r = resgatarDiario(S, diaDe(Date.now()), false); if (!r) return; receber(r.ups); salvar(); render(); toast('Bônus do dia ' + r.seq + ': ' + textoRec({ coins: r.r.coins, gems: r.r.gems, xp: 0 })); },
+  diario2x() {
+    if (S.diario.ultimo === diaDe(Date.now())) return;
+    anuncio('diario', 'Bônus diário em dobro', () => { const r = resgatarDiario(S, diaDe(Date.now()), true); if (r) { receber(r.ups); toast('Em dobro! ' + textoRec({ coins: r.r.coins * 2, gems: r.r.gems * 2, xp: 0 })); } });
+  },
+  entrar(id) { const r = entrarGuilda(S, +id, Date.now()); if (!r.ok) return toast(erroMsg(r)); receber(r.ups); salvar(); render(); toast('Bem-vindo à ' + GUILDAS[+id].nome); },
+  doar(p) { const v = Math.floor(S.coins * (+p) / 100); if (v < 100) return toast('Doe pelo menos 100 moedas'); const r = doar(S, v, Date.now()); if (!r.ok) return toast(erroMsg(r)); receber(r.ups); salvar(); render(); toast('Doou ' + fmt(v) + ' moedas ao fundo'); },
+  bau(i) { const r = resgatarBau(S, +i, Date.now()); if (!r.ok) return toast(erroMsg(r)); receber(r.ups); salvar(); render(); toast('Baú: +' + fmt(r.coins) + ' moedas, +' + r.gems + ' gemas'); },
+  ajudar(i) { const r = ajudar(S, +i, Date.now()); if (!r.ok) return toast(erroMsg(r)); receber(r.ups); salvar(); render(); toast('Você ajudou ' + membroNome(S.guilda.id, +i) + ': +' + fmt(r.coins) + ' moedas'); },
+  parabens(k) { const r = parabenizar(S, k, Date.now()); if (!r.ok) return toast(erroMsg(r)); salvar(); render(); toast('Parabéns enviado: +' + fmt(r.coins) + ' moedas'); },
+  resetar() {
+    if (!confirmaReset) { confirmaReset = true; render(); setTimeout(() => { if (confirmaReset) { confirmaReset = false; if (aba === 'dev') render(); } }, 4000); return; }
+    S = novoEstado(Date.now()); confirmaReset = false; fila = []; salvar(); aba = 'sitio'; render(); toast('Progresso zerado');
+  }
+};
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b || b.disabled) return;
+  const f = ACOES[b.dataset.act]; if (f) { f(b.dataset.arg); drenar(); }
+});
+document.addEventListener('input', e => {
+  const k = e.target.dataset && e.target.dataset.dev; if (!k) return;
+  S.dev[k] = Math.max(0, parseFloat(e.target.value) || 0); calcDev(); salvar();
+});
+
+/* ---------- cenário ---------- */
+function avatarSVG(tier) {
+  const cam = ['#C8453A', '#2F8FD1', '#7A4CC8', '#23834A', '#E39A0B', '#E39A0B'][tier];
+  let s = '';
+  if (tier >= 3) s += '<rect x="-14" y="-38" width="28" height="26" rx="5" fill="#2E7D4F"/>';
+  s += '<rect x="-7" y="-14" width="5" height="14" rx="1" fill="#3A4A63"/><rect x="2" y="-14" width="5" height="14" rx="1" fill="#3A4A63"/>';
+  s += `<rect x="-10" y="-37" width="20" height="25" rx="5" fill="${cam}"/><rect x="-13" y="-34" width="4" height="14" rx="2" fill="${cam}"/><rect x="9" y="-34" width="4" height="14" rx="2" fill="${cam}"/>`;
+  if (tier >= 2) s += '<rect x="-6" y="-37" width="3" height="14" fill="#2C5E8C"/><rect x="3" y="-37" width="3" height="14" fill="#2C5E8C"/>';
+  if (tier >= 4) s += '<rect x="-10" y="-20" width="20" height="4" fill="#F2C94C"/>';
+  s += '<circle cx="0" cy="-45" r="8" fill="#F0C9A0"/><circle cx="-3" cy="-46" r="1" fill="#2B1D00"/><circle cx="3" cy="-46" r="1" fill="#2B1D00"/>';
+  if (tier >= 5) s += '<polygon points="-8,-52 -8,-62 -4,-57 0,-64 4,-57 8,-62 8,-52" fill="#F4B31F"/>';
+  else { s += '<ellipse cx="0" cy="-51" rx="14" ry="3.5" fill="#E8CF84"/><path d="M-8 -51 Q0 -64 8 -51Z" fill="#E8CF84"/>'; if (tier >= 1) s += `<rect x="-8" y="-54" width="16" height="2.5" fill="${cam}"/>`; }
+  if (tier >= 1) s += '<polygon points="-5,-38 5,-38 0,-31" fill="#C8453A"/>';
+  return s;
+}
+function cena() {
+  const o = S.obras, at = ativos(S), n = at.length, tier = tierDe(S.nivel);
+  let g = '';
+  const sb = 0.9 + 0.035 * o.celeiro;
+  g += `<g transform="translate(62 128) scale(${sb.toFixed(3)})"><rect x="-30" y="-46" width="60" height="46" class="c-barn"/><polygon points="-35,-46 0,-74 35,-46" class="${o.celeiro >= 10 ? 'c-roofgold' : 'c-roof'}"/><rect x="-9" y="-26" width="18" height="26" class="c-door"/><path d="M-9 -26L9 0M9 -26L-9 0" class="c-x"/><circle cx="0" cy="-54" r="4" class="c-door"/>${o.celeiro >= 5 ? '<rect x="36" y="-56" width="16" height="56" class="c-silo"/><ellipse cx="44" cy="-56" rx="8" ry="5" class="c-roof"/>' : ''}</g>`;
+  if (o.chocadeira >= 1) { const s = 0.85 + 0.04 * o.chocadeira; g += `<g transform="translate(156 128) scale(${s.toFixed(3)})"><rect x="-20" y="-24" width="40" height="24" class="c-wall"/><polygon points="-24,-24 0,-44 24,-24" class="c-roof"/><rect x="-5" y="-14" width="10" height="14" class="c-door"/><ellipse cx="0" cy="-30" rx="4" ry="5" class="c-egg"/></g>`; }
+  if (o.estufa >= 1) { const s = 0.85 + 0.04 * o.estufa; g += `<g transform="translate(224 128) scale(${s.toFixed(3)})"><path d="M-26 0 L-26 -16 Q0 -46 26 -16 L26 0Z" class="c-glass"/><path d="M0 0V-31M-13 0V-27M13 0V-27" class="c-x" style="stroke:var(--wall);stroke-width:1.2"/><circle cx="-12" cy="-5" r="4" class="c-plant"/><circle cx="0" cy="-6" r="4.5" class="c-plant"/><circle cx="12" cy="-5" r="4" class="c-plant"/></g>`; }
+  if (o.moinho >= 1) { const s = 0.85 + 0.04 * o.moinho, d = Math.max(2.5, 9 - 0.65 * o.moinho).toFixed(1); g += `<g transform="translate(306 128) scale(${s.toFixed(3)})"><path d="M-10 0L10 0L6 -48L-6 -48Z" class="c-wall"/><path d="M-9 -48L0 -60L9 -48Z" class="c-roof"/><g transform="translate(0 -50)"><g class="spin" style="animation-duration:${d}s">${[0, 90, 180, 270].map(a => `<rect x="-1.5" y="-28" width="3" height="28" class="c-blade" transform="rotate(${a})"/><rect x="1.5" y="-28" width="9" height="14" class="c-sail" transform="rotate(${a})"/>`).join('')}</g></g></g>`; }
+  const x0 = 84, x1 = Math.min(352, x0 + S.slots * 34);
+  g += `<rect x="${x0}" y="150" width="${x1 - x0}" height="3" class="c-fence"/>`;
+  for (let x = x0; x <= x1; x += 22) g += `<rect x="${x}" y="141" width="3" height="16" class="c-fence"/>`;
+  const step = 240 / Math.max(n, 3);
+  at.forEach((a, i) => { const x = 104 + i * step; g += `<ellipse cx="${x}" cy="176" rx="11" ry="3" class="c-ground2"/><text x="${x}" y="174" font-size="22" text-anchor="middle" class="petem" style="animation-delay:${(i * 0.3).toFixed(1)}s" font-family="'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif">${PET_POR_ID[a.id].em}</text>`; });
+  g += `<g transform="translate(40 184)">${avatarSVG(tier)}</g>`;
+  return `<svg class="scene" viewBox="0 0 360 190" role="img" aria-label="Seu sítio no nível ${S.nivel}"><defs><linearGradient id="cuSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--sky-a)"/><stop offset="1" style="stop-color:var(--sky-b)"/></linearGradient></defs><rect width="360" height="190" fill="url(#cuSky)"/><circle cx="322" cy="30" r="14" class="c-sun"/><path d="M0 122 Q60 92 130 112 T260 106 T360 114 V130 H0Z" class="c-hill"/><rect y="122" width="360" height="68" class="c-ground"/><path d="M0 150 Q90 142 180 150 T360 148 V190 H0Z" class="c-ground2"/>${g}</svg>`;
+}
+
+/* ---------- telas ---------- */
+function cardDiario(hoje) {
+  const pronto = S.diario.ultimo !== hoje, seq = seqDiaria(S, hoje), idx = (seq - 1) % 7, feitos = pronto ? idx : idx + 1;
+  const r = recDiario(S, seq);
+  const dots = [...Array(7)].map((_, i) => `<span class="dd ${i < feitos ? 'f' : ''} ${pronto && i === idx ? 'hoje' : ''}">${i + 1}</span>`).join('');
+  return `<section class="card"><div class="between"><h2>Bônus diário</h2><span class="muted">Sequência: ${pronto ? seq - 1 : seq} dia(s)</span></div><div class="days">${dots}</div>
+    ${pronto ? `<p class="muted">Dia ${seq}: <b>${textoRec({ coins: r.coins, gems: r.gems, xp: 0 })}</b></p><div class="row"><button class="btn primary" data-act="diario">Pegar</button><button class="btn ad" data-act="diario2x">${PLAY}Em dobro <span class="tag">Anúncio</span></button></div>` : '<p class="muted">Bônus de hoje recebido. Volte amanhã para manter a sequência. O dia 7 dá o maior prêmio.</p>'}</section>`;
+}
+function viewSitio() {
+  const hoje = diaDe(Date.now()), at = ativos(S), mp = multProd(S);
+  let tiles = '';
+  for (let i = 0; i < SLOTS_MAX; i++) {
+    if (i < S.slots) {
+      const a = at[i];
+      if (a) { const p = PET_POR_ID[a.id]; tiles += `<div class="slot" style="--rc:var(--r${p.r})"><span class="em" style="animation-delay:${(i * 0.3).toFixed(1)}s">${p.em}</span><span class="lvl">Nv ${a.lvl}</span><span class="rate">${fmt1(a.prod * mp)}/s</span></div>`; }
+      else tiles += '<div class="slot empty">vazio</div>';
+    } else tiles += '<div class="slot lock">bloqueado</div>';
+  }
+  const vazio = Object.keys(S.pets).length === 0 ? '<p class="muted">Nenhum bicho trabalhando ainda. Abra seu primeiro ovo na aba Ovos.</p>' : '';
+  return (S.diario.ultimo !== hoje ? cardDiario(hoje) : '') + `
+    <section class="card scenecard">${cena()}
+      <div class="strip"><div class="lvbadge"><small>Nível</small><b id="lvNum">1</b></div>
+      <div class="grow"><div class="between"><h3 id="lvTit"></h3><span class="muted num" id="xpTxt"></span></div><div class="bar"><i id="xpBar"></i></div></div></div>
+    </section>
+    <section class="card"><div class="between"><h2>Safra <span id="safNum">1</span></h2><span class="muted num" id="safEta"></span></div>
+      <div class="bar sky"><i id="safBar"></i></div>
+      <p class="muted">Avança sozinha com a produção, até com o app fechado. Ao concluir: <b id="safRec"></b></p></section>
+    <section class="card">
+      <div class="between"><h2>Celeiro</h2><span class="muted num" id="prodTxt"></span></div>
+      <div class="bar"><i id="barnBar"></i></div>
+      <div class="between"><span class="big" id="barnQtd">0</span><span class="muted num" id="barnCap"></span></div>
+      <div class="row"><button class="btn primary" id="btnColetar" data-act="coletar">Coletar</button>
+      <button class="btn ad" id="btnDobro" data-act="coletar2x">${PLAY}Coletar em dobro <span class="tag">Anúncio</span></button></div>
+    </section>
+    <section class="card"><div class="between"><h2>Pasto</h2><span class="muted">${at.length} de ${S.slots} trabalhando · bônus ×${mp.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}</span></div>
+      <div class="field">${tiles}</div>${vazio}</section>`;
+}
+function chancesChips(pesos) {
+  const t = pesos.reduce((a, b) => a + b, 0);
+  return pesos.map((p, i) => p > 0 ? `<span style="--rc:var(--r${i})"><i class="dot"></i>${RARIDADES[i].nome} <b>${pct(p / t * 100)}</b></span>` : '').join('');
+}
+function incubadora(i) {
+  const e = S.eggs[i];
+  if (!e) return `<div class="card egg"><div class="info"><h3>Incubadora ${i + 1}</h3><p class="muted">Livre. Compre um ovo para chocar.</p></div></div>`;
+  const pronto = Date.now() >= e.pronto;
+  return `<div class="card egg">${eggSVG(e.tipo)}<div class="info"><h3>${OVOS[e.tipo].nome}</h3>
+    <p class="muted num"><span data-timer="${i}" data-ready="${pronto ? 1 : 0}">${pronto ? 'Pronto para abrir' : mmss(e.pronto - Date.now())}</span></p>
+    <div class="row" style="margin-top:6px">${pronto ? `<button class="btn primary" data-act="abrir" data-arg="${i}">Abrir</button>` : `<button class="btn ad" data-act="acelerar" data-arg="${i}">${PLAY}Chocar agora <span class="tag">Anúncio</span></button>`}</div></div></div>`;
+}
+function viewOvos() {
+  const falta = PITY_LIMIT - S.pity;
+  const pityTxt = falta <= 1 ? 'Próxima invocação: Épico ou melhor garantido' : `Épico ou melhor garantido em ${falta} invocações`;
+  let inc = ''; for (let i = 0; i < S.eggs.length; i++) inc += incubadora(i);
+  const loja = Object.keys(OVOS).map(id => {
+    const o = OVOS[id], c = custoOvo(S, id), custo = o.moeda === 'coins' ? fmt(c) + ' moedas' : c + ' gemas', trava = S.nivel < o.nivel;
+    return `<div class="card egg">${eggSVG(id)}<div class="info"><div class="between"><h3>${o.nome}</h3><span class="muted num">${tempoOvo(S, id)}s</span></div>
+      <div class="chips">${chancesChips(o.pesos)}</div>
+      <div class="row" style="margin-top:6px"><button class="btn primary" data-act="comprar" data-arg="${id}" ${trava ? 'disabled' : ''}>${trava ? 'Libera no nível ' + o.nivel : 'Comprar por ' + custo}</button></div></div></div>`;
+  }).join('');
+  const linhas = RARIDADES.map((r, i) => `<tr><td><span style="--rc:var(--r${i})"><i class="dot"></i></span>${r.nome}</td>${Object.keys(OVOS).map(id => { const p = OVOS[id].pesos, t = p.reduce((a, b) => a + b, 0); return `<td>${p[i] ? pct(p[i] / t * 100) : '0%'}</td>`; }).join('')}<td>${fmt1(r.prod)}/s</td></tr>`).join('');
+  return `<section class="card"><div class="between"><h2>Incubadoras</h2><span class="muted">${S.summons} invocações</span></div>${inc}
+      <div><div class="bar"><i style="width:${Math.min(100, S.pity / PITY_LIMIT * 100)}%"></i></div><p class="muted" style="margin-top:6px">${pityTxt}</p></div></section>
+    <section class="card"><h2>Loja de ovos</h2>${loja}<p class="muted">O preço do Ovo de Palha sobe com seu nível e com cada ovo chocado.</p></section>
+    <section class="card"><h2>Recompensas</h2><div class="row">
+        <button class="btn ad" data-cd="ovo" data-label="Ovo grátis" data-act="ovoGratis">${PLAY}<span class="cdl">Ovo grátis</span> <span class="tag">Anúncio</span></button>
+        <button class="btn ad" data-cd="gemas" data-label="+2 gemas" data-act="gemasGratis">${PLAY}<span class="cdl">+2 gemas</span> <span class="tag">Anúncio</span></button></div></section>
+    <section class="card"><details><summary>Chances de cada ovo</summary>
+      <div class="scroll-x"><table><thead><tr><th>Raridade</th><th>Palha</th><th>Dourado</th><th>Produção</th></tr></thead><tbody>${linhas}</tbody></table></div>
+      <p class="muted" style="margin-top:8px">Garantia: a cada ${PITY_LIMIT} invocações sem Épico ou melhor, a próxima é Épico (92%) ou Lendário (8%). Bicho repetido sobe 1 nível, até o nível ${LVL_MAX}.</p></details></section>`;
+}
+function efTexto(id, l) {
+  if (id === 'celeiro') return 'Guarda ' + horasCeleiro(l).toLocaleString('pt-BR') + ' h de produção';
+  if (id === 'chocadeira') return l ? 'Ovos chocam ' + Math.round((1 - fatorChocar(l)) * 100) + '% mais rápido' : 'Sem bônus';
+  if (id === 'moinho') return l ? '+' + (l * 10) + '% de moedas' : 'Sem bônus';
+  return l ? '+' + (l * 10) + '% de XP' : 'Sem bônus';
+}
+function cardObra(id) {
+  const o = OBRAS[id], l = S.obras[id];
+  if (S.nivel < o.nivel) return `<section class="card lock"><div class="between"><h3>${o.nome}</h3><span class="muted">Libera no nível ${o.nivel}</span></div><button class="btn ghost" disabled>Bloqueada</button></section>`;
+  let btn;
+  if (l >= o.max) btn = '<button class="btn ghost" disabled>Nível máximo</button>';
+  else if (S.nivel < nivelParaObra(l)) btn = `<button class="btn ghost" disabled>Fazendeiro nível ${nivelParaObra(l)}</button>`;
+  else btn = `<button class="btn primary" data-act="melhorar" data-arg="${id}">Melhorar por ${fmt(custoObra(id, l))} moedas</button>`;
+  return `<section class="card"><div class="between"><h3>${o.nome}</h3><span class="muted num">Nv ${l}/${o.max}</span></div>
+    <p class="muted">Agora: ${efTexto(id, l)}${l < o.max ? '<br>Próximo: ' + efTexto(id, l + 1) : ''}</p>${btn}</section>`;
+}
+function viewObras() {
+  const p = pastoProx(S);
+  let pb;
+  if (!p) pb = '<button class="btn ghost" disabled>Pasto completo</button>';
+  else if (S.nivel < p.nivel) pb = `<button class="btn ghost" disabled>Fazendeiro nível ${p.nivel}</button>`;
+  else pb = `<button class="btn primary" data-act="pasto">Novo pasto por ${fmt(p.custo)} moedas</button>`;
+  return `<section class="card"><p class="muted">Cada obra aparece no seu sítio e cresce quando você a melhora. O nível das obras acompanha o nível do fazendeiro.</p></section>
+    <section class="card"><div class="between"><h3>Pasto</h3><span class="muted num">${S.slots}/${SLOTS_MAX} vagas</span></div><p class="muted">Mais vagas deixam mais bichos trabalhando ao mesmo tempo.</p>${pb}</section>
+    ${Object.keys(OBRAS).map(cardObra).join('')}`;
+}
+const segHTML = (acao, atual, itens) => `<div class="seg" role="tablist">${itens.map(([k, t]) => `<button role="tab" class="${atual === k ? 'on' : ''}" data-act="${acao}" data-arg="${k}" aria-selected="${atual === k}">${t}</button>`).join('')}</div>`;
+const relTempo = ms => { const m = Math.max(1, Math.round(ms / 60000)); return m < 60 ? 'há ' + m + ' min' : 'há ' + Math.floor(m / 60) + ' h'; };
+function viewGuilda() {
+  const seg = segHTML('subG', subG, [['guilda', 'Guilda'], ['ranking', 'Ranking']]);
+  if (subG === 'ranking') return seg + viewRanking();
+  if (window.ON && ON.ativo) return seg + viewGuildaOn();
+  const g = S.guilda, now = Date.now();
+  if (g.id < 0) {
+    if (S.nivel < NIVEL_GUILDA) return seg + `<section class="card"><h2>Guilda</h2><p class="muted">Junte-se a outros fazendeiros para cumprir a Grande Colheita da semana, ajudar vizinhos e ganhar bônus de produção. Libera no nível ${NIVEL_GUILDA}.</p><div class="bar"><i style="width:${Math.min(100, S.nivel / NIVEL_GUILDA * 100)}%"></i></div><p class="muted">Seu nível: ${S.nivel} de ${NIVEL_GUILDA}</p></section>`;
+    return seg + `<section class="card"><h2>Escolha sua guilda</h2><p class="muted">Neste protótipo, os ${N_MEMBROS} membros de cada guilda são jogadores simulados.</p>
+      ${GUILDAS.map(x => `<div class="card"><div class="between"><h3>${x.nome}</h3><span class="muted">${N_MEMBROS + 1} membros</span></div><p class="muted">${x.lema}</p><button class="btn primary" data-act="entrar" data-arg="${x.id}">Entrar</button></div>`).join('')}</section>`;
+  }
+  const nv = g.nivel, f = fundoGuilda(S, now), prev = nv > 1 ? fundoNivel(nv - 1) : 0, prox = nv < 20 ? fundoNivel(nv) : null;
+  const pg = prox ? Math.min(100, (f - prev) / (prox - prev) * 100) : 100;
+  const meta = metaSemana(S), tot = totalSemana(S, now), pw = Math.min(100, tot / meta * 100);
+  const base = Math.max(200, Math.round(prodTotal(S) * 600)), resto = 168 - horasSemana(now);
+  const faltaMin = Math.max(0, MIN_PONTOS_BAU - g.pontos);
+  const baus = BAUS.map((b, i) => {
+    const st = g.baus[i] ? 'ok' : tot >= b.p * meta ? 'pronto' : 'trava';
+    return `<button class="chest ${st}" data-act="bau" data-arg="${i}" ${st === 'ok' ? 'disabled' : ''}>${Math.round(b.p * 100)}%<small>${st === 'ok' ? 'Resgatado' : fmt(b.k * base) + ' moedas'}</small><small>+${b.g} gemas</small></button>`;
+  }).join('');
+  const membros = membrosOrdenados(S, now).map((m, k) => `<div class="mrow ${m.voce ? 'eu' : ''}"><span class="pos">${k + 1}</span><span class="who"><b>${m.nome}</b><small>${m.papel} · Nv ${m.nivel}</small></span><span class="pts num">${fmt(m.pontos)}</span>${m.voce ? '<span></span>' : `<button class="btn mini ghost" data-act="ajudar" data-arg="${m.i}" ${g.ajudou[m.i] === diaDe(now) ? 'disabled' : ''}>${g.ajudou[m.i] === diaDe(now) ? 'Ajudado' : 'Ajudar'}</button>`}</div>`).join('');
+  const mural = muralEventos(S, now, 6).map(e => `<div class="evt"><p>${e.txt}<small>${relTempo(now - e.t)}</small></p><button class="btn mini ghost" data-act="parabens" data-arg="${e.key}" ${g.parab[e.key] ? 'disabled' : ''}>${g.parab[e.key] ? 'Enviado' : 'Parabéns'}</button></div>`).join('');
+  const pcts = [10, 25, 50];
+  return seg + `
+    <section class="card"><div class="between"><h2>${GUILDAS[g.id].nome}</h2><span class="badge on">Nível ${nv}</span></div>
+      <p class="muted">${GUILDAS[g.id].lema}. Bônus da guilda: <b>+${Math.round(bonusGuildaProd(S) * 100)}% de moedas</b> para todos os membros.</p>
+      <div class="bar sky"><i style="width:${pg}%"></i></div>
+      <p class="muted num">Fundo: ${fmt(f)}${prox ? ' / ' + fmt(prox) + ' para o nível ' + (nv + 1) : ' (nível máximo)'}</p>
+      <div class="row">${pcts.map(p => `<button class="btn ghost" data-act="doar" data-arg="${p}" ${Math.floor(S.coins * p / 100) < 100 ? 'disabled' : ''}>Doar ${fmt(Math.floor(S.coins * p / 100))}</button>`).join('')}</div>
+    </section>
+    <section class="card"><div class="between"><h2>Grande Colheita</h2><span class="muted">Termina em ${duracao(resto * 3600)}</span></div>
+      <div class="bar"><i style="width:${pw}%"></i>${BAUS.slice(0, 3).map(b => `<span class="mk" style="left:${b.p * 100}%"></span>`).join('')}</div>
+      <div class="between"><span class="big num">${fmt(tot)}</span><span class="muted num">meta ${fmt(meta)}</span></div>
+      <div class="chests">${baus}</div>
+      <p class="muted">${faltaMin > 0 ? `Você tem ${g.pontos} pontos. Faça mais ${faltaMin} para resgatar os baús.` : `Seus pontos: ${g.pontos}.`} Pontos vêm de chocar ovos, coletar, missões, ajudar vizinhos e doar. A meta zera toda segunda.</p></section>
+    <section class="card"><h2>Membros</h2><p class="muted">Pontos da semana. Ajude cada vizinho uma vez por dia para ganhar moedas e pontos.</p>${membros}</section>
+    <section class="card"><h2>Mural da guilda</h2>${mural}</section>`;
+}
+function viewRanking() {
+  if (window.ON && ON.ativo) return viewRankingOn();
+  const lista = rankingSitios(S, Date.now()), eu = lista.find(x => x.voce), i = lista.indexOf(eu);
+  const topo = lista.slice(0, 8), vizinhos = lista.slice(Math.max(0, i - 2), i + 3);
+  const mostrados = []; [...topo, ...(i > 7 ? [null] : []), ...(i > 7 ? vizinhos : [])].forEach(x => mostrados.push(x));
+  const linha = x => x === null ? '<div class="mrow"><span class="pos">…</span><span class="who"><small>posições intermediárias</small></span><span></span><span></span></div>' : `<div class="mrow ${x.voce ? 'eu' : ''}"><span class="pos">${x.pos}</span><span class="who"><b>${x.nome}</b></span><span class="pts num">${fmt(x.poder)}</span><span></span></div>`;
+  const acima = i > 0 ? lista[i - 1] : null;
+  return `<section class="card"><div class="between"><h2>Ranking dos sítios</h2><span class="badge on">${eu.pos}º de ${lista.length}</span></div>
+      <p class="muted">Poder do seu sítio: <b>${fmt(eu.poder)}</b>${acima ? `. Faltam ${fmt(acima.poder - eu.poder + 1)} para passar ${acima.nome}.` : '. Você lidera o ranking.'}</p>
+      <p class="muted">O poder soma produção, nível do fazendeiro, bichos descobertos e safras. Os outros sítios são simulados neste protótipo e crescem a cada dia.</p></section>
+    <section class="card">${mostrados.map(linha).join('')}</section>`;
+}
+function missaoDesc(m) {
+  return m.t === 'coletar' ? 'Colete ' + fmt(m.meta) + ' moedas' : m.t === 'chocar' ? 'Choque ' + m.meta + (m.meta > 1 ? ' ovos' : ' ovo') : m.t === 'obra' ? 'Melhore ' + m.meta + (m.meta > 1 ? ' obras' : ' obra') : m.t === 'anuncio' ? 'Assista 1 anúncio recompensado' : 'Consiga um bicho ' + RARIDADES[m.min].nome + ' ou melhor';
+}
+function viewMetas() {
+  const seg = segHTML('subM', subM, [['missoes', 'Missões'], ['album', 'Álbum']]);
+  if (subM === 'album') {
+    const comp = setsCompletos(S), tem = Object.keys(S.pets).length;
+    const grupos = RARIDADES.map((r, i) => {
+      const lista = PETS.filter(p => p.r === i), got = lista.filter(p => S.pets[p.id]).length;
+      const cel = lista.map(p => { const o = S.pets[p.id]; return o ? `<div class="cell" style="--rc:var(--r${i})" title="${p.nome}"><span class="em">${p.em}</span><span class="nm">Nv ${o.lvl}</span></div>` : `<div class="cell off" style="--rc:var(--r${i})" title="Ainda não descoberto"><span class="em">${p.em}</span><span class="nm">???</span></div>`; }).join('');
+      return `<section class="card" style="--rc:var(--r${i})"><div class="between"><h3><i class="dot"></i>${r.nome} <span class="muted num">${got}/${lista.length}</span></h3><span class="badge ${comp[i] ? 'on' : ''}">${comp[i] ? 'Completo' : ''} +${Math.round(SET_BONUS[i] * 100)}% moedas</span></div><div class="cgrid">${cel}</div></section>`;
+    }).join('');
+    return seg + `<section class="card"><div class="between"><h2>Álbum</h2><span class="big">${tem}/${PETS.length}</span></div><div class="bar"><i style="width:${tem / PETS.length * 100}%"></i></div><p class="muted">Complete uma raridade inteira para ganhar um bônus permanente de moedas. Bônus atual: <b>+${Math.round(bonusSets(S) * 100)}%</b>.</p></section>${grupos}`;
+  }
+  const hoje = diaDe(Date.now());
+  const cards = S.missoes.map((m, i) => `<section class="card"><div class="between"><h3>${missaoDesc(m)}</h3></div>
+    <div class="bar"><i style="width:${m.prog / m.meta * 100}%"></i></div>
+    <div class="between"><span class="muted num">${fmt(m.prog)}/${fmt(m.meta)}</span><span class="muted">${textoRec(m.rec)}</span></div>
+    ${m.feita ? `<div class="row"><button class="btn primary" data-act="resgatar" data-arg="${i}">Resgatar</button><button class="btn ad" data-act="resgatar2x" data-arg="${i}">${PLAY}Em dobro <span class="tag">Anúncio</span></button></div>` : '<button class="btn ghost" disabled>Em andamento</button>'}</section>`).join('');
+  const prox = []; for (let n = S.nivel + 1; n <= NIVEL_MAX && prox.length < 4; n++) { const d = desbloqueios(n); if (d.length) prox.push(`<p class="muted">Nível ${n}: <b>${d.join(', ')}</b></p>`); }
+  return seg + cardDiario(hoje) + cards + `<section class="card"><h2>Próximos desbloqueios</h2>${prox.join('') || '<p class="muted">Você liberou tudo.</p>'}</section>`;
+}
+function viewDev() {
+  const a = S.ads, tot = Object.keys(a).reduce((x, k) => x + a[k], 0);
+  const linha = (n, v) => `<tr><td>${n}</td><td>${v}</td></tr>`;
+  return `<section class="card"><h2>Painel de anúncios</h2>
+      <p class="muted">Valores simulados para estimar o potencial do jogo. O eCPM real varia por país, rede de anúncios e público.</p>
+      <div class="scroll-x"><table><thead><tr><th>Anúncio recompensado</th><th>Assistidos</th></tr></thead><tbody>
+        ${linha('Coletar em dobro', a.dobro)}${linha('Chocar agora', a.acelerar)}${linha('Ovo grátis', a.ovo)}${linha('+2 gemas', a.gemas)}${linha('Missão em dobro', a.missao)}${linha('Bônus diário em dobro', a.diario)}
+        <tr><td><b>Total</b></td><td><b>${tot}</b></td></tr></tbody></table></div></section>
+    <section class="card"><h2>Calculadora de receita</h2>
+      <div class="field-in"><label for="devEcpm">eCPM (US$ por mil anúncios)</label><input id="devEcpm" data-dev="ecpm" type="number" inputmode="decimal" min="0" step="0.5" value="${S.dev.ecpm}"></div>
+      <div class="field-in"><label for="devDau">Jogadores ativos por dia</label><input id="devDau" data-dev="dau" type="number" inputmode="numeric" min="0" step="100" value="${S.dev.dau}"></div>
+      <div class="field-in"><label for="devAds">Anúncios assistidos por jogador por dia</label><input id="devAds" data-dev="adsDia" type="number" inputmode="decimal" min="0" step="1" value="${S.dev.adsDia}"></div>
+      <div class="kpi"><span class="muted">Seus anúncios nesta partida</span><span class="big" id="devSessao">—</span></div>
+      <div class="kpi"><span class="muted">Projeção por dia</span><span class="big" id="devDia">—</span></div>
+      <div class="kpi"><span class="muted">Projeção por mês</span><span class="big" id="devMes">—</span></div></section>
+    <section class="card"><h2>Sobre o modo social</h2><p class="muted">${window.ON && ON.ativo ? 'Conectado ao servidor: guilda, ranking e mural usam jogadores reais, e seu progresso é salvo na nuvem.' : 'Guilda, ranking e mural usam jogadores simulados que seguem o relógio real. Na versão online, esses dados vêm de um servidor com contas e salvamento na nuvem.'}</p></section>
+    <section class="card"><h2>Dados do jogo</h2><p class="muted">O progresso fica salvo neste navegador.</p>
+      <button class="btn ghost" data-act="resetar">${confirmaReset ? 'Toque de novo para confirmar' : 'Zerar progresso'}</button></section>`;
+}
+function calcDev() {
+  const a = S.ads, tot = Object.keys(a).reduce((x, k) => x + a[k], 0), e = S.dev.ecpm / 1000, dia = S.dev.dau * S.dev.adsDia * e;
+  const set = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+  set('#devSessao', usd(tot * e)); set('#devDia', usd(dia)); set('#devMes', usd(dia * 30));
+}
+
+/* ---------- ciclo ---------- */
+function render() {
+  $('#view').innerHTML = aba === 'sitio' ? viewSitio() : aba === 'ovos' ? viewOvos() : aba === 'obras' ? viewObras() : aba === 'guilda' ? viewGuilda() : aba === 'metas' ? viewMetas() : viewDev();
+  document.querySelectorAll('#nav button').forEach(b => {
+    const on = b.dataset.arg === aba; b.classList.toggle('on', on);
+    if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
+  if (aba === 'dev') calcDev();
+  tick();
+}
+function temMelhoria() {
+  const p = pastoProx(S);
+  if (p && S.nivel >= p.nivel && S.coins >= p.custo) return true;
+  return Object.keys(OBRAS).some(id => { const o = OBRAS[id], l = S.obras[id]; return S.nivel >= o.nivel && l < o.max && S.nivel >= nivelParaObra(l) && S.coins >= custoObra(id, l); });
+}
+function tick() {
+  const now = Date.now();
+  processar(avancar(S, now));
+  $('#vCoins').textContent = fmt(S.coins);
+  $('#vGems').textContent = fmt(S.gems);
+  const navBtn = k => document.querySelector('#nav button[data-arg="' + k + '"]');
+  const pend = S.missoes.some(m => m && m.feita) || S.diario.ultimo !== diaDe(now);
+  const bauPronto = window.ON && ON.ativo ? onBauPronto() : S.guilda.id >= 0 && BAUS.some((b, i) => !S.guilda.baus[i] && S.guilda.pontos >= MIN_PONTOS_BAU && totalSemana(S, now) >= b.p * metaSemana(S));
+  navBtn('metas').classList.toggle('has', pend);
+  navBtn('obras').classList.toggle('has', temMelhoria());
+  navBtn('guilda').classList.toggle('has', bauPronto);
+  navBtn('ovos').classList.toggle('has', S.eggs.some(e => e && now >= e.pronto));
+  if (aba === 'sitio') {
+    const cap = capCeleiro(S), q = Math.floor(S.barn), p = prodTotal(S), max = S.nivel >= NIVEL_MAX, prox = xpProx(S.nivel);
+    $('#barnBar').style.width = Math.min(100, S.barn / cap * 100) + '%';
+    $('#barnQtd').textContent = fmt(q); $('#barnCap').textContent = 'limite ' + fmt(cap);
+    $('#prodTxt').textContent = '+' + fmt1(p) + ' moedas/s';
+    $('#btnColetar').disabled = q < 1; $('#btnDobro').disabled = q < 1;
+    $('#lvNum').textContent = S.nivel; $('#lvTit').textContent = tituloDe(S.nivel);
+    $('#xpTxt').textContent = max ? 'Nível máximo' : fmt(S.xp) + ' / ' + fmt(prox) + ' XP';
+    $('#xpBar').style.width = (max ? 100 : Math.min(100, S.xp / prox * 100)) + '%';
+    const meta = metaSafra(S.safra);
+    $('#safNum').textContent = S.safra; $('#safBar').style.width = Math.min(100, S.safraProg / meta * 100) + '%';
+    $('#safEta').textContent = p > 0 ? 'faltam ' + duracao((meta - S.safraProg) / p) : 'sem produção';
+    $('#safRec').textContent = textoRec(Object.assign({}, recSafra(S.safra)));
+  }
+  if (aba === 'ovos') {
+    let refazer = false;
+    document.querySelectorAll('[data-timer]').forEach(el => {
+      const e = S.eggs[+el.dataset.timer]; if (!e) return;
+      const pronto = now >= e.pronto;
+      if ((el.dataset.ready === '1') !== pronto) refazer = true; else if (!pronto) el.textContent = mmss(e.pronto - now);
+    });
+    document.querySelectorAll('[data-cd]').forEach(b => {
+      const rest = Math.ceil(((S.cd[b.dataset.cd] || 0) - now) / 1000), l = b.querySelector('.cdl');
+      if (rest > 0) { b.disabled = true; l.textContent = 'em ' + rest + 's'; } else { b.disabled = false; l.textContent = b.dataset.label; }
+    });
+    if (refazer) { render(); return; }
+  }
+  if (now - ultimoSalvo > 5000) salvar();
+}
+/* ao abrir: resumo do que aconteceu enquanto o jogo estava fechado */
+(function iniciar() {
+  const ocioso = (Date.now() - S.ts) / 1000, antes = S.barn, coinsAntes = S.coins;
+  const r = avancar(S, Date.now());
+  processar(r, true);
+  render();
+  if (ocioso > 180) {
+    const ganhoCeleiro = Math.floor(S.barn - antes), safras = r.safras.length;
+    if (ganhoCeleiro >= 1 || safras) {
+      const cheio = S.barn >= capCeleiro(S) - 1;
+      abrirModal(`<div class="sheet pop"><p class="eyebrow">Bem-vindo de volta</p><h2>Seu sítio trabalhou ${duracao(ocioso)}</h2>
+        <p class="muted">${ganhoCeleiro >= 1 ? '+' + fmt(ganhoCeleiro) + ' moedas esperando no celeiro' : ''}${safras ? '<br>' + safras + (safras > 1 ? ' safras concluídas' : ' safra concluída') + ' (+' + fmt(S.coins - coinsAntes) + ' moedas)' : ''}${cheio ? '<br>O celeiro encheu. Melhore o Celeiro para guardar mais.' : ''}</p>
+        <button class="btn primary" data-act="fechar">Continuar</button></div>`);
+    }
+  }
+  drenar();
+})();
+window.SITIO_CONFIG = {"url": "https://sbsigyotxyyxrvxyxtcz.supabase.co", "key": "sb_publishable_Uv9mO9UFnalOD32leuN8hg_GcJnxu_Q"};
+// Cliente do backend (Supabase) do Sítio dos Bichos.
+//
+// Uso:
+//   import { createClient } from '@supabase/supabase-js';
+//   import { criarApi } from './api.js';
+//   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+//   const api = criarApi(sb);
+//   await api.entrar('Joana');            // login anônimo + perfil
+//   await api.guilda.contribuir(8, 'ovo');
+//
+// Toda chamada devolve { ok: true, ... } ou { ok: false, erro: 'codigo', mensagem: 'texto em português' }.
+// Nunca lança exceção: falha de rede vira { ok: false, erro: 'rede' }.
+
+// Tetos de pontos por chamada. Devem ser iguais aos do servidor (jogo_contribuir).
+const TETOS = { ovo: 10, coleta: 60, missao: 30, safra: 5 };
+
+const MENSAGENS = {
+  rede: 'Sem conexão com o servidor. Tente de novo em instantes.',
+  nao_autenticado: 'Sua sessão expirou. Entre de novo.',
+  nome_invalido: 'Nome inválido.',
+  lema_invalido: 'Lema muito longo (máximo 60 letras).',
+  sem_perfil: 'Perfil não encontrado.',
+  nivel_baixo: 'Chegue ao nível 5 para usar guildas.',
+  nivel_invalido: 'Nível inválido.',
+  salto_de_nivel: 'Nível subiu rápido demais.',
+  poder_invalido: 'Poder inválido.',
+  limite_hora: 'Muitas ações seguidas. Espere um pouco.',
+  limite_diario: 'Limite diário atingido.',
+  dados_invalidos: 'Dados de save inválidos.',
+  grande_demais: 'O save ficou grande demais.',
+  conflito: 'O save na nuvem é mais novo que o seu.',
+  ja_em_guilda: 'Você já está em uma guilda.',
+  nome_em_uso: 'Já existe uma guilda com esse nome.',
+  guilda_inexistente: 'Guilda não encontrada.',
+  guilda_cheia: 'Essa guilda está cheia.',
+  sem_guilda: 'Você não está em uma guilda.',
+  motivo_invalido: 'Motivo de pontos inválido.',
+  pontos_invalidos: 'Quantidade de pontos inválida.',
+  valor_invalido: 'Valor inválido.',
+  alvo_invalido: 'Esse jogador não pode receber ajuda.',
+  ja_ajudou_hoje: 'Você já ajudou esse colega hoje.',
+  indice_invalido: 'Baú inválido.',
+  ja_resgatado: 'Baú já resgatado.',
+  pontos_minimos: 'Faça ao menos 30 pontos na semana para abrir baús.',
+  meta_nao_atingida: 'A guilda ainda não chegou nessa marca da Grande Colheita.',
+  tipo_invalido: 'Tipo de aviso inválido.',
+  params_invalidos: 'Dados do aviso inválidos.',
+  repetido: 'Esse aviso já foi publicado.',
+  mural_inexistente: 'Aviso não encontrado.',
+  proprio_evento: 'Você não pode parabenizar a si mesmo.',
+  ja_parabenizou: 'Você já parabenizou esse aviso.',
+};
+
+const falha = (erro, extra = {}) => ({ ok: false, erro, mensagem: MENSAGENS[erro] || 'Algo deu errado.', ...extra });
+
+function criarApi(sb) {
+  // Chama uma função do servidor e normaliza o resultado.
+  async function chamar(nome, args = {}) {
+    let r;
+    try {
+      r = await sb.rpc(nome, args);
+    } catch (e) {
+      return falha('rede');
+    }
+    if (r.error) {
+      const m = String(r.error.message || '');
+      if (/nao_autenticado/.test(m) || r.error.code === '28000') return falha('nao_autenticado');
+      return falha(/fetch|network|Failed/i.test(m) ? 'rede' : 'servidor', { detalhe: m });
+    }
+    const d = r.data;
+    if (!d || d.ok !== true) return falha(d?.erro || 'servidor', d && d.versao !== undefined ? { versao: d.versao } : {});
+    return d;
+  }
+
+  const inteiro = (n, min, max) => Math.min(max, Math.max(min, Math.floor(Number(n) || 0)));
+
+  return {
+    // Garante uma sessão (login anônimo) e cria/lê o perfil.
+    async entrar(nome) {
+      try {
+        const { data } = await sb.auth.getSession();
+        if (!data?.session) {
+          const { error } = await sb.auth.signInAnonymously();
+          if (error) return falha('rede', { detalhe: error.message });
+        }
+      } catch (e) { return falha('rede'); }
+      return chamar('jogo_iniciar', { p_nome: String(nome || '').trim() });
+    },
+    perfilAtualizar: ({ nome = null, nivel, poder }) =>
+      chamar('jogo_perfil_atualizar', { p_nome: nome, p_nivel: inteiro(nivel, 1, 30), p_poder: inteiro(poder, 0, Number.MAX_SAFE_INTEGER) }),
+    save: {
+      carregar: () => chamar('jogo_save_carregar'),
+      // versao = a que veio do último carregar/salvar (0 se ainda não existe save).
+      salvar: (dados, versao) => chamar('jogo_save_salvar', { p_dados: dados, p_versao: inteiro(versao, 0, 2147483647) }),
+    },
+    guilda: {
+      listar: () => chamar('jogo_guildas_listar'),
+      criar: (nome, lema = '') => chamar('jogo_guilda_criar', { p_nome: String(nome || '').trim(), p_lema: String(lema || '').trim() }),
+      entrar: id => chamar('jogo_guilda_entrar', { p_guilda: id }),
+      sair: () => chamar('jogo_guilda_sair'),
+      estado: () => chamar('jogo_guilda_estado'),
+      // Corta o valor no teto do motivo, como o servidor faz, para não gastar chamada à toa.
+      contribuir(pontos, motivo) {
+        const teto = TETOS[motivo];
+        if (!teto) return Promise.resolve(falha('motivo_invalido'));
+        const p = inteiro(pontos, 0, teto);
+        if (p < 1) return Promise.resolve(falha('pontos_invalidos'));
+        return chamar('jogo_contribuir', { p_pontos: p, p_motivo: motivo });
+      },
+      doar: valor => chamar('jogo_guilda_doar', { p_valor: inteiro(valor, 0, 1e12) }),
+      ajudar: alvo => chamar('jogo_guilda_ajudar', { p_alvo: alvo }),
+      resgatarBau: indice => chamar('jogo_bau_resgatar', { p_indice: indice }),
+    },
+    mural: {
+      postar: (tipo, params) => chamar('jogo_mural_postar', { p_tipo: tipo, p_params: params }),
+      parabenizar: id => chamar('jogo_mural_parabenizar', { p_mural: id }),
+    },
+    ranking: (limite = 50) => chamar('jogo_ranking', { p_limite: inteiro(limite, 1, 100) }),
+  };
+}
+
+/* ===== Modo online (Supabase) =====
+   Entra no mesmo script do jogo (veja build.py --online). Se algo falhar, o jogo continua no modo offline
+   com jogadores simulados. Depende de: criarApi (src/api.js), window.SITIO_CONFIG e window.supabase. */
+const ONLINE_ID = 1000;               // marca em S.guilda.id: "estou numa guilda real"
+var ON = window.ON = { ativo: false, e: null, guildas: null, rank: null, msg: '', tE: 0, tR: 0, tG: 0, busy: false, confirmaSair: false };
+let api = null, versaoSave = 0, nivelServ = 1, pend = {}, ultNivel = 0, ultSafra = 0, tPerfil = 0, tSave = 0, saveRodando = false;
+const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const placar = s => s.nivel * 1e8 + s.safra * 1e4 + s.summons;   // quem tem mais progresso vence ao sincronizar
+
+function pedirNome() {
+  return new Promise(res => {
+    ACOES.nomeok = () => {
+      const v = ($('#nomeIn').value || '').trim();
+      if (v.length < 2 || v.length > 24) return toast('Use de 2 a 24 letras');
+      S.nome = v; salvar(); fecharModal(); res(v);
+    };
+    abrirModal(`<div class="sheet pop"><p class="eyebrow">Bem-vindo ao Sítio dos Bichos</p><h2>Como você se chama?</h2>
+      <p class="muted">Esse nome aparece para a sua guilda e no ranking.</p>
+      <input id="nomeIn" class="field" maxlength="24" placeholder="Seu nome" autocomplete="nickname">
+      <button class="btn primary" data-act="nomeok">Continuar</button></div>`);
+  });
+}
+
+async function onlineIniciar() {
+  const C = window.SITIO_CONFIG;
+  if (!C || !C.url || !window.supabase) return;
+  api = criarApi(window.supabase.createClient(C.url, C.key));
+  if (!S.nome) await pedirNome();
+  const r = await api.entrar(S.nome);
+  if (!r.ok) { ON.msg = r.mensagem; setTimeout(onlineIniciar, 60000); return; }
+  nivelServ = r.perfil.nivel;
+  const c = await api.save.carregar();
+  if (c.ok) {
+    versaoSave = c.versao;
+    if (c.existe && c.dados && typeof c.dados === 'object' && placar(c.dados) > placar(S)) {
+      try { c.dados.nome = c.dados.nome || S.nome; localStorage.setItem(KEY, JSON.stringify(c.dados)); S = carregar(); processar(avancar(S, Date.now()), true); toast('Progresso carregado da nuvem'); } catch (e) {}
+    }
+  }
+  ultNivel = S.nivel; ultSafra = Math.floor((S.safra - 1) / 10) * 10;
+  HOOK_PONTOS = (n, m) => { if (S.guilda.id >= 0) pend[m] = (pend[m] || 0) + n; };
+  HOOK_CHOQUE = id => { if (S.guilda.id >= 0) api.mural.postar('choque', { pet_id: id }).then(() => { ON.tE = 0; }); };
+  ON.ativo = true; ON.msg = '';
+  await onGuilda();
+  salvarNuvem();
+  render();
+}
+
+/* ---------- sincronização ---------- */
+async function onGuilda() {
+  const r = await api.guilda.estado();
+  if (!r.ok) { ON.msg = r.mensagem; return; }
+  ON.msg = ''; ON.e = r; ON.tE = Date.now();
+  if (r.guilda) { S.guilda.id = ONLINE_ID; S.guilda.nivel = r.guilda.nivel; S.guilda.pontos = r.semana.meus_pontos; }
+  else if (S.guilda.id >= 0) S.guilda = novoEstado(Date.now()).guilda;
+}
+async function onLista() {
+  const r = await api.guilda.listar();
+  if (r.ok) { ON.guildas = r.guildas; ON.tG = Date.now(); }
+}
+async function onRanking() {
+  const r = await api.ranking(30);
+  if (r.ok) { ON.rank = r; ON.tR = Date.now(); }
+}
+async function enviarPontos() {
+  for (const m of Object.keys(pend)) {
+    let guard = 0;
+    while (pend[m] > 0 && guard++ < 20) {
+      const p = Math.min(pend[m], TETOS[m]);
+      const r = await api.guilda.contribuir(p, m);
+      if (!r.ok) { if (r.erro !== 'rede') pend[m] = 0; break; }   // limite por hora ou sem guilda: descarta
+      pend[m] -= p;
+    }
+  }
+}
+async function postarEventos() {
+  if (S.guilda.id < 0) { ultNivel = S.nivel; return; }
+  if (S.nivel > ultNivel) { const n = S.nivel; ultNivel = n; if (n >= 2) await api.mural.postar('nivel', { nivel: n }); }
+  const s10 = Math.floor((S.safra - 1) / 10) * 10;
+  if (s10 >= 10 && s10 > ultSafra) { ultSafra = s10; await api.mural.postar('safra', { n: s10 }); }
+}
+async function atualizarPerfil() {
+  let alvo = S.nivel, guard = 0;
+  while (nivelServ < alvo && guard++ < 8) {
+    const passo = Math.min(alvo, nivelServ + 5);
+    const r = await api.perfilAtualizar({ nivel: passo, poder: Math.min(poderJogador(S), Math.floor(400 * Math.pow(1.5, passo))) });
+    if (!r.ok) return;
+    nivelServ = passo;
+  }
+  const r = await api.perfilAtualizar({ nivel: Math.min(S.nivel, nivelServ + 5), poder: Math.min(poderJogador(S), Math.floor(400 * Math.pow(1.5, S.nivel))) });
+  if (r.ok) nivelServ = Math.min(S.nivel, nivelServ + 5);
+}
+async function salvarNuvem() {
+  if (saveRodando || !ON.ativo) return; saveRodando = true;
+  try {
+    salvar();
+    let r = await api.save.salvar(JSON.parse(JSON.stringify(S)), versaoSave);
+    if (!r.ok && r.erro === 'conflito') {
+      versaoSave = r.versao;
+      r = await api.save.salvar(JSON.parse(JSON.stringify(S)), versaoSave);   // este aparelho está jogando agora: ele vence
+    }
+    if (r.ok) versaoSave = r.versao;
+  } finally { saveRodando = false; }
+}
+async function ciclo() {
+  if (!ON.ativo || document.hidden) return;
+  const agora = Date.now();
+  try {
+    await enviarPontos();
+    await postarEventos();
+    if (agora - tPerfil > 60000) { tPerfil = agora; await atualizarPerfil(); }
+    if (agora - tSave > 45000) { tSave = agora; await salvarNuvem(); }
+    if (aba === 'guilda') await visitar(false);
+  } catch (e) {}
+}
+async function visitar(forcar) {
+  if (!ON.ativo) return;
+  const agora = Date.now(); let mudou = false;
+  if (forcar || agora - ON.tE > 30000) { await onGuilda(); mudou = true; }
+  if (ON.e && !ON.e.guilda && S.nivel >= NIVEL_GUILDA && (forcar || agora - ON.tG > 30000)) { await onLista(); mudou = true; }
+  if (subG === 'ranking' && (forcar || agora - ON.tR > 60000)) { await onRanking(); mudou = true; }
+  const campo = document.activeElement && document.activeElement.tagName === 'INPUT';
+  if (mudou && aba === 'guilda' && !campo) render();
+}
+setInterval(ciclo, 8000);
+document.addEventListener('visibilitychange', () => { if (document.hidden && ON.ativo) salvarNuvem(); });
+
+/* ---------- telas ---------- */
+const relSeg = s => { const m = Math.max(1, Math.round(s / 60)); return m < 60 ? 'há ' + m + ' min' : m < 1440 ? 'há ' + Math.floor(m / 60) + ' h' : 'há ' + Math.floor(m / 1440) + ' d'; };
+const faixa = () => ON.msg ? `<section class="card"><p class="muted">${esc(ON.msg)}</p></section>` : '';
+function viewGuildaOn() {
+  const e = ON.e;
+  if (!e) return faixa() + '<section class="card"><p class="muted">Carregando sua guilda…</p></section>';
+  if (!e.guilda) {
+    if (S.nivel < NIVEL_GUILDA) return `<section class="card"><h2>Guilda</h2><p class="muted">Junte-se a outros fazendeiros para cumprir a Grande Colheita da semana, ajudar vizinhos e ganhar bônus de produção. Libera no nível ${NIVEL_GUILDA}.</p><div class="bar"><i style="width:${Math.min(100, S.nivel / NIVEL_GUILDA * 100)}%"></i></div><p class="muted">Seu nível: ${S.nivel} de ${NIVEL_GUILDA}</p></section>`;
+    const l = ON.guildas;
+    return faixa() + `<section class="card"><h2>Escolha sua guilda</h2><p class="muted">Guildas de jogadores reais. Cada uma aceita até 30 membros.</p>
+      ${!l ? '<p class="muted">Carregando…</p>' : l.length ? l.map(x => `<div class="card"><div class="between"><h3>${esc(x.nome)}</h3><span class="muted">${x.membros}/30 · Nv ${x.nivel}</span></div>${x.lema ? `<p class="muted">${esc(x.lema)}</p>` : ''}<button class="btn primary" data-act="gEntrar" data-arg="${esc(x.id)}" ${x.cheia ? 'disabled' : ''}>${x.cheia ? 'Cheia' : 'Entrar'}</button></div>`).join('') : '<p class="muted">Ainda não há guildas. Crie a primeira!</p>'}</section>
+      <section class="card"><h2>Criar uma guilda</h2><input id="gNome" class="field" maxlength="24" placeholder="Nome (3 a 24 letras)"><input id="gLema" class="field" maxlength="60" placeholder="Lema (opcional)"><button class="btn primary" data-act="gCriar">Criar guilda</button></section>`;
+  }
+  const g = e.guilda, w = e.semana, now = Date.now();
+  const pg = g.fundo_proximo ? Math.min(100, (g.fundo - g.fundo_anterior) / (g.fundo_proximo - g.fundo_anterior) * 100) : 100;
+  const pw = Math.min(100, w.total / w.meta * 100), base = Math.max(200, Math.round(prodTotal(S) * 600));
+  const resto = Math.max(0, w.termina_em - (now - ON.tE) / 1000), falta = Math.max(0, MIN_PONTOS_BAU - w.meus_pontos);
+  const baus = BAUS.map((b, i) => {
+    const st = w.baus.includes(i) ? 'ok' : w.total >= b.p * w.meta ? 'pronto' : 'trava';
+    return `<button class="chest ${st}" data-act="gBau" data-arg="${i}" ${st === 'ok' ? 'disabled' : ''}>${Math.round(b.p * 100)}%<small>${st === 'ok' ? 'Resgatado' : fmt(b.k * base) + ' moedas'}</small><small>+${b.g} gemas</small></button>`;
+  }).join('');
+  const papel = p => p === 'lider' ? 'Líder' : p === 'vice' ? 'Vice' : 'Membro';
+  const membros = e.membros.map((m, k) => `<div class="mrow ${m.voce ? 'eu' : ''}"><span class="pos">${k + 1}</span><span class="who"><b>${esc(m.nome)}</b><small>${papel(m.papel)} · Nv ${m.nivel}</small></span><span class="pts num">${fmt(m.pontos)}</span>${m.voce ? '<span></span>' : `<button class="btn mini ghost" data-act="gAjudar" data-arg="${esc(m.id)}" ${m.ajudado_hoje ? 'disabled' : ''}>${m.ajudado_hoje ? 'Ajudado' : 'Ajudar'}</button>`}</div>`).join('');
+  const mural = e.mural.length ? e.mural.map(m => `<div class="evt"><p>${esc(m.texto)}<small>${relSeg(m.segundos + (now - ON.tE) / 1000)}</small></p><button class="btn mini ghost" data-act="gParab" data-arg="${m.id}" ${m.meu || m.parabenizado ? 'disabled' : ''}>${m.parabenizado ? 'Enviado' : 'Parabéns'}</button></div>`).join('') : '<p class="muted">Nada por aqui ainda. Choque um bicho raro e apareça no mural.</p>';
+  return faixa() + `
+    <section class="card"><div class="between"><h2>${esc(g.nome)}</h2><span class="badge on">Nível ${g.nivel}</span></div>
+      <p class="muted">${g.lema ? esc(g.lema) + '. ' : ''}Bônus da guilda: <b>+${Math.round(g.bonus_prod * 100)}% de moedas</b> para todos os membros.</p>
+      <div class="bar sky"><i style="width:${pg}%"></i></div>
+      <p class="muted num">Fundo: ${fmt(g.fundo)}${g.fundo_proximo ? ' / ' + fmt(g.fundo_proximo) + ' para o nível ' + (g.nivel + 1) : ' (nível máximo)'}</p>
+      <div class="row">${[10, 25, 50].map(p => `<button class="btn ghost" data-act="gDoar" data-arg="${p}" ${Math.floor(S.coins * p / 100) < 100 ? 'disabled' : ''}>Doar ${fmt(Math.floor(S.coins * p / 100))}</button>`).join('')}</div>
+    </section>
+    <section class="card"><div class="between"><h2>Grande Colheita</h2><span class="muted">Termina em ${duracao(resto)}</span></div>
+      <div class="bar"><i style="width:${pw}%"></i>${BAUS.slice(0, 3).map(b => `<span class="mk" style="left:${b.p * 100}%"></span>`).join('')}</div>
+      <div class="between"><span class="big num">${fmt(w.total)}</span><span class="muted num">meta ${fmt(w.meta)}</span></div>
+      <div class="chests">${baus}</div>
+      <p class="muted">${falta > 0 ? `Você tem ${w.meus_pontos} pontos. Faça mais ${falta} para resgatar os baús.` : `Seus pontos: ${w.meus_pontos}.`} Pontos vêm de chocar ovos, coletar, missões, ajudar vizinhos e doar. A meta zera toda segunda.</p></section>
+    <section class="card"><h2>Membros</h2><p class="muted">Pontos da semana. Ajude cada vizinho uma vez por dia para ganhar moedas e pontos.</p>${membros}</section>
+    <section class="card"><h2>Mural da guilda</h2>${mural}</section>
+    <section class="card"><button class="btn ghost" data-act="gSair">${ON.confirmaSair ? 'Toque de novo para sair da guilda' : 'Sair da guilda'}</button></section>`;
+}
+function viewRankingOn() {
+  const r = ON.rank;
+  if (!r) return faixa() + '<section class="card"><p class="muted">Carregando o ranking…</p></section>';
+  const acima = r.eu.pos && r.eu.pos > 1 ? r.top.find(x => x.pos === r.eu.pos - 1) : null;
+  const linha = x => `<div class="mrow ${x.voce ? 'eu' : ''}"><span class="pos">${x.pos}</span><span class="who"><b>${esc(x.nome)}</b><small>Nv ${x.nivel}</small></span><span class="pts num">${fmt(x.poder)}</span><span></span></div>`;
+  return faixa() + `<section class="card"><div class="between"><h2>Ranking dos sítios</h2><span class="badge on">${r.eu.pos ? r.eu.pos + 'º de ' + r.total : 'sem posição'}</span></div>
+      <p class="muted">Poder do seu sítio: <b>${fmt(poderJogador(S))}</b>${acima ? `. Faltam ${fmt(acima.poder - r.eu.poder + 1)} para passar ${esc(acima.nome)}.` : r.eu.pos === 1 ? '. Você lidera o ranking.' : '.'}</p>
+      <p class="muted">O poder soma produção, nível do fazendeiro, bichos descobertos e safras. Seu poder é enviado ao servidor a cada minuto.</p></section>
+    <section class="card">${r.top.map(linha).join('')}</section>`;
+}
+function onBauPronto() {
+  const e = ON.e; if (!e || !e.guilda) return false;
+  const w = e.semana; return w.meus_pontos >= MIN_PONTOS_BAU && BAUS.some((b, i) => !w.baus.includes(i) && w.total >= b.p * w.meta);
+}
+
+/* ---------- ações ---------- */
+async function agir(fn) {
+  if (ON.busy) return; ON.busy = true;
+  try { await fn(); } finally { ON.busy = false; }
+  salvar(); render(); drenar();
+}
+const falhou = r => { toast(r.mensagem || 'Não foi possível'); return false; };
+Object.assign(ACOES, {
+  gEntrar: id => agir(async () => { const r = await api.guilda.entrar(id); if (!r.ok) return falhou(r); receber(ganharXP(S, 40)); await onGuilda(); toast('Bem-vindo à guilda!'); }),
+  gCriar: () => agir(async () => { const r = await api.guilda.criar($('#gNome').value, $('#gLema').value); if (!r.ok) return falhou(r); receber(ganharXP(S, 40)); await onGuilda(); toast('Guilda criada!'); }),
+  gSair: () => { if (!ON.confirmaSair) { ON.confirmaSair = true; render(); setTimeout(() => { ON.confirmaSair = false; if (aba === 'guilda') render(); }, 4000); return; }
+    ON.confirmaSair = false; return agir(async () => { const r = await api.guilda.sair(); if (!r.ok) return falhou(r); await onGuilda(); await onLista(); toast('Você saiu da guilda'); }); },
+  gDoar: p => agir(async () => {
+    const v = Math.floor(S.coins * (+p) / 100); if (v < 100) return toast('Doe pelo menos 100 moedas');
+    const r = await api.guilda.doar(v); if (!r.ok) return falhou(r);
+    S.coins = Math.max(0, S.coins - v); S.guilda.doado += v; receber(ganharXP(S, Math.ceil(Math.sqrt(v) / 2)));
+    await onGuilda(); toast('Doou ' + fmt(v) + ' moedas ao fundo');
+  }),
+  gAjudar: id => agir(async () => {
+    const r = await api.guilda.ajudar(id); if (!r.ok) return falhou(r);
+    const coins = Math.max(30, Math.round(prodTotal(S) * 60)); S.coins += coins; receber(ganharXP(S, 5));
+    await onGuilda(); toast('Você ajudou um vizinho: +' + fmt(coins) + ' moedas');
+  }),
+  gBau: i => agir(async () => {
+    const r = await api.guilda.resgatarBau(+i); if (!r.ok) return falhou(r);
+    const b = BAUS[+i], coins = b.k * Math.max(200, Math.round(prodTotal(S) * 600));
+    S.coins += coins; S.gems += b.g; receber(ganharXP(S, 30 + 10 * +i));
+    await onGuilda(); toast('Baú: +' + fmt(coins) + ' moedas, +' + b.g + ' gemas');
+  }),
+  gParab: id => agir(async () => {
+    const r = await api.mural.parabenizar(+id); if (!r.ok) return falhou(r);
+    const coins = Math.max(20, Math.round(prodTotal(S) * 30)); S.coins += coins;
+    await onGuilda(); toast('Parabéns enviado: +' + fmt(coins) + ' moedas');
+  }),
+});
+{ const aba0 = ACOES.aba, sub0 = ACOES.subG;
+  ACOES.aba = a => { aba0(a); if (a === 'guilda') visitar(true); };
+  ACOES.subG = x => { sub0(x); visitar(true); }; }
+
+onlineIniciar();
+
+setInterval(tick, 250);
+document.addEventListener('visibilitychange', () => { if (document.hidden) salvar(); else tick(); });
+</script>

@@ -25,7 +25,10 @@ src/logic.js               regras do jogo, sem DOM
 src/template.html          interface (HTML, CSS e JS)
 build.py                   junta template e regras no HTML final
 tests/simulacao.js         simulação de ritmo de progressão
-src/api.js                 cliente do backend (Supabase), pronto para o jogo usar
+src/api.js                 cliente do backend (Supabase)
+src/online.js              modo online do jogo: save na nuvem, guilda, mural e ranking reais
+docs/index.html            versão online (gerada), publicada no GitHub Pages
+config.online.json         URL e chave pública do projeto Supabase
 backend/                   banco, regras do servidor e testes (veja backend/README.md)
 versoes/pet-da-roca-v1.html   primeira versão (gacha + fazenda, sem progressão)
 ```
@@ -35,8 +38,11 @@ versoes/pet-da-roca-v1.html   primeira versão (gacha + fazenda, sem progressão
 Depois de editar `src/`, gere o arquivo final:
 
 ```
-python3 build.py
+python3 build.py            # sitio-dos-bichos.html (offline, jogadores simulados)
+python3 build.py --online   # também docs/index.html (conectado ao Supabase)
 ```
+
+A versão online cai sozinha para o modo offline se o servidor não responder.
 
 Simulação de ritmo (jogador que abre o app a cada 40 min, 3 h e 8 h):
 
@@ -48,6 +54,6 @@ Os números de balanceamento (custos, XP, metas) ficam no começo de `src/logic.
 
 ## Próximos passos
 
-1. Ligar o jogo ao backend (já pronto em `backend/` e `src/api.js`): trocar os jogadores simulados pelas chamadas reais.
+1. Ativar o GitHub Pages (Settings → Pages → branch `main`, pasta `/docs`) para jogar a versão online.
 2. Empacotar com Capacitor e trocar os anúncios simulados por AdMob recompensado.
 3. Revisar as exigências da Play Store (divulgação de chances, política de anúncios, classificação indicativa).

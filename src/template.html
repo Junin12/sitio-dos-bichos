@@ -31,6 +31,7 @@
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font:15px/1.45 var(--font-body);-webkit-tap-highlight-color:transparent}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 h1,h2,h3,p{margin:0}
 .shell{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;padding-inline:16px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:8px 12px;padding-block:12px 8px;flex-wrap:wrap}
@@ -126,6 +127,7 @@ th{font:600 12px var(--font-display);color:var(--muted)}
 .dd.hoje{border-color:var(--yolk);color:var(--ink)}
 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;justify-items:center}
 /* guilda */
+.field{display:block;width:100%;margin:8px 0;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);font:inherit}
 .mrow{display:grid;grid-template-columns:24px minmax(0,1fr) auto auto;gap:8px;align-items:center;padding-block:6px;border-bottom:1px solid var(--line)}
 .mrow:last-child{border-bottom:0}
 .mrow.eu{background:color-mix(in srgb,var(--yolk) 18%,transparent);border-radius:10px;padding-inline:6px;margin-inline:-6px}
@@ -209,6 +211,7 @@ function carregar() {
   if (!r.pets || typeof r.pets !== 'object') r.pets = {};
   if (!Array.isArray(r.missoes) || r.missoes.length !== 3) { r.missoes = [null, null, null]; for (let i = 0; i < 3; i++) r.missoes[i] = novaMissao(r); }
   r.missoes = r.missoes.map(m => m || novaMissao(r));
+  if (r.guilda.id >= GUILDAS.length) r.guilda = base.guilda;   // sobra do modo online
   ajustarIncubadoras(r);
   return r;
 }
@@ -477,6 +480,7 @@ const relTempo = ms => { const m = Math.max(1, Math.round(ms / 60000)); return m
 function viewGuilda() {
   const seg = segHTML('subG', subG, [['guilda', 'Guilda'], ['ranking', 'Ranking']]);
   if (subG === 'ranking') return seg + viewRanking();
+  if (window.ON && ON.ativo) return seg + viewGuildaOn();
   const g = S.guilda, now = Date.now();
   if (g.id < 0) {
     if (S.nivel < NIVEL_GUILDA) return seg + `<section class="card"><h2>Guilda</h2><p class="muted">Junte-se a outros fazendeiros para cumprir a Grande Colheita da semana, ajudar vizinhos e ganhar bônus de produção. Libera no nível ${NIVEL_GUILDA}.</p><div class="bar"><i style="width:${Math.min(100, S.nivel / NIVEL_GUILDA * 100)}%"></i></div><p class="muted">Seu nível: ${S.nivel} de ${NIVEL_GUILDA}</p></section>`;
@@ -511,6 +515,7 @@ function viewGuilda() {
     <section class="card"><h2>Mural da guilda</h2>${mural}</section>`;
 }
 function viewRanking() {
+  if (window.ON && ON.ativo) return viewRankingOn();
   const lista = rankingSitios(S, Date.now()), eu = lista.find(x => x.voce), i = lista.indexOf(eu);
   const topo = lista.slice(0, 8), vizinhos = lista.slice(Math.max(0, i - 2), i + 3);
   const mostrados = []; [...topo, ...(i > 7 ? [null] : []), ...(i > 7 ? vizinhos : [])].forEach(x => mostrados.push(x));
@@ -558,7 +563,7 @@ function viewDev() {
       <div class="kpi"><span class="muted">Seus anúncios nesta partida</span><span class="big" id="devSessao">—</span></div>
       <div class="kpi"><span class="muted">Projeção por dia</span><span class="big" id="devDia">—</span></div>
       <div class="kpi"><span class="muted">Projeção por mês</span><span class="big" id="devMes">—</span></div></section>
-    <section class="card"><h2>Sobre o modo social</h2><p class="muted">Guilda, ranking e mural usam jogadores simulados que seguem o relógio real. Em um app publicado, esses dados vêm de um servidor com contas e salvamento na nuvem.</p></section>
+    <section class="card"><h2>Sobre o modo social</h2><p class="muted">${window.ON && ON.ativo ? 'Conectado ao servidor: guilda, ranking e mural usam jogadores reais, e seu progresso é salvo na nuvem.' : 'Guilda, ranking e mural usam jogadores simulados que seguem o relógio real. Na versão online, esses dados vêm de um servidor com contas e salvamento na nuvem.'}</p></section>
     <section class="card"><h2>Dados do jogo</h2><p class="muted">O progresso fica salvo neste navegador.</p>
       <button class="btn ghost" data-act="resetar">${confirmaReset ? 'Toque de novo para confirmar' : 'Zerar progresso'}</button></section>`;
 }
@@ -590,7 +595,7 @@ function tick() {
   $('#vGems').textContent = fmt(S.gems);
   const navBtn = k => document.querySelector('#nav button[data-arg="' + k + '"]');
   const pend = S.missoes.some(m => m && m.feita) || S.diario.ultimo !== diaDe(now);
-  const bauPronto = S.guilda.id >= 0 && BAUS.some((b, i) => !S.guilda.baus[i] && S.guilda.pontos >= MIN_PONTOS_BAU && totalSemana(S, now) >= b.p * metaSemana(S));
+  const bauPronto = window.ON && ON.ativo ? onBauPronto() : S.guilda.id >= 0 && BAUS.some((b, i) => !S.guilda.baus[i] && S.guilda.pontos >= MIN_PONTOS_BAU && totalSemana(S, now) >= b.p * metaSemana(S));
   navBtn('metas').classList.toggle('has', pend);
   navBtn('obras').classList.toggle('has', temMelhoria());
   navBtn('guilda').classList.toggle('has', bauPronto);
@@ -641,6 +646,7 @@ function tick() {
   }
   drenar();
 })();
+/*ONLINE*/
 setInterval(tick, 250);
 document.addEventListener('visibilitychange', () => { if (document.hidden) salvar(); else tick(); });
 </script>

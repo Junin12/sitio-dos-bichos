@@ -141,7 +141,7 @@ function fundoGuilda(S, now) {
 const fundoNivel = n => Math.round(2500 * Math.pow(1.7, n - 1));  // fundo necessário para passar do nível n para n+1
 function nivelPorFundo(f) { let n = 1; while (n < 20 && f >= fundoNivel(n)) n++; return n; }
 function atualizarGuilda(S, now) {
-  const g = S.guilda; if (g.id < 0) return;
+  const g = S.guilda; if (g.id < 0 || g.id >= GUILDAS.length) return;   // guilda online: o servidor manda
   g.nivel = nivelPorFundo(fundoGuilda(S, now));
   const sem = semanaDe(now);
   if (g.semana !== sem) { g.semana = sem; g.pontos = 0; g.baus = [0, 0, 0, 0]; }
@@ -152,7 +152,12 @@ function totalSemana(S, now) {
   for (let i = 0; i < N_MEMBROS; i++) t += pontosMembro(S.guilda.id, i, now);
   return t;
 }
-function addPontos(S, n) { if (S.guilda.id >= 0) S.guilda.pontos += n; }
+/* Ganchos do modo online (src/online.js): recebem os pontos e os choques raros para enviar ao servidor. */
+let HOOK_PONTOS = null, HOOK_CHOQUE = null;
+function addPontos(S, n, motivo) {
+  if (S.guilda.id >= 0) S.guilda.pontos += n;
+  if (motivo && HOOK_PONTOS) HOOK_PONTOS(n, motivo);
+}
 function membrosOrdenados(S, now) {
   const l = [];
   for (let i = 0; i < N_MEMBROS; i++) l.push({ i, nome: membroNome(S.guilda.id, i), papel: membroPapel(i), nivel: membroNivel(S, i, now), pontos: pontosMembro(S.guilda.id, i, now), voce: false });
@@ -307,7 +312,7 @@ function avancar(S, now) {
   while (S.safraProg >= metaSafra(S.safra) && guard++ < 300) {
     S.safraProg -= metaSafra(S.safra);
     const r = recSafra(S.safra);
-    S.coins += r.coins; S.gems += r.gems; addPontos(S, 5);
+    S.coins += r.coins; S.gems += r.gems; addPontos(S, 5, 'safra');
     out.safras.push({ n: S.safra, rec: r });
     out.ups.push(...ganharXP(S, r.xp));
     S.safra++;
@@ -327,7 +332,7 @@ function coletar(S, mult) {
   const ganho = q * (mult || 1);
   S.coins += ganho; S.barn -= q; S.stats.coletado += ganho;
   evento(S, 'coletar', ganho);
-  addPontos(S, Math.max(1, Math.floor(q / 200)));
+  addPontos(S, Math.max(1, Math.floor(q / 200)), 'coleta');
   return { q, ganho, ups: ganharXP(S, xpColeta(q)) };
 }
 function comprarOvo(S, tipo, now) {
@@ -349,7 +354,8 @@ function abrirOvo(S, i, now, rng) {
   S.pity = r.r >= 3 ? 0 : S.pity + 1;
   const res = aplicarPet(S, r.pet.id);
   evento(S, 'chocar', 1); evento(S, 'melhor', 1, r.r);
-  addPontos(S, 10);
+  addPontos(S, 10, 'ovo');
+  if (HOOK_CHOQUE && r.r >= 2) HOOK_CHOQUE(r.pet.id);
   return { tipo: e.tipo, pet: r.pet, r: r.r, res, ups: ganharXP(S, XP_OVO[r.r] * (res.tipo === 'novo' ? 2 : 1)) };
 }
 function melhorarObra(S, id) {
@@ -376,7 +382,7 @@ function resgatarMissao(S, i, dobro) {
   const m = S.missoes[i]; if (!m || !m.feita) return null;
   const k = dobro ? 2 : 1;
   S.coins += m.rec.coins * k; S.gems += m.rec.gems * k;
-  addPontos(S, 30);
+  addPontos(S, 30, 'missao');
   const ups = ganharXP(S, m.rec.xp * k);
   S.missoes[i] = novaMissao(S);
   return { rec: m.rec, k, ups };
