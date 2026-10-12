@@ -16,13 +16,16 @@ ler = lambda *p: (raiz.joinpath(*p)).read_text(encoding="utf-8")
 template = ler("src", "template.html")
 logica = ler("src", "logic.js")
 
-for nome, texto in (("src/logic.js", logica), ("src/api.js", ler("src", "api.js")), ("src/online.js", ler("src", "online.js"))):
+estilo = ler("src", "estilo.css")
+efeitos = "\n".join(ler("src", f) for f in ("som.js", "fx.js", "cena.js"))
+for nome, texto in (("src/logic.js", logica), ("src/api.js", ler("src", "api.js")), ("src/online.js", ler("src", "online.js")), ("src/som.js+fx.js+cena.js", efeitos)):
     if "</script>" in texto:
         raise SystemExit(f"{nome} não pode conter </script>")
-if "/*LOGIC*/" not in template or "/*ONLINE*/" not in template:
-    raise SystemExit("src/template.html precisa dos marcadores /*LOGIC*/ e /*ONLINE*/")
+for m in ("/*LOGIC*/", "/*ONLINE*/", "/*STYLE*/", "/*FX*/"):
+    if m not in template:
+        raise SystemExit(f"src/template.html precisa do marcador {m}")
 
-base = template.replace("/*LOGIC*/", logica)
+base = template.replace("/*LOGIC*/", logica).replace("/*STYLE*/", estilo).replace("/*FX*/", efeitos)
 
 saida = raiz / "sitio-dos-bichos.html"
 saida.write_text(base.replace("/*ONLINE*/", ""), encoding="utf-8")

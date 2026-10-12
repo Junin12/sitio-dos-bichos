@@ -12,12 +12,12 @@ function pedirNome() {
     ACOES.nomeok = () => {
       const v = ($('#nomeIn').value || '').trim();
       if (v.length < 2 || v.length > 24) return toast('Use de 2 a 24 letras');
-      S.nome = v; salvar(); fecharModal(); res(v);
+      S.nome = v; salvar(); fecharModal(); res(v); if (!S.visto) boasVindas();
     };
     abrirModal(`<div class="sheet pop"><p class="eyebrow">Bem-vindo ao Sítio dos Bichos</p><h2>Como você se chama?</h2>
       <p class="muted">Esse nome aparece para a sua guilda e no ranking.</p>
-      <input id="nomeIn" class="field" maxlength="24" placeholder="Seu nome" autocomplete="nickname">
-      <button class="btn primary" data-act="nomeok">Continuar</button></div>`);
+      <input id="nomeIn" class="inp" maxlength="24" placeholder="Seu nome" autocomplete="nickname">
+      <button class="btn primary xl" data-act="nomeok">Continuar</button></div>`);
   });
 }
 
@@ -135,7 +135,7 @@ function viewGuildaOn() {
     const l = ON.guildas;
     return faixa() + `<section class="card"><h2>Escolha sua guilda</h2><p class="muted">Guildas de jogadores reais. Cada uma aceita até 30 membros.</p>
       ${!l ? '<p class="muted">Carregando…</p>' : l.length ? l.map(x => `<div class="card"><div class="between"><h3>${esc(x.nome)}</h3><span class="muted">${x.membros}/30 · Nv ${x.nivel}</span></div>${x.lema ? `<p class="muted">${esc(x.lema)}</p>` : ''}<button class="btn primary" data-act="gEntrar" data-arg="${esc(x.id)}" ${x.cheia ? 'disabled' : ''}>${x.cheia ? 'Cheia' : 'Entrar'}</button></div>`).join('') : '<p class="muted">Ainda não há guildas. Crie a primeira!</p>'}</section>
-      <section class="card"><h2>Criar uma guilda</h2><input id="gNome" class="field" maxlength="24" placeholder="Nome (3 a 24 letras)"><input id="gLema" class="field" maxlength="60" placeholder="Lema (opcional)"><button class="btn primary" data-act="gCriar">Criar guilda</button></section>`;
+      <section class="card"><h2>Criar uma guilda</h2><input id="gNome" class="inp" maxlength="24" placeholder="Nome (3 a 24 letras)"><input id="gLema" class="inp" maxlength="60" placeholder="Lema (opcional)"><button class="btn primary" data-act="gCriar">Criar guilda</button></section>`;
   }
   const g = e.guilda, w = e.semana, now = Date.now();
   const pg = g.fundo_proximo ? Math.min(100, (g.fundo - g.fundo_anterior) / (g.fundo_proximo - g.fundo_anterior) * 100) : 100;

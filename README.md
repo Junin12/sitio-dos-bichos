@@ -22,8 +22,12 @@ Os outros jogadores (guilda, mural, ranking) são **simulados** e seguem o reló
 ```
 sitio-dos-bichos.html      jogo completo em um arquivo (gerado por build.py)
 src/logic.js               regras do jogo, sem DOM
-src/template.html          interface (HTML, CSS e JS)
-build.py                   junta template e regras no HTML final
+src/template.html          interface (HTML e JS da tela)
+src/estilo.css             visual (tema, botões 3D, cartões, modais)
+src/cena.js                cena do sítio em canvas: céu pela hora real, construções, bichos, fazendeiro
+src/fx.js                  partículas: moedas voando até o saldo, confete, brilhos
+src/som.js                 sons sintetizados (WebAudio) e vibração
+build.py                   junta template, regras, estilo e efeitos no HTML final
 tests/simulacao.js         simulação de ritmo de progressão
 src/api.js                 cliente do backend (Supabase)
 src/online.js              modo online do jogo: save na nuvem, guilda, mural e ranking reais
