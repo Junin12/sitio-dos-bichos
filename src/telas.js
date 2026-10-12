@@ -58,8 +58,8 @@ function cardPresentes() {
 
 /* ---------- Obras: Horta e Decoração ---------- */
 function viewObrasTab() {
-  const seg = segHTML('subO', subO, [['obras', 'Obras'], ['horta', 'Horta'], ['oficina', 'Oficina'], ['pesq', 'Pesquisa'], ['decor', 'Decor.']]);
-  return seg + (subO === 'horta' ? viewHorta() : subO === 'oficina' ? viewOficina() : subO === 'pesq' ? viewPesquisa() : subO === 'decor' ? viewDecor() : viewObras());
+  const seg = segHTML('subO', subO, [['obras', 'Obras'], ['horta', 'Horta'], ['oficina', 'Oficina'], ['pesq', 'Pesq.'], ['decor', 'Decor.'], ['mapa', 'Mapa']]);
+  return seg + (subO === 'mapa' ? viewMapa() : subO === 'horta' ? viewHorta() : subO === 'oficina' ? viewOficina() : subO === 'pesq' ? viewPesquisa() : subO === 'decor' ? viewDecor() : viewObras());
 }
 function viewHorta() {
   if (S.nivel < CULTIVOS.cenoura.nivel) return `<section class="card"><h2>Horta</h2><p class="muted">Plante legumes e frutas, colha e entregue aos clientes por moedas e gemas. Libera no nível ${CULTIVOS.cenoura.nivel}.</p></section>`;
@@ -104,7 +104,7 @@ function viewPedidos() {
   }).join('');
   return `<section class="card"><div class="between"><h2>Pedidos</h2><span class="muted">${S.stats.pedidos || 0} entregues</span></div><p class="muted">Pedidos vencidos são trocados por outros. Pedidos de bicho não gastam o bicho.</p><div class="row wrap">${est}</div></section>${cards}`;
 }
-function viewEvento() {
+function viewEvento0() {
   if (S.nivel < 3) return '<section class="card"><h2>Evento da semana</h2><p class="muted">Todo domingo à noite um tema novo e um bicho exclusivo. Libera no nível 3.</p></section>';
   const now = Date.now(), ev = eventoDaSemana(now), pet = PET_POR_ID[ev.pet], tem = !!S.pets[pet.id];
   const premios = EVT_METAS.map((m, k) => {
@@ -289,7 +289,7 @@ function oficinaPronta() { const now = Date.now(); return S.oficina.some(o => o 
 function cruzPronto() { return !!(S.cruz && Date.now() >= S.cruz.pronto); }
 function temPendenciaMetas() {
   const now = Date.now();
-  return conqProntas(S) > 0 || corridaPronta() || S.pedidos.some(p => p && podeEntregar(S, p) && now <= p.ate) || EVT_METAS.some((m, k) => !S.evt.res[k] && S.evt.pts >= m && S.nivel >= 3);
+  return conqProntas(S) > 0 || corridaPronta() || S.pedidos.some(p => p && podeEntregar(S, p) && now <= p.ate) || EVT_METAS.some((m, k) => !S.evt.res[k] && S.evt.pts >= m && S.nivel >= 3) || passePendentes(S) > 0 || marcosPendentes(S).length > 0 || festPronto() || correioCaixa() > 0;
 }
 function hortaPronta() { const now = Date.now(); return S.horta.some(p => p && now >= p.pronto); }
 
@@ -315,9 +315,9 @@ const rotuloAd = () => semAnuncios(S) ? 'Passe' : 'Anúncio';
 function viewOficina() {
   if (S.nivel < OFICINA_NIVEL) return travado('Oficina', 'Queijo, pão, geleia e bolo: ponha a produção na fila, volte depois e leve o lucro. Libera no nível ' + OFICINA_NIVEL + '.');
   const now = Date.now(), base = baseOf(S), disp = Object.keys(RECEITAS).filter(id => RECEITAS[id].nivel <= S.nivel);
-  const lista = Object.keys(RECEITAS).map(id => { const r = RECEITAS[id]; return `<p class="muted">${r.em} <b>${r.nome}</b>: ${duracao(r.min * 60)} · custa ${fmt(custoReceita(S, id))} · rende ${fmt(base * r.rende)}${r.nivel > S.nivel ? ' (nível ' + r.nivel + ')' : ''}</p>`; }).join('');
+  const lista = Object.keys(RECEITAS).map(id => { const r = RECEITAS[id]; return `<p class="muted">${r.em} <b>${r.nome}</b>: ${duracao(r.min * 60)} · custa ${fmt(custoReceita(S, id))} · rende ${fmt(base * r.rende)}${r.usa ? ' · usa ' + Object.keys(r.usa).map(k => r.usa[k] + CULTIVOS[k].em).join(' ') : ''}${r.nivel > S.nivel ? ' (nível ' + r.nivel + ')' : ''}</p>`; }).join('');
   const vagas = S.oficina.map((o, i) => {
-    if (!o) return `<section class="card"><div class="between"><h3>Bancada ${i + 1}</h3><span class="muted">livre</span></div><div class="row wrap">${disp.map(id => `<button class="btn mini ghost" data-act="receita" data-arg="${i}:${id}" ${S.coins < custoReceita(S, id) ? 'disabled' : ''}>${RECEITAS[id].em} ${fmt(custoReceita(S, id))}</button>`).join('')}</div></section>`;
+    if (!o) return `<section class="card"><div class="between"><h3>Bancada ${i + 1}</h3><span class="muted">livre</span></div><div class="row wrap">${disp.map(id => `<button class="btn mini ghost" data-act="receita" data-arg="${i}:${id}" ${S.coins < custoReceita(S, id) || ingFalta(id) ? 'disabled' : ''}>${RECEITAS[id].em} ${fmt(custoReceita(S, id))}</button>`).join('')}</div></section>`;
     const r = RECEITAS[o.id], t = relogio(o.fim, o.fim - r.min * 60000);
     return `<section class="card parcela ${t.pronto ? 'pronto' : ''}"><div class="between"><h3>${r.em} ${r.nome}</h3><span class="muted num">${t.txt}</span></div>${t.barra}
       <p class="muted">Rende ${fmt(o.coins)} moedas</p>
@@ -625,7 +625,7 @@ function palcoPerfil(big) {
 }
 function fonteRoupa(id) {
   const r = ROUPAS[id];
-  return r.fonte === 'nivel' ? 'Nível ' + r.nivel : r.fonte === 'prest' ? 'Fazer o prestígio' : r.fonte === 'evento' ? 'Prêmio final: ' + EVENTOS.find(e => e.id === r.ev).nome : r.fonte === 'corrida' ? 'Prêmio final da corrida' : r.fonte === 'pacote' ? PACOTES_ROUPA[r.pacote].nome : '';
+  return r.fonte === 'nivel' ? 'Nível ' + r.nivel : r.fonte === 'prest' ? 'Fazer o prestígio' : r.fonte === 'evento' ? 'Prêmio final: ' + EVENTOS.find(e => e.id === r.ev).nome : r.fonte === 'corrida' ? 'Prêmio final da corrida' : r.fonte === 'pacote' ? PACOTES_ROUPA[r.pacote].nome : r.fonte === 'passe' ? 'Passe: nível ' + r.passe + ' (premium)' : r.fonte === 'marco' ? r.marco + ' dias seguidos' : r.fonte === 'torre' ? 'Torre: andar ' + r.andar : r.fonte === 'cal' ? 'Prêmio de festival' : '';
 }
 function modalPerfil() {
   ajustarAvatar(S);
@@ -655,4 +655,131 @@ Object.assign(ACOES, {
   perfilPele(v) { mudarAvatar(S, 'pele', +v); salvar(); modalPerfil(); render(); },
   companheiro(id) { escolherCompanheiro(S, id); salvar(); modalPerfil(); },
   pacoteRoupa(id) { const r = comprarPacoteRoupa(S, id); if (!r.ok) return toast('Você já tem esse pacote'); metrica('compra_simulada'); salvar(); render(); modalPerfil(); toast('Pacote adquirido (simulação): +' + r.gemas + ' gemas'); }
+});
+
+
+/* ===== Novidades II: passe, marcos, correio, mapa, festivais ===== */
+const ingFalta = id => Object.keys(RECEITAS[id].usa || {}).some(k => (S.colheita[k] || 0) < RECEITAS[id].usa[k]);
+const viewEvento = () => cardFestival() + viewEvento0();
+const NOMES_MES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const txtRecG = r => [r.coins ? fmt(r.coins) + ' 🪙' : '', r.gems ? r.gems + ' 💎' : '', r.ing ? r.ing + ' 🎟️' : '', r.roupa ? '👕 ' + ROUPAS[r.roupa].nome : ''].filter(Boolean).join(' · ') || '—';
+
+/* passe */
+function viewPasse() {
+  ajustarNovidades(S, Date.now());
+  const nv = nivelPasse(S), prem = temPasse(S), prox = passeProx(S), d = new Date(Date.now() - TZ_OFF * 60000);
+  const fimMes = Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1) + TZ_OFF * 60000;
+  const linhas = [...Array(PASSE_N)].map((_, k) => {
+    const i = k + 1, ok = nv >= i, g = recPasse(S, i, false), p = recPasse(S, i, true), gf = S.passe.res[k], pf = S.passe.resP[k];
+    const bt = (feito, pode, arg, r, premium) => `<button class="pbtn ${feito ? 'ok' : pode ? 'pronto' : ''} ${premium ? 'prem' : ''}" ${pode && !feito ? `data-act="passeResg" data-arg="${arg}"` : 'disabled'}>${feito ? '✓' : (premium && !prem ? '🔒 ' : '') + txtRecG(r)}</button>`;
+    return `<div class="prow ${ok ? 'on' : ''}"><span class="pn">${i}</span>${bt(gf, ok, i + ':0', g, false)}${bt(pf, ok && prem, i + ':1', p, true)}</div>`;
+  }).join('');
+  return `<section class="card"><div class="between"><h2>Passe de ${NOMES_MES[d.getUTCMonth()]}</h2><span class="badge on">Nível ${nv}/${PASSE_N}</span></div>
+    <div class="bar"><i style="width:${(nv >= PASSE_N ? 100 : prox.pct * 100).toFixed(0)}%"></i></div>
+    <p class="muted">Todo XP que você ganha enche o passe. ${nv < PASSE_N ? 'Faltam ' + prox.falta + ' XP para o próximo nível. ' : 'Trilha completa! '}Termina em ${duracao((fimMes - Date.now()) / 1000)} e recomeça todo mês.</p>
+    ${prem ? '<p class="muted">Faixa premium liberada pelo seu <b>Passe da Temporada</b>.</p>' : '<div class="guia card" style="margin:6px 0"><span class="gic">👑</span><div><b>Faixa premium</b><p class="muted">Roupas exclusivas, gemas e ingressos extras. Vem com o Passe da Temporada, nos Ajustes.</p></div></div><button class="btn ghost" data-act="aba" data-arg="ajustes">Ver Passe da Temporada</button>'}</section>
+    <section class="card"><div class="prow cab"><span class="pn">Nv</span><b>Grátis</b><b>👑 Premium</b></div>${linhas}</section>`;
+}
+/* marcos de sequência */
+function cardMarcos() {
+  const prox = MARCOS.find(m => !S.marcos[m.d]); if (!prox) return '';
+  const feitos = MARCOS.filter(m => S.diario.seq >= m.d && !S.marcos[m.d]);
+  const linhas = feitos.map(m => `<div class="between"><span><b>${m.nome}</b> <span class="muted">${txtRecG({ gems: m.gems, ing: m.ing, roupa: m.roupa })}${m.ovo ? ' · 🥚 ovo dourado' : ''}</span></span><button class="btn mini primary" data-act="marcoResg" data-arg="${m.d}">Pegar</button></div>`).join('');
+  return `<section class="card"><div class="between"><h3>Marcos de sequência</h3><span class="muted">${S.diario.seq}/${prox.d} dias</span></div><div class="bar"><i style="width:${Math.min(100, S.diario.seq / prox.d * 100).toFixed(0)}%"></i></div>
+    <p class="muted">Próximo: <b>${prox.nome}</b> · ${txtRecG({ gems: prox.gems, ing: prox.ing, roupa: prox.roupa })}${prox.ovo ? ' · 🥚 ovo dourado' : ''}</p>${linhas}</section>`;
+}
+/* correio */
+function correioCaixa() {
+  ajustarNovidades(S, Date.now());
+  if (window.ON && ON.ativo) return Math.max(0, Math.min(CORREIO_MAX - S.correio.pegou, ON.caixa || 0));
+  return S.correio.pegou === 0 ? 1 : 0;
+}
+function cardCorreio() {
+  const on = window.ON && ON.ativo, cx = correioCaixa(), r = recPresente(S);
+  return `<section class="card"><div class="between"><h3>📬 Correio</h3><span class="muted">${S.correio.pegou}/${CORREIO_MAX} hoje</span></div>
+    <p class="muted">${on ? 'Presentes dos seus vizinhos. Cada um vale ' + fmt(r.coins) + ' moedas. Para receber, presenteie alguém na lista de Sítios (aba Guilda).' : 'Todo dia um vizinho do sítio ao lado deixa um presente (' + fmt(r.coins) + ' moedas). No modo online você troca presentes com jogadores de verdade.'}</p>
+    <button class="btn ${cx ? 'primary' : 'ghost'}" data-act="correioPegar" ${cx ? '' : 'disabled'}>${cx ? 'Abrir ' + cx + ' presente' + (cx > 1 ? 's' : '') : 'Caixa vazia'}</button></section>`;
+}
+/* festivais */
+function festPronto() { const f = festivalAtivo(Date.now()); return !!f && S.cal.id === f.def.id && FEST_METAS.some((m, k) => !S.cal.res[k] && S.cal.pts >= m); }
+function textoBonusFest(b) { return [b.prod ? '+' + Math.round(b.prod * 100) + '% de moedas' : '', b.xp ? '+' + Math.round(b.xp * 100) + '% de XP' : '', b.horta ? '+' + b.horta + ' por colheita na horta' : ''].filter(Boolean).join(' · '); }
+function cardFestival() {
+  if (S.nivel < 3) return '';
+  const now = Date.now(), f = festivalAtivo(now);
+  if (!f) {
+    for (let k = 1; k < 380; k++) { const g = festivalAtivo(now + k * DIA); if (g) return `<section class="card"><h3>Próximo festival</h3><p class="muted">${g.def.em} <b>${g.def.nome}</b> começa em ${k} dia(s): ${textoBonusFest(g.def.bonus)} e o bicho exclusivo ${PET_POR_ID[g.def.pet].em} ${PET_POR_ID[g.def.pet].nome}.</p></section>`; }
+    return '';
+  }
+  const d = f.def, pet = PET_POR_ID[d.pet];
+  const prem = FEST_METAS.map((m, k) => {
+    const r = recFest(S, k), feito = S.cal.res[k], pronto = !feito && S.cal.pts >= m;
+    const txt = r.pet ? `${pet.em} ${esc(pet.nome)} + ${r.gems} 💎` : r.roupa ? `👕 ${d.traje} + ${r.gems} 💎` : txtRecG(r);
+    return `<div class="evtrew ${pronto ? 'pronto' : ''} ${feito ? 'ok' : ''}"><span class="num">${m}</span><span class="muted">${txt}</span><button class="btn mini ${pronto ? 'primary' : 'ghost'}" data-act="festResg" data-arg="${k}" ${pronto ? '' : 'disabled'}>${feito ? 'Pego' : 'Pegar'}</button></div>`;
+  }).join('');
+  return `<section class="card"><div class="between"><h2>${d.em} ${d.nome}</h2><span class="badge on">${duracao(f.resta / 1000)}</span></div>
+    <p class="muted">Bônus ativo: <b>${textoBonusFest(d.bonus)}</b>. Colete, colha, entregue pedidos e vá ao mapa para somar pontos. Bicho exclusivo: ${pet.em} <b>${esc(pet.nome)}</b>${S.pets[pet.id] ? ' (você já tem)' : ''}.</p>
+    <p class="muted">Seus pontos: <b>${S.cal.pts}</b></p>${prem}</section>`;
+}
+/* mapa */
+let expSel = null;
+function expPronta() { const now = Date.now(); return S.exped.some(e => e && now >= e.fim); }
+function viewMapa() {
+  if (S.nivel < DESTINOS.floresta.nivel) return travado('Mapa', 'Mande bichos em expedições, suba a torre e desbloqueie áreas novas. Libera no nível ' + DESTINOS.floresta.nivel + '.');
+  const now = Date.now(), slots = expSlots(S);
+  const vagas = [...Array(slots)].map((_, i) => {
+    const e = S.exped[i];
+    if (!e) return `<div class="card parcela"><div class="between"><h3>Expedição ${i + 1}</h3><span class="muted">livre</span></div><button class="btn primary" data-act="expAbrir" data-arg="${i}">Enviar bichos</button></div>`;
+    const D = DESTINOS[e.d], t = relogio(e.fim, e.fim - D.h * HORA), emojis = e.ids.map(id => PET_POR_ID[id].em).join(' ');
+    return `<div class="card parcela ${t.pronto ? 'pronto' : ''}"><div class="between"><h3>${D.em} ${D.nome} <span class="muted">${emojis}</span></h3><span class="muted num">${t.txt}</span></div>${t.barra}
+      <div class="row">${t.pronto ? `<button class="btn primary" data-act="expColher" data-arg="${i}">Ver resultado</button>` : `<button class="btn ad" data-act="expAcel" data-arg="${i}">${PLAY}Acelerar <span class="tag">${rotuloAd()}</span></button>`}</div></div>`;
+  }).join('');
+  const tr = S.torre, rest = TORRE_TENT - tr.tent, p = poderTorre(S), rq = reqTorre(tr.andar + 1), ch = Math.round(chanceTorre(S) * 100);
+  const torre = `<section class="card"><div class="between"><h2>🗼 Torre</h2><span class="badge on">Andar ${tr.andar}</span></div>
+    <p class="muted">Seus 6 melhores bichos enfrentam um andar de cada vez. Quanto mais fortes e evoluídos, mais alto você chega. Prêmios a cada andar; o andar 20 dá um traje.</p>
+    <div class="between"><span class="muted">Andar ${tr.andar + 1}: exige <b>${fmt(rq)}</b> · seu poder <b>${fmt(p)}</b></span><span class="badge ${ch >= 60 ? 'on' : ''}">${ch}% de chance</span></div>
+    <div class="row"><button class="btn primary" data-act="torreSubir" ${rest > 0 && Object.keys(S.pets).length ? '' : 'disabled'}>Subir (${Math.max(0, rest)} tentativa${rest === 1 ? '' : 's'} hoje)</button>${rest <= 0 ? `<button class="btn ad" data-act="torreAnuncio">${PLAY}+1 tentativa <span class="tag">${rotuloAd()}</span></button>` : ''}</div></section>`;
+  const areas = Object.keys(AREAS).map(id => {
+    const a = AREAS[id], tem = S.areas[id], trava = S.nivel < a.nivel;
+    return `<div class="card egg"><div class="decem">${a.em}</div><div class="info"><div class="between"><h3>${a.nome}</h3><span class="badge ${tem ? 'on' : ''}">+${Math.round(a.bonus * 100)}% moedas</span></div><p class="muted">${a.desc}</p>${tem ? '<button class="btn ghost" disabled>Desbloqueada</button>' : trava ? `<button class="btn ghost" disabled>Nível ${a.nivel}</button>` : `<button class="btn primary" data-act="areaComprar" data-arg="${id}" ${S.gems < a.gemas ? 'disabled' : ''}>Desbloquear · ${a.gemas} 💎</button>`}</div></div>`;
+  }).join('');
+  const prox = slots < 3 ? (S.nivel < 12 ? 12 : 18) : 0;
+  return `<section class="card"><div class="between"><h2>Expedições</h2><span class="muted">${slots} vaga(s)</span></div><p class="muted">Mande de 1 a 3 bichos explorar. Voltam com moedas, fragmentos de evolução, ovos e ingressos. Bichos mais fortes têm mais chance de sucesso.${prox ? ' Nova vaga no nível ' + prox + '.' : ''}</p></section>${vagas}${torre}<section class="card"><h2>Áreas do sítio</h2><p class="muted">Cada área dá bônus permanente de moedas e libera expedições novas.</p></section>${areas}`;
+}
+function modalExp() {
+  const e = expSel; if (!e) return;
+  const fora = bichosEmExp(S), livres = Object.keys(S.pets).filter(id => !fora.has(id)).sort((a, b) => forcaBicho(S, b) - forcaBicho(S, a)).slice(0, 36);
+  const dest = Object.keys(DESTINOS).map(k => { const D = DESTINOS[k], ok = destinoLiberado(S, k); return `<button class="chipbicho ${e.d === k ? 'on' : ''}" style="font-size:13px" ${ok ? `data-act="expDestino" data-arg="${k}"` : 'disabled'}>${D.em} ${D.nome} · ${D.h} h${ok ? '' : ' 🔒'}</button>`; }).join('');
+  const bichos = livres.map(id => `<button class="chipbicho ${e.ids.includes(id) ? 'on' : ''}" data-act="expBicho" data-arg="${id}" title="${esc(nomeDoBicho(S, id))}" style="--rc:var(--r${PET_POR_ID[id].r})">${PET_POR_ID[id].em}</button>`).join('');
+  const ch = e.ids.length ? Math.round(chanceExp(S, e.d, e.ids) * 100) : 0, D = DESTINOS[e.d];
+  abrirModal(`<div class="sheet perfil"><div class="between"><h2>Nova expedição</h2><button class="btn mini ghost" data-act="fechar">Fechar</button></div>
+    <h3>Destino</h3><div class="chipsbicho">${dest}</div><p class="muted">${D.em} ${D.nome}: ${D.h} h de viagem. Recomendado: força ${D.req}+ somando os bichos. Locais com 🔒 pedem nível ou área desbloqueada (aba Mapa).</p>
+    <h3>Bichos (${e.ids.length}/3)</h3><div class="chipsbicho">${bichos || '<span class="muted">Todos os bichos já estão em expedição.</span>'}</div>
+    <div class="between"><span class="muted">Força <b>${forcaExp(S, e.ids)}</b> de ${D.req}</span><span class="badge ${ch >= 60 ? 'on' : ''}">${ch}% de sucesso</span></div>
+    <button class="btn primary" data-act="expIniciar" ${e.ids.length ? '' : 'disabled'}>Enviar</button></div>`);
+}
+function modalResultado(tit, linhas, ok) {
+  abrirModal(`<div class="sheet"><div class="reveal pop"><div class="face">${ok ? '🎉' : '😓'}</div><h2>${tit}</h2></div>${linhas.map(l => `<p class="muted" style="text-align:center">${l}</p>`).join('')}<button class="btn primary" data-act="fechar">Continuar</button></div>`);
+}
+Object.assign(ACOES, {
+  passeResg(a) { const [i, p] = String(a).split(':'); const r = resgatarPasse(S, +i, p === '1', Date.now()); if (!r.ok) return toast(erroMsg(r)); salvar(); render(); Som.play('bau'); toast('Passe: ' + txtRecG(r.r)); metrica('passe'); },
+  marcoResg(d) { const r = resgatarMarco(S, +d, Date.now()); if (!r.ok) return toast(erroMsg(r)); salvar(); render(); Som.play('bau'); toast(r.m.nome + '! ' + txtRecG({ gems: r.m.gems, ing: r.m.ing, roupa: r.m.roupa })); },
+  async correioPegar() {
+    let n = 1; if (window.ON && ON.ativo) { const r = await api.presentes.pegar(); if (!r.ok) return toast(erroMsg(r)); n = r.n; ON.caixa = 0; }
+    const r = pegarPresentes(S, n, Date.now()); if (!r.ok) return toast(erroMsg(r)); salvar(); render(); Som.play('coin'); toast('Presentes: +' + fmt(r.coins) + ' moedas');
+  },
+  async presentear(id) { if (!(window.ON && ON.ativo)) return; const r = await api.presentes.enviar(id); if (!r.ok) return toast(erroMsg(r)); enviarPresenteLocal(S, Date.now()); salvar(); render(); Som.play('pop'); toast('Presente enviado!'); },
+  areaComprar(id) { const r = comprarArea(S, id); if (!r.ok) return toast(erroMsg(r)); receber(r.ups); salvar(); render(); Som.play('bau'); toast(AREAS[id].nome + ' desbloqueada!'); metrica('mapa'); },
+  expAbrir(i) { expSel = { i: +i, d: 'floresta', ids: [] }; modalExp(); },
+  expDestino(d) { if (expSel) { expSel.d = d; modalExp(); } },
+  expBicho(id) { if (!expSel) return; const k = expSel.ids.indexOf(id); if (k >= 0) expSel.ids.splice(k, 1); else if (expSel.ids.length < 3) expSel.ids.push(id); modalExp(); },
+  expIniciar() { if (!expSel) return; const r = iniciarExp(S, expSel.i, expSel.d, expSel.ids, Date.now()); if (!r.ok) return toast(erroMsg(r)); expSel = null; salvar(); fecharModal(); render(); Som.play('pop'); metrica('expedicao'); },
+  expAcel(i) { if (!S.exped[+i]) return; anuncio('acelerar', 'Acelerar a expedição', () => { acelerarExp(S, +i, Date.now()); toast('Metade do tempo'); }); },
+  expColher(i) {
+    const r = colherExp(S, +i, Date.now()); if (!r.ok) return; receber(r.ups); salvar(); render(); Som.play(r.sucesso ? 'bau' : 'erro');
+    const L = ['+' + fmt(r.coins) + ' moedas']; if (r.fragId) L.push('+' + r.frag + ' fragmento(s) de evolução para ' + esc(nomeDoBicho(S, r.fragId))); if (r.ovo) L.push('🥚 Ovo Brilhante'); if (r.ing) L.push('+' + r.ing + ' ingresso'); if (r.gems) L.push('+' + r.gems + ' 💎');
+    modalResultado(r.sucesso ? 'Expedição bem-sucedida!' : 'A expedição voltou com pouco', L, r.sucesso);
+  },
+  torreSubir() { const r = subirTorre(S); if (!r.ok) return toast(erroMsg(r)); salvar(); render(); if (r.vitoria) { receber(r.ups); Som.play('bau'); modalResultado('Andar ' + r.andar + ' vencido!', [txtRecG(r.r)], true); } else { Som.play('erro'); modalResultado('Os bichos não aguentaram o andar ' + r.andar, ['Evolua e suba o nível dos bichos e tente de novo.'], false); } metrica('torre'); },
+  torreAnuncio() { anuncio('torre', '+1 tentativa na torre', () => { S.torre.tent = Math.max(0, S.torre.tent - 1); toast('+1 tentativa'); }); },
+  festResg(k) { const r = resgatarFestival(S, +k, Date.now()); if (!r.ok) return toast(erroMsg(r)); receber(r.ups); salvar(); render(); metrica('calendario'); if (r.pet) revelarPet(r.pet, r.res, 'Bicho do festival'); else { Som.play('bau'); toast('Festival: ' + txtRecG(Object.assign({}, r.r, { roupa: r.roupa }))); } }
 });

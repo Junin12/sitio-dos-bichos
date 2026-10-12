@@ -375,3 +375,14 @@ button.lvring{border:0;padding:0;cursor:pointer}
 .mrow.rk{grid-template-columns:26px 46px minmax(0,1fr) auto auto;gap:6px}
 .mrow.rk .btn.mini{min-height:34px;padding:4px 10px;font-size:13px}
 .mrow.rk .pos{font-size:18px}
+
+/* passe, mapa, festivais */
+.seg.n6 button{font-size:11.5px;padding:8px 0}
+.prow{display:grid;grid-template-columns:30px 1fr 1fr;gap:6px;align-items:center;padding:5px 0;border-top:1px solid var(--line)}
+.prow.cab{border-top:0;font:700 12px var(--font-display);color:var(--muted)}
+.prow .pn{font:700 14px var(--font-display);text-align:center;color:var(--muted)}
+.prow.on .pn{color:var(--ink)}
+.pbtn{border:0;border-radius:12px;padding:7px 6px;min-height:36px;font:600 11.5px var(--font-display);line-height:1.2;color:var(--muted);background:var(--surface2);box-shadow:inset 0 2px 4px rgba(0,0,0,.08);cursor:default}
+.pbtn.pronto{background:linear-gradient(180deg,var(--yolk2),var(--yolk));color:var(--yolk-ink);box-shadow:0 3px 0 var(--yolk-d);cursor:pointer}
+.pbtn.ok{background:color-mix(in srgb,var(--green) 22%,var(--surface2));color:var(--green-d)}
+.pbtn.prem:not(.ok):not(.pronto){background:color-mix(in srgb,#b69bff 18%,var(--surface2))}

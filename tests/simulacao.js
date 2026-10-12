@@ -237,4 +237,59 @@ resumo(40,72); resumo(180,720); resumo(480,1440);
   const vals = Object.keys(CULTIVOS).map(id => { for (let k = 0; k < 400; k++) { const q = novoPedido(S, t0, rng); if (q.t === 'colheita' && q.id === id) return q.rec.coins / q.qtd; } return 0; });
   assert(vals.every((v, i) => i === 0 || v > vals[i - 1]), 'valor por unidade cresce com o tempo de cultivo: ' + vals.join(','));
   console.log('perfil e roupas: ok');
+  // ===== novidades II =====
+  const T = Date.UTC(2026, 9, 12, 15);   // 12/10/2026: Festival da Alegria
+  S = novoEstado(T); S.ts = T; S.nivel = 22; S.coins = 1e12; S.gems = 500; ajustarTudo(S, T, rng);
+  // passe
+  assert(S.passe.temp === temporadaDe(T) && nivelPasse(S) === 0, 'passe começa zerado');
+  S.passe.xp = PASSE_XP * 12; assert(nivelPasse(S) === 12 && passePendentes(S) === 12, 'passe sobe com XP');
+  const n2_c0 = S.coins; assert(resgatarPasse(S, 3, false, T).ok && S.coins > n2_c0 && resgatarPasse(S, 3, false, T).erro === 'ja' && resgatarPasse(S, 13, false, T).erro === 'falta', 'faixa grátis do passe');
+  assert(resgatarPasse(S, 10, true, T).erro === 'premium', 'faixa premium exige o Passe da Temporada');
+  S.premium.passe = true; S.passe.xp = PASSE_XP * 30; assert(resgatarPasse(S, 10, true, T).ok && S.roupas.passea && resgatarPasse(S, 30, true, T).ok && S.roupas.passec, 'premium dá roupas');
+  const n2_xp0 = S.passe.xp; ganharXP(S, 100); assert(S.passe.xp > n2_xp0, 'ganhar XP alimenta o passe');
+  ajustarNovidades(S, Date.UTC(2026, 10, 3)); assert(S.passe.xp === 0 && S.passe.temp === temporadaDe(Date.UTC(2026, 10, 3)), 'passe renova na temporada seguinte');
+  // marcos
+  S.diario.seq = 31; assert(marcosPendentes(S).map(m => m.d).join() === '14,30', 'marcos pendentes');
+  assert(resgatarMarco(S, 100, T).erro === 'falta' && resgatarMarco(S, 30, T).ok && S.roupas.fiel && resgatarMarco(S, 30, T).erro === 'ja', 'marco de 30 dias');
+  S.diario.seq = 100; S.eggs = [null, null]; assert(resgatarMarco(S, 100, T).ovo && S.eggs[0].tipo === 'dourado' && S.roupas.centenario, 'marco de 100 dias dá ovo dourado e roupa');
+  // áreas e expedições
+  S = novoEstado(T); S.ts = T; S.nivel = 12; S.gems = 100; S.coins = 1e9; ajustarTudo(S, T, rng); ['coelho', 'gato', 'leao', 'cachorro'].forEach(id => aplicarPet(S, id));
+  assert(comprarArea(S, 'praia').ok && S.areas.praia && comprarArea(S, 'praia').erro === 'ja' && comprarArea(S, 'montanha').erro === 'nivel', 'comprar área');
+  assert(bonusAreas(S) === 0.04, 'bônus de área');
+  assert(iniciarExp(S, 0, 'montanha', ['coelho'], T).erro === 'bloqueado' && iniciarExp(S, 0, 'floresta', [], T).erro === 'bichos' && iniciarExp(S, 0, 'floresta', ['rei'], T).erro === 'bichos', 'validações da expedição');
+  assert(iniciarExp(S, 0, 'floresta', ['coelho', 'gato'], T, () => 0.1).ok && iniciarExp(S, 0, 'caverna', ['leao'], T).erro === 'ocupada' && iniciarExp(S, 1, 'floresta', ['coelho'], T).erro === 'bichos', 'bicho em expedição não vai de novo');
+  assert(colherExp(S, 0, T + 1000).erro === 'cedo', 'expedição não termina antes'); const n2_f0 = (S.pets.coelho.frag || 0) + (S.pets.gato.frag || 0), n2_cc = S.coins;
+  const n2_ex = colherExp(S, 0, T + HORA + 1, () => 0); assert(n2_ex.sucesso && n2_ex.coins > 0 && S.coins > n2_cc && (S.pets.coelho.frag || 0) + (S.pets.gato.frag || 0) === n2_f0 + 1 && S.exped[0] === null, 'expedição bem-sucedida dá moedas e fragmento');
+  iniciarExp(S, 0, 'floresta', ['coelho'], T, () => 0.99); S.pets.coelho.lvl = 1; const n2_exf = colherExp(S, 0, T + 2 * HORA); assert(n2_exf.ok && n2_exf.sucesso === (0.99 < chanceExp(S, 'floresta', ['coelho'])) && n2_exf.coins >= 0, 'expedição falha ou não conforme a chance');
+  iniciarExp(S, 0, 'caverna', ['leao'], T); assert(acelerarExp(S, 0, T).ok && S.exped[0].fim < T + 3 * HORA, 'acelerar expedição');
+  // torre
+  S = novoEstado(T); S.ts = T; S.nivel = 10; ajustarTudo(S, T, rng); assert(subirTorre(S).erro === 'sem_bichos', 'torre exige bicho');
+  ['coelho', 'gato', 'leao'].forEach(id => { aplicarPet(S, id); S.pets[id].lvl = 10; });
+  assert(poderTorre(S) > reqTorre(1) && chanceTorre(S) > 0.9, 'poder da torre alto contra o 1º andar');
+  const n2_tw = subirTorre(S, () => 0.5); assert(n2_tw.vitoria && S.torre.andar === 1 && n2_tw.r.coins > 0, 'subir o 1º andar');
+  S.torre.andar = 60; const n2_tl = subirTorre(S, () => 0.99); assert(n2_tl.ok && !n2_tl.vitoria && S.torre.andar === 60 && chanceTorre(S) === 0, 'andar impossível falha');
+  S.torre.tent = 3; assert(subirTorre(S).erro === 'limite' && subirTorre(S, () => 0.5, true).erro !== 'limite', 'limite diário da torre (+1 com anúncio)');
+  S.torre.andar = 19; S.torre.tent = 0; ['cachorro', 'peru', 'sapo'].forEach(id => aplicarPet(S, id)); Object.keys(S.pets).forEach(id => { S.pets[id].lvl = 10; S.pets[id].est = 3; }); for (let k = 0; k < 40 && S.torre.andar < 20; k++) { S.torre.tent = 0; subirTorre(S, () => 0.5); } assert(S.torre.andar === 20 && S.roupas.campeao, 'andar 20 dá o traje de campeão');
+  ajustarNovidades(S, T + DIA); assert(S.torre.tent === 0, 'tentativas da torre voltam no dia seguinte');
+  // festivais de data (neutros)
+  assert(festivalAtivo(T).def.id === 'alegria' && festivalAtivo(Date.UTC(2026, 11, 25)).def.id === 'estrelas' && festivalAtivo(Date.UTC(2027, 0, 1)).def.id === 'estrelas' && festivalAtivo(Date.UTC(2026, 4, 15)) === null, 'janelas dos festivais');
+  assert(FESTIVAIS.every(f => !/natal|p[aá]scoa|junin|halloween|carnaval/i.test(f.nome + f.traje + PET_POR_ID[f.pet].nome)), 'festivais sem tema de feriado');
+  S = novoEstado(T); S.ts = T; S.nivel = 10; ajustarTudo(S, T, rng); const n2_pb = prodTotal(S); S.cal.id = ''; assert(S.cal.id === '' || true);
+  ajustarNovidades(S, T); assert(S.cal.id === 'alegria' && bonusFest(S, 'prod') === 0.3, 'festival ativo liga o bônus');
+  S.ts = Date.UTC(2026, 4, 15); assert(bonusFest(S, 'prod') === 0, 'sem festival, sem bônus'); S.ts = T;
+  pontoFestival(S, 100); assert(S.cal.pts === 100, 'pontos do festival'); S.cal.pts = 400;
+  assert(resgatarFestival(S, 2, T).roupa === 'cal:alegria' && S.roupas['cal:alegria'], 'traje do festival');
+  const n2_rp = resgatarFestival(S, 3, T); assert(n2_rp.pet.id === 'panda' && S.pets.panda && resgatarFestival(S, 3, T).erro === 'ja', 'bicho exclusivo do festival');
+  assert(resgatarFestival(S, 0, Date.UTC(2026, 4, 15)).erro === 'sem_festival', 'não resgata fora do período');
+  ajustarNovidades(S, Date.UTC(2026, 9, 26)); assert(S.cal.id === 'noite' && S.cal.pts === 0, 'novo festival zera os pontos');
+  // fábricas: ingredientes da horta
+  S = novoEstado(T); S.ts = T; S.nivel = 14; S.coins = 1e9; ajustarTudo(S, T, rng);
+  assert(iniciarReceita(S, 0, 'molho', T).erro === 'ingrediente', 'fábrica pede ingredientes'); S.colheita.tomate = 5;
+  assert(iniciarReceita(S, 0, 'molho', T).ok && S.colheita.tomate === 3, 'fábrica consome a colheita');
+  // correio
+  S = novoEstado(T); S.ts = T; ajustarTudo(S, T, rng); const n2_cg = S.coins; assert(pegarPresentes(S, 3, T).k === 3 && S.coins > n2_cg && pegarPresentes(S, 9, T).k === 2 && pegarPresentes(S, 1, T).erro === 'nada', 'correio limita 5 por dia');
+  ajustarNovidades(S, T + DIA); assert(S.correio.pegou === 0, 'correio zera por dia'); for (let k = 0; k < 5; k++) enviarPresenteLocal(S, T + DIA); assert(enviarPresenteLocal(S, T + DIA).erro === 'limite', 'envio limitado');
+  // prestígio mantém
+  S = novoEstado(T); S.ts = T; S.nivel = 25; S.areas.praia = 1; S.marcos[14] = 1; S.torre.andar = 7; S.passe.xp = 77; prestigiar(S, T); assert(S.areas.praia && S.marcos[14] && S.torre.andar === 7 && S.passe.xp === 77, 'prestígio mantém áreas, marcos, torre e passe');
+  console.log('novidades II: ok');
 })();

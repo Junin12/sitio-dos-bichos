@@ -93,7 +93,7 @@ const textoRec = r => [r.coins > 0 ? '+' + fmt(r.coins) + ' moedas' : '', r.gems
 
 let toastT = null;
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 2400); }
-const ERROS = { moedas: 'Moedas insuficientes', gemas: 'Gemas insuficientes', cheio: 'Incubadoras cheias. Abra um ovo primeiro.', max: 'Já está no máximo', min: 'Faça ' + MIN_PONTOS_BAU + ' pontos na semana para resgatar baús', meta: 'A guilda ainda não chegou nessa meta', ja: 'Você já fez isso hoje', limite: 'Limite diário de parabéns atingido', sem: 'Entre numa guilda primeiro' };
+const ERROS = { ingrediente: 'Faltam ingredientes da horta', premium: 'Exige o Passe da Temporada', falta: 'Ainda não chegou lá', bichos: 'Escolha de 1 a 3 bichos livres', bloqueado: 'Destino ainda bloqueado', vaga: 'Sem vaga livre', ocupada: 'Já está em uso', sem_bichos: 'Você precisa de bichos', sem_festival: 'Nenhum festival ativo agora', nada: 'Nada para pegar agora', moedas: 'Moedas insuficientes', gemas: 'Gemas insuficientes', cheio: 'Incubadoras cheias. Abra um ovo primeiro.', max: 'Já está no máximo', min: 'Faça ' + MIN_PONTOS_BAU + ' pontos na semana para resgatar baús', meta: 'A guilda ainda não chegou nessa meta', ja: 'Você já fez isso hoje', limite: 'Limite diário de parabéns atingido', sem: 'Entre numa guilda primeiro' };
 const erroMsg = e => (Som.play('erro'), erroMsg0(e));
 const erroMsg0 = e => e.erro === 'nivel' ? 'Libera no nível ' + e.nivel : e.erro === 'cap' ? 'Precisa de fazendeiro nível ' + e.nivel : (ERROS[e.erro] || 'Não foi possível');
 
@@ -433,7 +433,8 @@ function missaoDesc(m) {
   return m.t === 'coletar' ? 'Colete ' + fmt(m.meta) + ' moedas' : m.t === 'chocar' ? 'Choque ' + m.meta + (m.meta > 1 ? ' ovos' : ' ovo') : m.t === 'obra' ? 'Melhore ' + m.meta + (m.meta > 1 ? ' obras' : ' obra') : m.t === 'anuncio' ? 'Assista 1 anúncio recompensado' : 'Consiga um bicho ' + RARIDADES[m.min].nome + ' ou melhor';
 }
 function viewMetas() {
-  const seg = segHTML('subM', subM, [['missoes', 'Missões'], ['pedidos', 'Pedidos'], ['evento', 'Eventos'], ['album', 'Álbum']]);
+  const seg = segHTML('subM', subM, [['missoes', 'Missões'], ['pedidos', 'Pedidos'], ['evento', 'Eventos'], ['passe', 'Passe'], ['album', 'Álbum']]);
+  if (subM === 'passe') return seg + viewPasse();
   if (subM === 'pedidos') return seg + viewPedidos();
   if (subM === 'evento') return seg + viewEvento();
   if (subM === 'album') {
@@ -453,7 +454,7 @@ function viewMetas() {
     <div class="between"><span class="muted num">${fmt(m.prog)}/${fmt(m.meta)}</span><span class="muted">${textoRec(m.rec)}</span></div>
     ${m.feita ? `<div class="row"><button class="btn primary" data-act="resgatar" data-arg="${i}">Resgatar</button><button class="btn ad" data-act="resgatar2x" data-arg="${i}">${PLAY}Em dobro <span class="tag">Anúncio</span></button></div>` : '<button class="btn ghost" disabled>Em andamento</button>'}</section>`).join('');
   const prox = []; for (let n = S.nivel + 1; n <= NIVEL_MAX && prox.length < 4; n++) { const d = desbloqueios(n); if (d.length) prox.push(`<p class="muted">Nível ${n}: <b>${d.join(', ')}</b></p>`); }
-  return seg + cardDiario(hoje) + cards + cardConquistas() + `<section class="card"><h2>Próximos desbloqueios</h2>${prox.join('') || '<p class="muted">Você liberou tudo.</p>'}</section><button class="btn ghost" data-act="aba" data-arg="dev">Painel de anúncios e dados</button>`;
+  return seg + cardDiario(hoje) + cardMarcos() + cardCorreio() + cards + cardConquistas() + `<section class="card"><h2>Próximos desbloqueios</h2>${prox.join('') || '<p class="muted">Você liberou tudo.</p>'}</section><button class="btn ghost" data-act="aba" data-arg="dev">Painel de anúncios e dados</button>`;
 }
 function viewDev() {
   const a = S.ads, tot = Object.keys(a).reduce((x, k) => x + a[k], 0);
@@ -510,7 +511,7 @@ function tick() {
   const navBtn = k => document.querySelector('#nav button[data-arg="' + k + '"]');
   const pend = S.missoes.some(m => m && m.feita) || S.diario.ultimo !== diaDe(now) || temPendenciaMetas();
   navBtn('metas').classList.toggle('has', pend);
-  navBtn('obras').classList.toggle('has', temMelhoria() || hortaPronta() || oficinaPronta());
+  navBtn('obras').classList.toggle('has', temMelhoria() || hortaPronta() || oficinaPronta() || expPronta());
   navBtn('guilda').classList.toggle('has', bauPronto(now) || chefeLivres(now) > 0);
   navBtn('ovos').classList.toggle('has', S.eggs.some(e => e && now >= e.pronto) || cruzPronto() || (S.nivel >= LOTE_NIVEL && (S.ing || 0) >= LOTE_N));
   const ci = $('#chipIng'); if (ci) { const m = (S.ing || 0) > 0; if (ci.hidden === m) ci.hidden = !m; $('#vIng').textContent = S.ing || 0; }
