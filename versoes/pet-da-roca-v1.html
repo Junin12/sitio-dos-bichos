@@ -1,0 +1,514 @@
+<title>Pet da Roça</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Mulish:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: app de uma coluna (até 480px), topo com moedas, conteúdo rolável e navegação inferior em 4 abas. */
+:root{
+  --bg:#E4EEE8; --surface:#F6FAF7; --surface2:#D6E5DB; --ink:#12301F; --muted:#4D6657; --line:#BFD3C6;
+  --grass:#BCDDC4; --yolk:#F4B31F; --yolk-ink:#2B1D00; --sky:#1F78B8; --good:#23834A; --bad:#B63C32;
+  --r0:#6F8478; --r1:#23834A; --r2:#1F78B8; --r3:#7A4CC8; --r4:#C27F00;
+  --font-display:'Fredoka',system-ui,sans-serif; --font-body:'Mulish',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1A13; --surface:#15271D; --surface2:#1E3427; --ink:#E4F1E8; --muted:#9DB8A7; --line:#2A4435;
+    --grass:#1B3A28; --sky:#2D7FC2; --good:#4FC17F; --bad:#EE7A6F;
+    --r0:#9BB0A2; --r1:#4FC17F; --r2:#5DB4F0; --r3:#B18BF2; --r4:#F7BC3A; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1A13; --surface:#15271D; --surface2:#1E3427; --ink:#E4F1E8; --muted:#9DB8A7; --line:#2A4435;
+  --grass:#1B3A28; --sky:#2D7FC2; --good:#4FC17F; --bad:#EE7A6F;
+  --r0:#9BB0A2; --r1:#4FC17F; --r2:#5DB4F0; --r3:#B18BF2; --r4:#F7BC3A; color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 var(--font-body);-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box}
+h1,h2,h3,p{margin:0}
+.shell{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;padding-inline:16px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px 8px}
+.brand{font:700 20px/1 var(--font-display);letter-spacing:.01em}
+.wallet{display:flex;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 12px 5px 8px;font:600 15px var(--font-display);font-variant-numeric:tabular-nums}
+main{flex:1;min-height:0;overflow-y:auto;padding-block:8px 16px;display:flex;flex-direction:column;gap:14px}
+nav{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;border-top:1px solid var(--line);padding-block:6px 8px}
+nav button{background:none;border:0;border-top:3px solid transparent;color:var(--muted);font:600 12px var(--font-display);letter-spacing:.03em;padding:8px 0 4px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;min-height:48px}
+nav button.on{color:var(--ink);border-top-color:var(--yolk)}
+nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+button{font-family:inherit}
+:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.eyebrow{font:600 12px var(--font-display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h2{font:600 18px/1.2 var(--font-display)}
+h3{font:600 16px/1.2 var(--font-display)}
+.muted{color:var(--muted);font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>*{flex:1 1 140px;min-width:0}
+.between{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.btn{border:0;border-radius:12px;padding:10px 14px;min-height:44px;font:600 15px var(--font-display);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.primary{background:var(--yolk);color:var(--yolk-ink)}
+.btn.ad{background:var(--sky);color:#fff}
+.btn.ghost{background:var(--surface2);color:var(--ink)}
+.btn svg{width:12px;height:12px;flex:none}
+.tag{font:600 10px var(--font-display);letter-spacing:.08em;text-transform:uppercase;border:1px solid currentColor;border-radius:4px;padding:1px 4px;opacity:.85}
+.bar{height:12px;border-radius:999px;background:var(--surface2);overflow:hidden}
+.bar>i{display:block;height:100%;width:0;background:var(--yolk);transition:width .25s}
+.num{font-variant-numeric:tabular-nums}
+.big{font:700 28px/1 var(--font-display);font-variant-numeric:tabular-nums}
+/* pasto */
+.field{background:var(--grass);border-radius:14px;padding:10px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.slot{aspect-ratio:1;border-radius:12px;background:var(--surface);border:2px solid var(--rc,var(--line));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;position:relative;min-width:0}
+.slot .em{font-size:30px;line-height:1.1;display:block;animation:bob 2.4s ease-in-out infinite}
+.slot .lvl{font:600 11px var(--font-display);color:var(--muted)}
+.slot .rate{font:600 11px var(--font-display);color:var(--ink);font-variant-numeric:tabular-nums}
+.slot.empty,.slot.lock{background:transparent;border:2px dashed var(--line);color:var(--muted);font:600 11px var(--font-display);text-align:center}
+.slot.lock{opacity:.6}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+/* ovos */
+.egg{display:flex;gap:12px;align-items:center}
+.egg svg.eggsvg{width:52px;height:60px;flex:none}
+.egg .info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.chips{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px;color:var(--muted)}
+.chips b{color:var(--ink);font-weight:700}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;background:var(--rc)}
+details summary{cursor:pointer;font:600 15px var(--font-display);min-height:32px;display:flex;align-items:center}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:right;padding:6px 4px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}
+th{font:600 12px var(--font-display);color:var(--muted)}
+.scroll-x{overflow-x:auto}
+/* colecao */
+.cgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.cell{aspect-ratio:1;border-radius:12px;background:var(--surface);border:2px solid var(--rc);display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0}
+.cell .em{font-size:30px;line-height:1.1}
+.cell.off{border-style:dashed;border-color:var(--line)}
+.cell.off .em{filter:brightness(0);opacity:.18}
+.cell .nm{font:600 10px var(--font-display);color:var(--muted);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-inline:2px}
+/* dev */
+.field-in{display:flex;flex-direction:column;gap:4px}
+.field-in label{font:600 13px var(--font-display)}
+.field-in input{font:600 16px var(--font-body);padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);min-height:44px;width:100%}
+.kpi{display:flex;flex-direction:column;gap:2px}
+/* modal e toast */
+.modal{position:fixed;inset:0;background:rgba(5,15,10,.62);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;width:100%;max-width:360px;display:flex;flex-direction:column;gap:14px;text-align:center;align-items:stretch}
+.reveal{display:flex;flex-direction:column;align-items:center;gap:6px}
+.reveal .face{width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:64px;background:var(--surface2);border:4px solid var(--rc);box-shadow:0 0 0 6px color-mix(in srgb,var(--rc) 22%,transparent)}
+.shake{animation:shake .5s ease-in-out infinite}
+@keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+.pop{animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+.rlabel{font:700 13px var(--font-display);letter-spacing:.08em;text-transform:uppercase;color:var(--rc)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font:600 14px var(--font-display);z-index:20;max-width:calc(100% - 32px);text-align:center}
+@media (prefers-reduced-motion:reduce){
+  .slot .em,.shake,.pop{animation:none}
+  .bar>i{transition:none}
+}
+</style>
+
+<div class="shell">
+  <header class="top">
+    <div class="brand">Pet da Roça</div>
+    <div class="wallet" aria-label="Saldo">
+      <span class="chip" title="Moedas"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="var(--yolk)"/><circle cx="10" cy="10" r="5.5" fill="none" stroke="var(--yolk-ink)" stroke-width="1.5" opacity=".5"/></svg><span id="vCoins">0</span></span>
+      <span class="chip" title="Gemas"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><polygon points="10,1 18,8 10,19 2,8" fill="var(--sky)"/><polyline points="2,8 18,8" stroke="#fff" stroke-width="1.2" opacity=".6" fill="none"/></svg><span id="vGems">0</span></span>
+    </div>
+  </header>
+  <main id="view"></main>
+  <nav id="nav" aria-label="Seções">
+    <button data-act="aba" data-arg="fazenda"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9H3z"/><path d="M9 20v-6h6v6"/></svg>Fazenda</button>
+    <button data-act="aba" data-arg="ovos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C8 3 5 10 5 14.5 5 18.5 8 21 12 21s7-2.500 7-6.500C19 10 16 3 12 3z"/></svg>Ovos</button>
+    <button data-act="aba" data-arg="colecao"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>Coleção</button>
+    <button data-act="aba" data-arg="dev"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V11M12 20V4M19 20v-6"/></svg>Anúncios</button>
+  </nav>
+</div>
+<div id="modal" class="modal" hidden></div>
+<div id="toast" class="toast" hidden role="status"></div>
+
+<script id="logic">
+/* ===== Regras do jogo (sem DOM) ===== */
+const RARIDADES = [
+  { id: 'comum',    nome: 'Comum',    prod: 0.5 },
+  { id: 'incomum',  nome: 'Incomum',  prod: 1.5 },
+  { id: 'raro',     nome: 'Raro',     prod: 4 },
+  { id: 'epico',    nome: 'Épico',    prod: 12 },
+  { id: 'lendario', nome: 'Lendário', prod: 40 }
+];
+const PETS = [
+  { id: 'pintinho',  nome: 'Pintinho',          em: '🐥', r: 0 },
+  { id: 'coelho',    nome: 'Coelho',            em: '🐰', r: 0 },
+  { id: 'leitao',    nome: 'Leitão',            em: '🐷', r: 0 },
+  { id: 'patinho',   nome: 'Patinho',           em: '🦆', r: 0 },
+  { id: 'ovelha',    nome: 'Ovelha',            em: '🐑', r: 1 },
+  { id: 'bezerra',   nome: 'Bezerra',           em: '🐮', r: 1 },
+  { id: 'cabrito',   nome: 'Cabrito',           em: '🐐', r: 1 },
+  { id: 'galinha',   nome: 'Galinha Caipira',   em: '🐔', r: 1 },
+  { id: 'raposa',    nome: 'Raposa',            em: '🦊', r: 2 },
+  { id: 'potro',     nome: 'Potro',             em: '🐴', r: 2 },
+  { id: 'lhama',     nome: 'Lhama',             em: '🦙', r: 2 },
+  { id: 'lontra',    nome: 'Lontra',            em: '🦦', r: 2 },
+  { id: 'unicornio', nome: 'Unicórnio',         em: '🦄', r: 3 },
+  { id: 'pavao',     nome: 'Pavão',             em: '🦚', r: 3 },
+  { id: 'coruja',    nome: 'Coruja',            em: '🦉', r: 3 },
+  { id: 'cervo',     nome: 'Cervo',             em: '🦌', r: 3 },
+  { id: 'dragao',    nome: 'Dragão do Milharal', em: '🐲', r: 4 },
+  { id: 'mamute',    nome: 'Mamute Lanoso',     em: '🦣', r: 4 },
+  { id: 'dino',      nome: 'Dino de Palha',     em: '🦕', r: 4 }
+];
+const PET_POR_ID = Object.fromEntries(PETS.map(p => [p.id, p]));
+const OVOS = {
+  palha:   { nome: 'Ovo de Palha', custo: { coins: 120 }, tempo: 20, pesos: [60, 28, 9, 2.6, 0.4] },
+  dourado: { nome: 'Ovo Dourado',  custo: { gems: 5 },    tempo: 60, pesos: [0, 38, 40, 19, 3] }
+};
+const PITY_LIMIT = 30;          // Épico ou melhor garantido a cada 30 invocações sem um
+const PITY_PESOS = [0, 0, 0, 92, 8];
+const LVL_MAX = 10;
+const SLOTS_INI = 3, SLOTS_MAX = 8;
+const CUSTO_PASTO = [400, 2500, 12000, 50000, 200000];
+const CELEIRO_SEG = 3600;       // celeiro guarda 1 hora de produção
+
+function sortearRaridade(pesos, pity, rng) {
+  rng = rng || Math.random;
+  const p = pity >= PITY_LIMIT - 1 ? PITY_PESOS : pesos;
+  const t = p.reduce((a, b) => a + b, 0);
+  let x = rng() * t;
+  for (let i = 0; i < p.length; i++) { if (x < p[i]) return i; x -= p[i]; }
+  return p.length - 1;
+}
+function sortearPet(ovoId, pity, rng) {
+  rng = rng || Math.random;
+  const r = sortearRaridade(OVOS[ovoId].pesos, pity, rng);
+  const lista = PETS.filter(p => p.r === r);
+  return { r, pet: lista[Math.floor(rng() * lista.length)] };
+}
+function prodPet(id, lvl) { return RARIDADES[PET_POR_ID[id].r].prod * (1 + 0.3 * (lvl - 1)); }
+function ativos(S) {
+  return Object.keys(S.pets)
+    .map(id => ({ id, lvl: S.pets[id].lvl, prod: prodPet(id, S.pets[id].lvl) }))
+    .sort((a, b) => b.prod - a.prod)
+    .slice(0, S.slots);
+}
+function prodTotal(S) { return ativos(S).reduce((a, p) => a + p.prod, 0); }
+function capCeleiro(S) { return Math.max(200, prodTotal(S) * CELEIRO_SEG); }
+function custoPasto(S) { return S.slots < SLOTS_MAX ? CUSTO_PASTO[S.slots - SLOTS_INI] : null; }
+function aplicarPet(S, id) {
+  const cur = S.pets[id];
+  if (!cur) { S.pets[id] = { lvl: 1 }; return { tipo: 'novo' }; }
+  if (cur.lvl < LVL_MAX) { cur.lvl++; return { tipo: 'nivel', lvl: cur.lvl }; }
+  const reembolso = Math.round(50 * Math.pow(3, PET_POR_ID[id].r));
+  S.coins += reembolso;
+  return { tipo: 'max', reembolso };
+}
+function novoEstado(now) {
+  return {
+    ts: now, coins: 240, gems: 5, barn: 0, pets: {}, slots: SLOTS_INI,
+    eggs: [{ tipo: 'palha', pronto: now }, null],
+    pity: 0, summons: 0, cd: { ovo: 0, gemas: 0 },
+    ads: { dobro: 0, ovo: 0, gemas: 0, acelerar: 0 },
+    dev: { ecpm: 5, dau: 1000, adsDia: 6 }
+  };
+}
+function avancar(S, now) {
+  const dt = Math.max(0, (now - S.ts) / 1000);
+  S.barn = Math.min(capCeleiro(S), S.barn + prodTotal(S) * dt);
+  S.ts = now;
+}
+</script>
+
+<script>
+/* ===== Interface ===== */
+const KEY = 'pet-da-roca.v1';
+const $ = s => document.querySelector(s);
+function carregar() {
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+  const base = novoEstado(Date.now());
+  if (!s || typeof s !== 'object') return base;
+  const r = Object.assign(base, s);
+  r.cd = Object.assign({ ovo: 0, gemas: 0 }, s.cd);
+  r.ads = Object.assign({ dobro: 0, ovo: 0, gemas: 0, acelerar: 0 }, s.ads);
+  r.dev = Object.assign({ ecpm: 5, dau: 1000, adsDia: 6 }, s.dev);
+  if (!Array.isArray(r.eggs) || r.eggs.length !== 2) r.eggs = [null, null];
+  if (!r.pets || typeof r.pets !== 'object') r.pets = {};
+  return r;
+}
+let S = carregar();
+let aba = 'fazenda';
+let ultimoSalvo = 0;
+let confirmaReset = false;
+function salvar() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} ultimoSalvo = Date.now(); }
+
+const fmt = n => n >= 1e6 ? (n / 1e6).toFixed(2).replace('.', ',') + ' mi' : Math.floor(n).toLocaleString('pt-BR');
+const fmt1 = n => n.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const pct = n => n.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%';
+const usd = n => 'US$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const mmss = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+const reduzMov = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+let toastT = null;
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 2200);
+}
+
+const PLAY = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.500v9l7-4.500z" fill="currentColor"/></svg>';
+function eggSVG(tipo) {
+  const ouro = tipo === 'dourado';
+  const f1 = ouro ? '#FBD35A' : '#D9C48A', f2 = ouro ? '#E39A0B' : '#B79B5B', pinta = ouro ? '#FFF1B8' : '#8F7640';
+  const gid = 'g' + tipo;
+  return `<svg class="eggsvg" viewBox="0 0 64 76" aria-hidden="true"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${f1}"/><stop offset="1" stop-color="${f2}"/></linearGradient></defs><path d="M32 3C19 3 7 26 7 47c0 17 11 26 25 26s25-9 25-26C57 26 45 3 32 3z" fill="url(#${gid})"/><ellipse cx="22" cy="24" rx="5" ry="9" fill="#fff" opacity=".35" transform="rotate(20 22 24)"/><circle cx="40" cy="48" r="3" fill="${pinta}" opacity=".6"/><circle cx="28" cy="58" r="2.200" fill="${pinta}" opacity=".6"/><circle cx="44" cy="36" r="1.800" fill="${pinta}" opacity=".6"/></svg>`;
+}
+
+/* ---------- anúncio recompensado (simulado) ---------- */
+let adT = null, adReward = null, adTipo = null;
+function anuncio(tipo, titulo, recompensa) {
+  adReward = recompensa; adTipo = tipo;
+  const m = $('#modal'); m.hidden = false;
+  m.innerHTML = `<div class="sheet"><p class="eyebrow">Anúncio simulado</p><h2>${titulo}</h2>
+    <div><div class="bar"><i id="adBar"></i></div><p class="muted" id="adMsg" style="margin-top:8px">Assistindo… 3s</p></div>
+    <p class="muted">No app publicado, aqui entra um anúncio recompensado de verdade (AdMob).</p>
+    <div class="row"><button class="btn ghost" data-act="fechar">Cancelar</button><button class="btn primary" id="adOk" data-act="adok" disabled>Receber</button></div></div>`;
+  const dur = 3000, ini = Date.now();
+  clearInterval(adT);
+  adT = setInterval(() => {
+    const p = Math.min(1, (Date.now() - ini) / dur);
+    const bar = $('#adBar'); if (!bar) { clearInterval(adT); return; }
+    bar.style.width = (p * 100) + '%';
+    if (p >= 1) { clearInterval(adT); $('#adMsg').textContent = 'Pronto! Receba sua recompensa.'; $('#adOk').disabled = false; }
+    else $('#adMsg').textContent = 'Assistindo… ' + Math.ceil((dur - (Date.now() - ini)) / 1000) + 's';
+  }, 100);
+}
+function fecharModal() { clearInterval(adT); adReward = null; $('#modal').hidden = true; $('#modal').innerHTML = ''; }
+
+/* ---------- abrir ovo ---------- */
+function abrirOvo(i) {
+  const ovo = S.eggs[i];
+  if (!ovo || Date.now() < ovo.pronto) return;
+  const r = sortearPet(ovo.tipo, S.pity);
+  S.eggs[i] = null; S.summons++;
+  S.pity = r.r >= 3 ? 0 : S.pity + 1;
+  const res = aplicarPet(S, r.pet.id);
+  salvar();
+  const m = $('#modal'); m.hidden = false;
+  m.innerHTML = `<div class="sheet"><div class="reveal ${reduzMov() ? '' : 'shake'}">${eggSVG(ovo.tipo)}</div><p class="muted">Chocando…</p></div>`;
+  setTimeout(() => {
+    if ($('#modal').hidden) return;
+    const rc = `style="--rc:var(--r${r.r})"`;
+    const msg = res.tipo === 'novo' ? 'Novo bicho na coleção!' : res.tipo === 'nivel' ? `Repetido: subiu para o nível ${res.lvl}` : `Nível máximo: +${fmt(res.reembolso)} moedas`;
+    $('#modal').innerHTML = `<div class="sheet" ${rc}><div class="reveal pop"><div class="face">${r.pet.em}</div><p class="rlabel">${RARIDADES[r.r].nome}</p><h2>${r.pet.nome}</h2><p class="muted">${msg}</p><p class="muted">Produz ${fmt1(prodPet(r.pet.id, S.pets[r.pet.id].lvl))} moedas/s</p></div><button class="btn primary" data-act="fechar">Continuar</button></div>`;
+  }, reduzMov() ? 200 : 1300);
+  render();
+}
+
+/* ---------- ações ---------- */
+const ACOES = {
+  aba(a) { aba = a; confirmaReset = false; render(); $('#view').scrollTop = 0; },
+  fechar() { fecharModal(); },
+  adok() {
+    const f = adReward, t = adTipo; if (!f) return;
+    S.ads[t] = (S.ads[t] || 0) + 1;
+    f(); fecharModal(); salvar(); render();
+  },
+  coletar() {
+    avancar(S, Date.now());
+    const q = Math.floor(S.barn); if (q < 1) return;
+    S.coins += q; S.barn -= q; salvar(); render(); toast('+' + fmt(q) + ' moedas');
+  },
+  coletar2x() {
+    avancar(S, Date.now());
+    if (Math.floor(S.barn) < 1) return;
+    anuncio('dobro', 'Coletar em dobro', () => {
+      avancar(S, Date.now());
+      const q = Math.floor(S.barn); S.coins += q * 2; S.barn -= q; toast('+' + fmt(q * 2) + ' moedas (dobro)');
+    });
+  },
+  pasto() {
+    const c = custoPasto(S); if (c === null) return;
+    if (S.coins < c) return toast('Moedas insuficientes');
+    S.coins -= c; S.slots++; salvar(); render();
+  },
+  comprar(tipo) {
+    const o = OVOS[tipo], i = S.eggs.findIndex(e => !e);
+    if (i < 0) return toast('Incubadoras cheias. Abra um ovo primeiro.');
+    if (o.custo.coins !== undefined) { if (S.coins < o.custo.coins) return toast('Moedas insuficientes'); S.coins -= o.custo.coins; }
+    else { if (S.gems < o.custo.gems) return toast('Gemas insuficientes'); S.gems -= o.custo.gems; }
+    S.eggs[i] = { tipo, pronto: Date.now() + o.tempo * 1000 };
+    salvar(); render();
+  },
+  abrir(i) { abrirOvo(+i); },
+  acelerar(i) {
+    const ovo = S.eggs[+i]; if (!ovo || Date.now() >= ovo.pronto) return;
+    anuncio('acelerar', 'Chocar agora', () => { if (S.eggs[+i]) S.eggs[+i].pronto = Date.now(); });
+  },
+  ovoGratis() {
+    if (S.cd.ovo > Date.now()) return;
+    if (S.eggs.findIndex(e => !e) < 0) return toast('Incubadoras cheias. Abra um ovo primeiro.');
+    anuncio('ovo', 'Ovo de Palha grátis', () => {
+      const i = S.eggs.findIndex(e => !e);
+      if (i >= 0) { S.eggs[i] = { tipo: 'palha', pronto: Date.now() }; S.cd.ovo = Date.now() + 90000; toast('Ovo pronto na incubadora'); }
+    });
+  },
+  gemasGratis() {
+    if (S.cd.gemas > Date.now()) return;
+    anuncio('gemas', '+2 gemas', () => { S.gems += 2; S.cd.gemas = Date.now() + 60000; toast('+2 gemas'); });
+  },
+  resetar() {
+    if (!confirmaReset) { confirmaReset = true; render(); setTimeout(() => { if (confirmaReset) { confirmaReset = false; if (aba === 'dev') render(); } }, 4000); return; }
+    S = novoEstado(Date.now()); confirmaReset = false; salvar(); aba = 'fazenda'; render(); toast('Progresso zerado');
+  }
+};
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b || b.disabled) return;
+  const f = ACOES[b.dataset.act]; if (f) f(b.dataset.arg);
+});
+document.addEventListener('input', e => {
+  const k = e.target.dataset && e.target.dataset.dev; if (!k) return;
+  S.dev[k] = Math.max(0, parseFloat(e.target.value) || 0); calcDev(); salvar();
+});
+
+/* ---------- telas ---------- */
+function viewFazenda() {
+  const at = ativos(S);
+  let tiles = '';
+  for (let i = 0; i < SLOTS_MAX; i++) {
+    if (i < S.slots) {
+      const a = at[i];
+      if (a) { const p = PET_POR_ID[a.id]; tiles += `<div class="slot" style="--rc:var(--r${p.r})"><span class="em" style="animation-delay:${(i * 0.3).toFixed(1)}s">${p.em}</span><span class="lvl">Nv ${a.lvl}</span><span class="rate">${fmt1(a.prod)}/s</span></div>`; }
+      else tiles += '<div class="slot empty">vazio</div>';
+    } else tiles += '<div class="slot lock">bloqueado</div>';
+  }
+  const c = custoPasto(S);
+  const vazio = Object.keys(S.pets).length === 0 ? '<p class="muted">Nenhum bicho trabalhando ainda. Abra seu primeiro ovo na aba Ovos.</p>' : '';
+  return `<section class="card">
+      <div class="between"><h2>Celeiro</h2><span class="muted num" id="prodTxt"></span></div>
+      <div class="bar"><i id="barnBar"></i></div>
+      <div class="between"><span class="big" id="barnQtd">0</span><span class="muted num" id="barnCap"></span></div>
+      <div class="row"><button class="btn primary" id="btnColetar" data-act="coletar">Coletar</button>
+      <button class="btn ad" id="btnDobro" data-act="coletar2x">${PLAY}Coletar em dobro <span class="tag">Anúncio</span></button></div>
+    </section>
+    <section class="card"><div class="between"><h2>Pasto</h2><span class="muted">${at.length} de ${S.slots} trabalhando</span></div>
+      <div class="field">${tiles}</div>${vazio}
+      <button class="btn ghost" data-act="pasto" ${c === null ? 'disabled' : ''}>${c === null ? 'Fazenda completa' : 'Novo pasto por ' + fmt(c) + ' moedas'}</button>
+    </section>`;
+}
+function chancesChips(pesos) {
+  const t = pesos.reduce((a, b) => a + b, 0);
+  return pesos.map((p, i) => p > 0 ? `<span style="--rc:var(--r${i})"><i class="dot"></i>${RARIDADES[i].nome} <b>${pct(p / t * 100)}</b></span>` : '').join('');
+}
+function incubadora(i) {
+  const e = S.eggs[i];
+  if (!e) return `<div class="card egg"><div class="info"><h3>Incubadora ${i + 1}</h3><p class="muted">Livre. Compre um ovo para chocar.</p></div></div>`;
+  const pronto = Date.now() >= e.pronto;
+  return `<div class="card egg">${eggSVG(e.tipo)}<div class="info"><h3>${OVOS[e.tipo].nome}</h3>
+    <p class="muted num"><span data-timer="${i}" data-ready="${pronto ? 1 : 0}">${pronto ? 'Pronto para abrir' : mmss(e.pronto - Date.now())}</span></p>
+    <div class="row" style="margin-top:6px">${pronto
+      ? `<button class="btn primary" data-act="abrir" data-arg="${i}">Abrir</button>`
+      : `<button class="btn ad" data-act="acelerar" data-arg="${i}">${PLAY}Chocar agora <span class="tag">Anúncio</span></button>`}</div></div></div>`;
+}
+function viewOvos() {
+  const falta = PITY_LIMIT - S.pity;
+  const pityTxt = falta <= 1 ? 'Próxima invocação: Épico ou melhor garantido' : `Épico ou melhor garantido em ${falta} invocações`;
+  const loja = Object.keys(OVOS).map(id => {
+    const o = OVOS[id];
+    const custo = o.custo.coins !== undefined ? fmt(o.custo.coins) + ' moedas' : o.custo.gems + ' gemas';
+    return `<div class="card egg">${eggSVG(id)}<div class="info"><div class="between"><h3>${o.nome}</h3><span class="muted num">${o.tempo}s</span></div>
+      <div class="chips">${chancesChips(o.pesos)}</div>
+      <div class="row" style="margin-top:6px"><button class="btn primary" data-act="comprar" data-arg="${id}">Comprar por ${custo}</button></div></div></div>`;
+  }).join('');
+  const linhas = RARIDADES.map((r, i) => `<tr><td><span style="--rc:var(--r${i})"><i class="dot"></i></span>${r.nome}</td>${Object.keys(OVOS).map(id => { const p = OVOS[id].pesos, t = p.reduce((a, b) => a + b, 0); return `<td>${p[i] ? pct(p[i] / t * 100) : '0%'}</td>`; }).join('')}<td>${fmt1(r.prod)}/s</td></tr>`).join('');
+  return `<section class="card"><div class="between"><h2>Incubadoras</h2><span class="muted">${S.summons} invocações</span></div>
+      ${incubadora(0)}${incubadora(1)}
+      <div><div class="bar"><i style="width:${Math.min(100, S.pity / PITY_LIMIT * 100)}%"></i></div><p class="muted" style="margin-top:6px">${pityTxt}</p></div>
+    </section>
+    <section class="card"><h2>Loja de ovos</h2>${loja}</section>
+    <section class="card"><h2>Recompensas</h2>
+      <div class="row">
+        <button class="btn ad" data-cd="ovo" data-label="Ovo grátis" data-act="ovoGratis">${PLAY}<span class="cdl">Ovo grátis</span> <span class="tag">Anúncio</span></button>
+        <button class="btn ad" data-cd="gemas" data-label="+2 gemas" data-act="gemasGratis">${PLAY}<span class="cdl">+2 gemas</span> <span class="tag">Anúncio</span></button>
+      </div></section>
+    <section class="card"><details><summary>Chances de cada ovo</summary>
+      <div class="scroll-x"><table><thead><tr><th>Raridade</th><th>Palha</th><th>Dourado</th><th>Produção</th></tr></thead><tbody>${linhas}</tbody></table></div>
+      <p class="muted" style="margin-top:8px">Garantia: a cada ${PITY_LIMIT} invocações sem Épico ou melhor, a próxima é Épico (92%) ou Lendário (8%). Bicho repetido sobe 1 nível, até o nível ${LVL_MAX}.</p></details></section>`;
+}
+function viewColecao() {
+  const total = PETS.length, tem = Object.keys(S.pets).length;
+  const grupos = RARIDADES.map((r, i) => {
+    const cel = PETS.filter(p => p.r === i).map(p => {
+      const o = S.pets[p.id];
+      return o ? `<div class="cell" style="--rc:var(--r${i})" title="${p.nome}"><span class="em">${p.em}</span><span class="nm">Nv ${o.lvl}</span></div>`
+               : `<div class="cell off" style="--rc:var(--r${i})" title="Ainda não descoberto"><span class="em">${p.em}</span><span class="nm">???</span></div>`;
+    }).join('');
+    return `<section class="card" style="--rc:var(--r${i})"><div class="between"><h3><i class="dot"></i>${r.nome}</h3><span class="muted num">${fmt1(r.prod)} moedas/s base</span></div><div class="cgrid">${cel}</div></section>`;
+  }).join('');
+  return `<section class="card"><div class="between"><h2>Coleção</h2><span class="big">${tem}/${total}</span></div><div class="bar"><i style="width:${tem / total * 100}%"></i></div></section>${grupos}`;
+}
+function viewDev() {
+  const a = S.ads, tot = a.dobro + a.ovo + a.gemas + a.acelerar;
+  const linha = (n, v) => `<tr><td>${n}</td><td>${v}</td></tr>`;
+  return `<section class="card"><h2>Painel de anúncios</h2>
+      <p class="muted">Valores simulados para você estimar o potencial do jogo. O eCPM real varia por país, rede de anúncios e público.</p>
+      <div class="scroll-x"><table><thead><tr><th>Anúncio recompensado</th><th>Assistidos</th></tr></thead><tbody>
+        ${linha('Coletar em dobro', a.dobro)}${linha('Chocar agora', a.acelerar)}${linha('Ovo grátis', a.ovo)}${linha('+2 gemas', a.gemas)}
+        <tr><td><b>Total</b></td><td><b>${tot}</b></td></tr></tbody></table></div>
+    </section>
+    <section class="card"><h2>Calculadora de receita</h2>
+      <div class="field-in"><label for="devEcpm">eCPM (US$ por mil anúncios)</label><input id="devEcpm" data-dev="ecpm" type="number" inputmode="decimal" min="0" step="0.5" value="${S.dev.ecpm}"></div>
+      <div class="field-in"><label for="devDau">Jogadores ativos por dia</label><input id="devDau" data-dev="dau" type="number" inputmode="numeric" min="0" step="100" value="${S.dev.dau}"></div>
+      <div class="field-in"><label for="devAds">Anúncios assistidos por jogador por dia</label><input id="devAds" data-dev="adsDia" type="number" inputmode="decimal" min="0" step="1" value="${S.dev.adsDia}"></div>
+      <div class="kpi"><span class="muted">Seus anúncios nesta partida</span><span class="big" id="devSessao">—</span></div>
+      <div class="kpi"><span class="muted">Projeção por dia</span><span class="big" id="devDia">—</span></div>
+      <div class="kpi"><span class="muted">Projeção por mês</span><span class="big" id="devMes">—</span></div>
+    </section>
+    <section class="card"><h2>Dados do jogo</h2><p class="muted">O progresso fica salvo neste navegador.</p>
+      <button class="btn ghost" data-act="resetar">${confirmaReset ? 'Toque de novo para confirmar' : 'Zerar progresso'}</button></section>`;
+}
+function calcDev() {
+  const a = S.ads, tot = a.dobro + a.ovo + a.gemas + a.acelerar, e = S.dev.ecpm / 1000;
+  const dia = S.dev.dau * S.dev.adsDia * e;
+  const set = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+  set('#devSessao', usd(tot * e)); set('#devDia', usd(dia)); set('#devMes', usd(dia * 30));
+}
+
+function render() {
+  $('#view').innerHTML = aba === 'fazenda' ? viewFazenda() : aba === 'ovos' ? viewOvos() : aba === 'colecao' ? viewColecao() : viewDev();
+  document.querySelectorAll('#nav button').forEach(b => {
+    const on = b.dataset.arg === aba; b.classList.toggle('on', on);
+    if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
+  if (aba === 'dev') calcDev();
+  tick();
+}
+function tick() {
+  const now = Date.now();
+  avancar(S, now);
+  $('#vCoins').textContent = fmt(S.coins);
+  $('#vGems').textContent = fmt(S.gems);
+  if (aba === 'fazenda') {
+    const cap = capCeleiro(S), q = Math.floor(S.barn), p = prodTotal(S);
+    $('#barnBar').style.width = Math.min(100, S.barn / cap * 100) + '%';
+    $('#barnQtd').textContent = fmt(q);
+    $('#barnCap').textContent = 'limite ' + fmt(cap);
+    $('#prodTxt').textContent = '+' + fmt1(p) + ' moedas/s';
+    $('#btnColetar').disabled = q < 1; $('#btnDobro').disabled = q < 1;
+  }
+  if (aba === 'ovos') {
+    let refazer = false;
+    document.querySelectorAll('[data-timer]').forEach(el => {
+      const e = S.eggs[+el.dataset.timer]; if (!e) return;
+      const pronto = now >= e.pronto;
+      if ((el.dataset.ready === '1') !== pronto) refazer = true;
+      else if (!pronto) el.textContent = mmss(e.pronto - now);
+    });
+    document.querySelectorAll('[data-cd]').forEach(b => {
+      const rest = Math.ceil(((S.cd[b.dataset.cd] || 0) - now) / 1000), l = b.querySelector('.cdl');
+      if (rest > 0) { b.disabled = true; l.textContent = 'em ' + rest + 's'; } else { b.disabled = false; l.textContent = b.dataset.label; }
+    });
+    if (refazer) { render(); return; }
+  }
+  if (now - ultimoSalvo > 5000) salvar();
+}
+render();
+setInterval(tick, 250);
+document.addEventListener('visibilitychange', () => { if (document.hidden) salvar(); else tick(); });
+</script>
