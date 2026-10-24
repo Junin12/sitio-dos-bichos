@@ -385,7 +385,9 @@ function viewObras() {
 const segHTML = (acao, atual, itens) => `<div class="seg n${itens.length}" role="tablist">${itens.map(([k, t]) => `<button role="tab" class="${atual === k ? 'on' : ''}" data-act="${acao}" data-arg="${k}" aria-selected="${atual === k}">${t}</button>`).join('')}</div>`;
 const relTempo = ms => { const m = Math.max(1, Math.round(ms / 60000)); return m < 60 ? 'há ' + m + ' min' : 'há ' + Math.floor(m / 60) + ' h'; };
 function viewGuilda() {
-  const seg = segHTML('subG', subG, [['guilda', 'Guilda'], ['papo', 'Papo'], ['liga', 'Liga'], ['chefe', 'Chefe'], ['ranking', 'Sítios'], ['guildas', 'Guildas']], 'n6');
+const soOnline = nome => `<section class="card"><h2>${nome}</h2><p class="muted">Este recurso usa jogadores reais e só funciona no modo online (entre com sua conta nos Ajustes).</p></section>`;
+  // papo e liga só existem com jogadores reais; na versão offline nem aparecem
+  const seg = segHTML('subG', subG, [['guilda', 'Guilda'], ...(window.ON ? [['papo', 'Papo'], ['liga', 'Liga']] : []), ['chefe', 'Chefe'], ['ranking', 'Sítios'], ['guildas', 'Guildas']]);
   if (subG === 'papo') return seg + (window.ON && ON.ativo ? viewPapoOn() : soOnline('Papo da guilda'));
   if (subG === 'liga') return seg + (window.ON && ON.ativo ? viewLigaOn() : soOnline('Liga de guildas'));
   if (subG === 'chefe') return seg + viewChefe();
@@ -613,6 +615,7 @@ Cena.aoTocar({
 });
 /*ONLINE*/
 setInterval(tick, 250);
-if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
+// sw.js só é publicado junto da versão online (docs/)
+if ('serviceWorker' in navigator && /^https?:/.test(location.protocol) && window.SITIO_CONFIG) navigator.serviceWorker.register('sw.js').catch(() => {});
 document.addEventListener('visibilitychange', () => { if (document.hidden) salvar(); else tick(); });
 </script>

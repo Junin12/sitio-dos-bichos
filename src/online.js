@@ -242,7 +242,6 @@ function viewRankingOn() {
 }
 
 /* ---------- liga, papo, passe de guilda e troca de bichos ---------- */
-const soOnline = nome => `<section class="card"><h2>${nome}</h2><p class="muted">Este recurso usa jogadores reais e só funciona no modo online (entre com sua conta nos Ajustes).</p></section>`;
 function ligaPendente() { const l = ON.lg; return !!(l && l.passada && l.passada.premio_pendente); }
 function viewLigaOn() {
   const l = ON.lg; if (!l) return faixa() + '<section class="card"><p class="muted">Carregando a liga…</p></section>';
