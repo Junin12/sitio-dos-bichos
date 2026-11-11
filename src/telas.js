@@ -889,3 +889,65 @@ Object.assign(ACOES, {
   torreAnuncio() { anuncio('torre', '+1 tentativa na torre', () => { S.torre.tent = Math.max(0, S.torre.tent - 1); toast('+1 tentativa'); }); },
   festResg(k) { const r = resgatarFestival(S, +k, Date.now()); if (!r.ok) return toast(erroMsg(r)); receber(r.ups); salvar(); render(); metrica('calendario'); if (r.pet) revelarPet(r.pet, r.res, 'Bicho do festival'); else { Som.play('bau'); toast('Festival: ' + txtRecG(Object.assign({}, r.r, { roupa: r.roupa }))); } }
 });
+
+/* ---------- Pescaria e Mercador itinerante ---------- */
+function cardPescaMercador() {
+  const hoje = hojeN(), now = Date.now(), partes = [];
+  if (S.nivel >= PESCA_NIVEL) {
+    const ok = pescaDisponivel(S, hoje), ad = ok && pescaPrecisaAnuncio(S, hoje);
+    const b = !ok ? '<button class="btn ghost" disabled>Pescaria: volte amanhã</button>'
+      : ad ? `<button class="btn ad" data-act="pescaAbrir">${PLAY}Pescar de novo (${PESCA_TENT - S.pesca.tent}) <span class="tag">${semAnuncios(S) ? 'Passe' : 'Anúncio'}</span></button>`
+      : '<button class="btn primary" data-act="pescaAbrir">🎣 Pescar no açude</button>';
+    partes.push(`<div class="between"><h3>🎣 Açude</h3><span class="muted">pare a boia no meio</span></div><div class="row">${b}</div>`);
+  }
+  const m = mercadorAgora(S, now);
+  if (m.aqui) {
+    partes.push(`<div class="between" style="margin-top:6px"><h3>🧳 Mercador itinerante</h3><span class="muted">vai embora em ${duracao(m.sai / 1000)}</span></div>
+      <div class="row wrap">${m.ofertas.map(o => `<button class="btn mini ${o.comprou ? 'ghost' : 'primary'}" data-act="mercCompra" data-arg="${o.id}" ${o.comprou ? 'disabled' : ''}>${o.em} ${esc(o.nome)} · ${o.comprou ? 'comprado' : (o.paga === 'gems' ? '💎' + o.preco : '🪙' + fmt(o.preco))}</button>`).join('')}</div>`);
+  } else if (S.nivel >= MERC_NIVEL) {
+    partes.push(`<p class="muted" style="margin-top:6px">🧳 O mercador itinerante volta em ${duracao(m.volta / 1000)}.</p>`);
+  }
+  return partes.length ? `<section class="card">${partes.join('')}</section>` : '';
+}
+let pescaRaf = 0;
+function pescaJogo() {
+  cancelAnimationFrame(pescaRaf);
+  abrirModal(`<div class="sheet"><p class="eyebrow">Açude do sítio</p><h2>🎣 Pescaria</h2>
+    <p class="muted">Toque em <b>Puxar</b> quando a boia passar no meio. Quanto mais perto do centro, maior o peixe.</p>
+    <div class="pescaBar" aria-hidden="true"><span class="pescaAlvo"></span><span class="pescaBoia" id="pescaBoia">🔴</span></div>
+    <div class="row"><button class="btn ghost" data-act="fechar">Sair</button><button class="btn primary xl" data-act="pescaPuxar">Puxar!</button></div></div>`);
+  const t0 = performance.now(), vel = 1.1 + Math.random() * 0.5;
+  const passo = t => {
+    const el = $('#pescaBoia'); if (!el) return;
+    const x = (Math.sin((t - t0) / 1000 * vel * Math.PI) + 1) / 2;   // vai e volta de 0 a 1
+    el.dataset.x = x; el.style.left = (x * 100) + '%';
+    pescaRaf = requestAnimationFrame(passo);
+  };
+  pescaRaf = requestAnimationFrame(passo);
+}
+Object.assign(ERROS, { mercador_foi: 'O mercador já foi embora', ja_comprou: 'Você já comprou esta oferta' });
+Object.assign(ACOES, {
+  pescaAbrir() {
+    const hoje = hojeN(); if (!pescaDisponivel(S, hoje)) return toast(S.nivel < PESCA_NIVEL ? 'Libera no nível ' + PESCA_NIVEL : 'Volte amanhã para pescar');
+    if (pescaPrecisaAnuncio(S, hoje)) anuncio('pesca', 'Mais um lance no açude', () => setTimeout(pescaJogo, 50)); else pescaJogo();
+  },
+  pescaPuxar() {
+    const el = $('#pescaBoia'); if (!el) return;
+    cancelAnimationFrame(pescaRaf);
+    const acerto = 1 - Math.abs((+el.dataset.x || 0) - 0.5) * 2;
+    const r = pescar(S, hojeN(), acerto); if (!r.ok) { fecharModal(); return toast(erroMsg(r)); }
+    receber(r.ups); salvar();
+    const p = r.peixe, premio = p.mult ? '+' + fmt(r.coins) + ' moedas' + (r.gems ? ', +' + r.gems + ' gemas' : '') + (r.ing ? ', +1 ingresso' : '') : 'nada desta vez';
+    Som.play(p.mult ? 'coin' : 'erro'); if (p.id === 'dourado') Fx.confete(innerWidth / 2, innerHeight * 0.45, 40, ['#FFC21A', '#fff', '#3DBB6B']);
+    abrirModal(`<div class="sheet"><p class="eyebrow">Açude do sítio</p><div style="font-size:64px;line-height:1">${p.em}</div><h2>${esc(p.nome)}</h2>
+      <p>${premio}</p><p class="muted">${r.resta ? 'Ainda dá para lançar ' + r.resta + 'x hoje.' : 'Lances de hoje acabaram. Volte amanhã!'}</p>
+      <div class="row"><button class="btn primary" data-act="fechar">Ok</button></div></div>`);
+    render();
+  },
+  mercCompra(id) {
+    const r = comprarMercador(S, id, Date.now()); if (!r.ok) return toast(erroMsg(r));
+    salvar(); Som.play('coin');
+    toast(r.ing ? '+3 ingressos' : r.gems ? '+10 gemas' : r.coins ? '+' + fmt(r.coins) + ' moedas' : r.i >= 0 ? 'Ovo dourado na incubadora' : 'Todos os bichos bem alimentados');
+    render();
+  }
+});

@@ -315,7 +315,7 @@ function viewSitio() {
     </section>
     <section class="card guia" id="guia" aria-live="polite">${guiaHTML()}</section>
     ${S.diario.ultimo !== hoje ? cardDiario(hoje) : ''}
-    ${cardEventoMini()}${cardPresentes()}${cardSitioNovo()}
+    ${cardEventoMini()}${cardPresentes()}${cardPescaMercador()}${cardSitioNovo()}
     <section class="card"><div class="between"><h2>Safra <span id="safNum">1</span></h2><span class="muted num" id="safEta"></span></div>
       <div class="bar green"><i id="safBar"></i></div>
       <p class="muted">Avança sozinha com a produção. Ao concluir: <b id="safRec"></b></p></section>

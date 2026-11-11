@@ -409,6 +409,10 @@ button.lvring{border:0;padding:0;cursor:pointer}
 .bolha.meu{align-self:flex-end;background:rgba(61,187,107,.22)}
 .bolha small{display:block;opacity:.65;font-size:11px}
 .frases .btn{white-space:nowrap}
+/* pescaria */
+.pescaBar{position:relative;height:44px;border-radius:22px;background:linear-gradient(90deg,#2b7bbf,#5fb3e8 40%,#5fb3e8 60%,#2b7bbf);box-shadow:inset 0 3px 0 rgba(0,0,0,.18);margin:4px 18px;overflow:visible}
+.pescaAlvo{position:absolute;left:42%;width:16%;top:6px;bottom:6px;border-radius:14px;background:rgba(255,255,255,.35);border:2px dashed #fff}
+.pescaBoia{position:absolute;top:50%;transform:translate(-50%,-50%);font-size:24px;pointer-events:none}
 
 </style>
 
@@ -1739,6 +1743,79 @@ const TROCA_RAR_MAX = 3;
 function podeTrocar(S, id) { const o = S.pets[id], p = PET_POR_ID[id]; if (!o || !p || p.ev || p.r > TROCA_RAR_MAX) return { erro: 'bicho_invalido' }; if (o.lvl < 2) return { erro: 'nivel_baixo_troca' }; return { ok: true }; }
 function trocaEnviarLocal(S, id) { const c = podeTrocar(S, id); if (!c.ok) return c; S.pets[id].lvl--; return { ok: true }; }          // quem envia perde um nível
 function trocaReceberLocal(S, id) { const p = PET_POR_ID[id]; if (!p || p.ev || p.r > TROCA_RAR_MAX) return { erro: 'bicho_invalido' }; return { ok: true, res: aplicarPet(S, id) }; }
+
+/* ===== Pescaria (minijogo do dia) =====
+   O jogador para a boia na hora certa; "acerto" vai de 0 (longe) a 1 (no centro) e decide o peixe.
+   3 lances por dia: o primeiro é grátis, os outros com anúncio (como o baú do dia). */
+const PESCA_NIVEL = 4, PESCA_TENT = 3;
+const PEIXES = [
+  { id: 'bota',    nome: 'Bota velha', em: '👢', mult: 0 },
+  { id: 'lambari', nome: 'Lambari',    em: '🐟', mult: 1 },
+  { id: 'tilapia', nome: 'Tilápia',    em: '🐠', mult: 2 },
+  { id: 'dourado', nome: 'Dourado',    em: '🐡', mult: 4, gems: 2 }
+];
+function ajustarPesca(S, hoje) { if (!S.pesca || S.pesca.dia !== hoje) S.pesca = { dia: hoje, tent: 0, total: (S.pesca && S.pesca.total) || 0 }; }
+function pescaDisponivel(S, hoje) { ajustarPesca(S, hoje); return S.nivel >= PESCA_NIVEL && S.pesca.tent < PESCA_TENT; }
+function pescaPrecisaAnuncio(S, hoje) { ajustarPesca(S, hoje); return S.pesca.tent >= 1; }
+function peixeDoAcerto(acerto, rng) {
+  const a = Math.max(0, Math.min(1, +acerto || 0)), x = rng();
+  if (a < 0.2) return x < 0.7 ? PEIXES[0] : PEIXES[1];          // errou feio: quase sempre a bota
+  if (a < 0.6) return x < 0.75 ? PEIXES[1] : PEIXES[2];
+  if (a < 0.9) return x < 0.7 ? PEIXES[2] : x < 0.95 ? PEIXES[1] : PEIXES[3];
+  return x < 0.45 ? PEIXES[3] : PEIXES[2];                         // no centro: boa chance do dourado
+}
+function pescar(S, hoje, acerto, rng) {
+  rng = rng || Math.random;
+  if (S.nivel < PESCA_NIVEL) return { erro: 'nivel', nivel: PESCA_NIVEL };
+  if (!pescaDisponivel(S, hoje)) return { erro: 'limite' };
+  S.pesca.tent++; S.pesca.total++;
+  const p = peixeDoAcerto(acerto, rng);
+  const coins = p.mult ? Math.round(baseOf(S) * 0.8 * p.mult) : 0, gems = p.gems || 0, ing = p.id === 'dourado' && rng() < 0.3 ? 1 : 0;
+  S.coins += coins; S.gems += gems; ganharIng(S, ing);
+  if (p.mult) pontoEvento(S, p.mult);
+  return { ok: true, peixe: p, coins, gems, ing, resta: PESCA_TENT - S.pesca.tent, ups: ganharXP(S, p.mult ? 4 + 2 * p.mult : 2) };
+}
+
+/* ===== Mercador itinerante =====
+   Passa no sítio a cada 8 horas e fica 2 horas. Traz 3 ofertas sorteadas pela visita (iguais em qualquer aparelho);
+   cada oferta pode ser comprada uma vez por visita. */
+const MERC_NIVEL = 6, MERC_CICLO = 8 * HORA, MERC_FICA = 2 * HORA;
+const MERC_OFERTAS = [
+  { id: 'ing',    nome: '3 ingressos',     em: '🎟️', paga: 'coins', fator: 6 },
+  { id: 'gemas',  nome: '10 gemas',        em: '💎', paga: 'coins', fator: 15 },
+  { id: 'ovo',    nome: 'Ovo dourado',     em: '🥚', paga: 'gems',  preco: 4 },
+  { id: 'moedas', nome: 'Saco de moedas',  em: '💰', paga: 'gems',  preco: 6, fator: 25 },
+  { id: 'racao',  nome: 'Ração para todos', em: '🥕', paga: 'coins', fator: 3 }
+];
+function mercadorAgora(S, now) {
+  const c = Math.floor(now / MERC_CICLO), ini = c * MERC_CICLO;
+  if (S.nivel < MERC_NIVEL) return { aqui: false, nivel: MERC_NIVEL };
+  if (now - ini >= MERC_FICA) return { aqui: false, volta: ini + MERC_CICLO - now };
+  if (!S.merc || S.merc.ciclo !== c) S.merc = { ciclo: c, comprou: {} };
+  const ids = MERC_OFERTAS.map((o, i) => [h32(c * 7 + i * 131), o]).sort((a, b) => a[0] - b[0]).slice(0, 3).map(x => x[1]);
+  const base = baseOf(S);
+  const ofertas = ids.map(o => ({ ...o, preco: o.paga === 'gems' ? o.preco : Math.round(base * o.fator), comprou: !!S.merc.comprou[o.id] }));
+  return { aqui: true, sai: ini + MERC_FICA - now, ofertas };
+}
+function comprarMercador(S, id, now) {
+  const m = mercadorAgora(S, now);
+  if (!m.aqui) return { erro: 'mercador_foi' };
+  const o = m.ofertas.find(x => x.id === id);
+  if (!o) return { erro: 'mercador_foi' };
+  if (o.comprou) return { erro: 'ja_comprou' };
+  if ((o.paga === 'gems' ? S.gems : S.coins) < o.preco) return { erro: o.paga === 'gems' ? 'gemas' : 'moedas' };
+  let i = -1;
+  if (id === 'ovo') { i = S.eggs.findIndex(e => !e); if (i < 0) return { erro: 'cheio' }; }
+  if (o.paga === 'gems') S.gems -= o.preco; else S.coins -= o.preco;
+  const base = baseOf(S), r = { ok: true, oferta: o };
+  if (id === 'ing') { ganharIng(S, 3); r.ing = 3; }
+  else if (id === 'gemas') { S.gems += 10; r.gems = 10; }
+  else if (id === 'ovo') { S.eggs[i] = { tipo: 'dourado', pronto: now + tempoOvo(S, 'dourado') * 1000 }; r.i = i; }
+  else if (id === 'moedas') { r.coins = Math.round(base * o.fator); S.coins += r.coins; }
+  else if (id === 'racao') { const ids = Object.keys(S.pets); ids.forEach(pid => { S.pets[pid].cuid = now + 12 * HORA; }); r.bichos = ids.length; }   // todos bem alimentados, como a ração do bicho
+  S.merc.comprou[id] = 1;
+  return r;
+}
 
 </script>
 
@@ -3591,6 +3668,68 @@ Object.assign(ACOES, {
   festResg(k) { const r = resgatarFestival(S, +k, Date.now()); if (!r.ok) return toast(erroMsg(r)); receber(r.ups); salvar(); render(); metrica('calendario'); if (r.pet) revelarPet(r.pet, r.res, 'Bicho do festival'); else { Som.play('bau'); toast('Festival: ' + txtRecG(Object.assign({}, r.r, { roupa: r.roupa }))); } }
 });
 
+/* ---------- Pescaria e Mercador itinerante ---------- */
+function cardPescaMercador() {
+  const hoje = hojeN(), now = Date.now(), partes = [];
+  if (S.nivel >= PESCA_NIVEL) {
+    const ok = pescaDisponivel(S, hoje), ad = ok && pescaPrecisaAnuncio(S, hoje);
+    const b = !ok ? '<button class="btn ghost" disabled>Pescaria: volte amanhã</button>'
+      : ad ? `<button class="btn ad" data-act="pescaAbrir">${PLAY}Pescar de novo (${PESCA_TENT - S.pesca.tent}) <span class="tag">${semAnuncios(S) ? 'Passe' : 'Anúncio'}</span></button>`
+      : '<button class="btn primary" data-act="pescaAbrir">🎣 Pescar no açude</button>';
+    partes.push(`<div class="between"><h3>🎣 Açude</h3><span class="muted">pare a boia no meio</span></div><div class="row">${b}</div>`);
+  }
+  const m = mercadorAgora(S, now);
+  if (m.aqui) {
+    partes.push(`<div class="between" style="margin-top:6px"><h3>🧳 Mercador itinerante</h3><span class="muted">vai embora em ${duracao(m.sai / 1000)}</span></div>
+      <div class="row wrap">${m.ofertas.map(o => `<button class="btn mini ${o.comprou ? 'ghost' : 'primary'}" data-act="mercCompra" data-arg="${o.id}" ${o.comprou ? 'disabled' : ''}>${o.em} ${esc(o.nome)} · ${o.comprou ? 'comprado' : (o.paga === 'gems' ? '💎' + o.preco : '🪙' + fmt(o.preco))}</button>`).join('')}</div>`);
+  } else if (S.nivel >= MERC_NIVEL) {
+    partes.push(`<p class="muted" style="margin-top:6px">🧳 O mercador itinerante volta em ${duracao(m.volta / 1000)}.</p>`);
+  }
+  return partes.length ? `<section class="card">${partes.join('')}</section>` : '';
+}
+let pescaRaf = 0;
+function pescaJogo() {
+  cancelAnimationFrame(pescaRaf);
+  abrirModal(`<div class="sheet"><p class="eyebrow">Açude do sítio</p><h2>🎣 Pescaria</h2>
+    <p class="muted">Toque em <b>Puxar</b> quando a boia passar no meio. Quanto mais perto do centro, maior o peixe.</p>
+    <div class="pescaBar" aria-hidden="true"><span class="pescaAlvo"></span><span class="pescaBoia" id="pescaBoia">🔴</span></div>
+    <div class="row"><button class="btn ghost" data-act="fechar">Sair</button><button class="btn primary xl" data-act="pescaPuxar">Puxar!</button></div></div>`);
+  const t0 = performance.now(), vel = 1.1 + Math.random() * 0.5;
+  const passo = t => {
+    const el = $('#pescaBoia'); if (!el) return;
+    const x = (Math.sin((t - t0) / 1000 * vel * Math.PI) + 1) / 2;   // vai e volta de 0 a 1
+    el.dataset.x = x; el.style.left = (x * 100) + '%';
+    pescaRaf = requestAnimationFrame(passo);
+  };
+  pescaRaf = requestAnimationFrame(passo);
+}
+Object.assign(ERROS, { mercador_foi: 'O mercador já foi embora', ja_comprou: 'Você já comprou esta oferta' });
+Object.assign(ACOES, {
+  pescaAbrir() {
+    const hoje = hojeN(); if (!pescaDisponivel(S, hoje)) return toast(S.nivel < PESCA_NIVEL ? 'Libera no nível ' + PESCA_NIVEL : 'Volte amanhã para pescar');
+    if (pescaPrecisaAnuncio(S, hoje)) anuncio('pesca', 'Mais um lance no açude', () => setTimeout(pescaJogo, 50)); else pescaJogo();
+  },
+  pescaPuxar() {
+    const el = $('#pescaBoia'); if (!el) return;
+    cancelAnimationFrame(pescaRaf);
+    const acerto = 1 - Math.abs((+el.dataset.x || 0) - 0.5) * 2;
+    const r = pescar(S, hojeN(), acerto); if (!r.ok) { fecharModal(); return toast(erroMsg(r)); }
+    receber(r.ups); salvar();
+    const p = r.peixe, premio = p.mult ? '+' + fmt(r.coins) + ' moedas' + (r.gems ? ', +' + r.gems + ' gemas' : '') + (r.ing ? ', +1 ingresso' : '') : 'nada desta vez';
+    Som.play(p.mult ? 'coin' : 'erro'); if (p.id === 'dourado') Fx.confete(innerWidth / 2, innerHeight * 0.45, 40, ['#FFC21A', '#fff', '#3DBB6B']);
+    abrirModal(`<div class="sheet"><p class="eyebrow">Açude do sítio</p><div style="font-size:64px;line-height:1">${p.em}</div><h2>${esc(p.nome)}</h2>
+      <p>${premio}</p><p class="muted">${r.resta ? 'Ainda dá para lançar ' + r.resta + 'x hoje.' : 'Lances de hoje acabaram. Volte amanhã!'}</p>
+      <div class="row"><button class="btn primary" data-act="fechar">Ok</button></div></div>`);
+    render();
+  },
+  mercCompra(id) {
+    const r = comprarMercador(S, id, Date.now()); if (!r.ok) return toast(erroMsg(r));
+    salvar(); Som.play('coin');
+    toast(r.ing ? '+3 ingressos' : r.gems ? '+10 gemas' : r.coins ? '+' + fmt(r.coins) + ' moedas' : r.i >= 0 ? 'Ovo dourado na incubadora' : 'Todos os bichos bem alimentados');
+    render();
+  }
+});
+
 /* ---------- telas ---------- */
 function cardDiario(hoje) {
   const pronto = S.diario.ultimo !== hoje, seq = seqDiaria(S, hoje), idx = (seq - 1) % 7, feitos = pronto ? idx : idx + 1;
@@ -3671,7 +3810,7 @@ function viewSitio() {
     </section>
     <section class="card guia" id="guia" aria-live="polite">${guiaHTML()}</section>
     ${S.diario.ultimo !== hoje ? cardDiario(hoje) : ''}
-    ${cardEventoMini()}${cardPresentes()}${cardSitioNovo()}
+    ${cardEventoMini()}${cardPresentes()}${cardPescaMercador()}${cardSitioNovo()}
     <section class="card"><div class="between"><h2>Safra <span id="safNum">1</span></h2><span class="muted num" id="safEta"></span></div>
       <div class="bar green"><i id="safBar"></i></div>
       <p class="muted">Avança sozinha com a produção. Ao concluir: <b id="safRec"></b></p></section>

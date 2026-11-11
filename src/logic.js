@@ -1298,3 +1298,76 @@ const TROCA_RAR_MAX = 3;
 function podeTrocar(S, id) { const o = S.pets[id], p = PET_POR_ID[id]; if (!o || !p || p.ev || p.r > TROCA_RAR_MAX) return { erro: 'bicho_invalido' }; if (o.lvl < 2) return { erro: 'nivel_baixo_troca' }; return { ok: true }; }
 function trocaEnviarLocal(S, id) { const c = podeTrocar(S, id); if (!c.ok) return c; S.pets[id].lvl--; return { ok: true }; }          // quem envia perde um nível
 function trocaReceberLocal(S, id) { const p = PET_POR_ID[id]; if (!p || p.ev || p.r > TROCA_RAR_MAX) return { erro: 'bicho_invalido' }; return { ok: true, res: aplicarPet(S, id) }; }
+
+/* ===== Pescaria (minijogo do dia) =====
+   O jogador para a boia na hora certa; "acerto" vai de 0 (longe) a 1 (no centro) e decide o peixe.
+   3 lances por dia: o primeiro é grátis, os outros com anúncio (como o baú do dia). */
+const PESCA_NIVEL = 4, PESCA_TENT = 3;
+const PEIXES = [
+  { id: 'bota',    nome: 'Bota velha', em: '👢', mult: 0 },
+  { id: 'lambari', nome: 'Lambari',    em: '🐟', mult: 1 },
+  { id: 'tilapia', nome: 'Tilápia',    em: '🐠', mult: 2 },
+  { id: 'dourado', nome: 'Dourado',    em: '🐡', mult: 4, gems: 2 }
+];
+function ajustarPesca(S, hoje) { if (!S.pesca || S.pesca.dia !== hoje) S.pesca = { dia: hoje, tent: 0, total: (S.pesca && S.pesca.total) || 0 }; }
+function pescaDisponivel(S, hoje) { ajustarPesca(S, hoje); return S.nivel >= PESCA_NIVEL && S.pesca.tent < PESCA_TENT; }
+function pescaPrecisaAnuncio(S, hoje) { ajustarPesca(S, hoje); return S.pesca.tent >= 1; }
+function peixeDoAcerto(acerto, rng) {
+  const a = Math.max(0, Math.min(1, +acerto || 0)), x = rng();
+  if (a < 0.2) return x < 0.7 ? PEIXES[0] : PEIXES[1];          // errou feio: quase sempre a bota
+  if (a < 0.6) return x < 0.75 ? PEIXES[1] : PEIXES[2];
+  if (a < 0.9) return x < 0.7 ? PEIXES[2] : x < 0.95 ? PEIXES[1] : PEIXES[3];
+  return x < 0.45 ? PEIXES[3] : PEIXES[2];                         // no centro: boa chance do dourado
+}
+function pescar(S, hoje, acerto, rng) {
+  rng = rng || Math.random;
+  if (S.nivel < PESCA_NIVEL) return { erro: 'nivel', nivel: PESCA_NIVEL };
+  if (!pescaDisponivel(S, hoje)) return { erro: 'limite' };
+  S.pesca.tent++; S.pesca.total++;
+  const p = peixeDoAcerto(acerto, rng);
+  const coins = p.mult ? Math.round(baseOf(S) * 0.8 * p.mult) : 0, gems = p.gems || 0, ing = p.id === 'dourado' && rng() < 0.3 ? 1 : 0;
+  S.coins += coins; S.gems += gems; ganharIng(S, ing);
+  if (p.mult) pontoEvento(S, p.mult);
+  return { ok: true, peixe: p, coins, gems, ing, resta: PESCA_TENT - S.pesca.tent, ups: ganharXP(S, p.mult ? 4 + 2 * p.mult : 2) };
+}
+
+/* ===== Mercador itinerante =====
+   Passa no sítio a cada 8 horas e fica 2 horas. Traz 3 ofertas sorteadas pela visita (iguais em qualquer aparelho);
+   cada oferta pode ser comprada uma vez por visita. */
+const MERC_NIVEL = 6, MERC_CICLO = 8 * HORA, MERC_FICA = 2 * HORA;
+const MERC_OFERTAS = [
+  { id: 'ing',    nome: '3 ingressos',     em: '🎟️', paga: 'coins', fator: 6 },
+  { id: 'gemas',  nome: '10 gemas',        em: '💎', paga: 'coins', fator: 15 },
+  { id: 'ovo',    nome: 'Ovo dourado',     em: '🥚', paga: 'gems',  preco: 4 },
+  { id: 'moedas', nome: 'Saco de moedas',  em: '💰', paga: 'gems',  preco: 6, fator: 25 },
+  { id: 'racao',  nome: 'Ração para todos', em: '🥕', paga: 'coins', fator: 3 }
+];
+function mercadorAgora(S, now) {
+  const c = Math.floor(now / MERC_CICLO), ini = c * MERC_CICLO;
+  if (S.nivel < MERC_NIVEL) return { aqui: false, nivel: MERC_NIVEL };
+  if (now - ini >= MERC_FICA) return { aqui: false, volta: ini + MERC_CICLO - now };
+  if (!S.merc || S.merc.ciclo !== c) S.merc = { ciclo: c, comprou: {} };
+  const ids = MERC_OFERTAS.map((o, i) => [h32(c * 7 + i * 131), o]).sort((a, b) => a[0] - b[0]).slice(0, 3).map(x => x[1]);
+  const base = baseOf(S);
+  const ofertas = ids.map(o => ({ ...o, preco: o.paga === 'gems' ? o.preco : Math.round(base * o.fator), comprou: !!S.merc.comprou[o.id] }));
+  return { aqui: true, sai: ini + MERC_FICA - now, ofertas };
+}
+function comprarMercador(S, id, now) {
+  const m = mercadorAgora(S, now);
+  if (!m.aqui) return { erro: 'mercador_foi' };
+  const o = m.ofertas.find(x => x.id === id);
+  if (!o) return { erro: 'mercador_foi' };
+  if (o.comprou) return { erro: 'ja_comprou' };
+  if ((o.paga === 'gems' ? S.gems : S.coins) < o.preco) return { erro: o.paga === 'gems' ? 'gemas' : 'moedas' };
+  let i = -1;
+  if (id === 'ovo') { i = S.eggs.findIndex(e => !e); if (i < 0) return { erro: 'cheio' }; }
+  if (o.paga === 'gems') S.gems -= o.preco; else S.coins -= o.preco;
+  const base = baseOf(S), r = { ok: true, oferta: o };
+  if (id === 'ing') { ganharIng(S, 3); r.ing = 3; }
+  else if (id === 'gemas') { S.gems += 10; r.gems = 10; }
+  else if (id === 'ovo') { S.eggs[i] = { tipo: 'dourado', pronto: now + tempoOvo(S, 'dourado') * 1000 }; r.i = i; }
+  else if (id === 'moedas') { r.coins = Math.round(base * o.fator); S.coins += r.coins; }
+  else if (id === 'racao') { const ids = Object.keys(S.pets); ids.forEach(pid => { S.pets[pid].cuid = now + 12 * HORA; }); r.bichos = ids.length; }   // todos bem alimentados, como a ração do bicho
+  S.merc.comprou[id] = 1;
+  return r;
+}

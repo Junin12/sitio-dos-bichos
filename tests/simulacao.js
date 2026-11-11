@@ -332,3 +332,28 @@ resumo(40,72); resumo(180,720); resumo(480,1440);
   S = novoEstado(T); S.ts = T; S.nivel = 25; ajustarTudo(S, T, rng); S.oferta.comprou = true; S.selos.res = [0]; prestigiar(S, T); assert(S.oferta.comprou && S.selos.res.includes(0), 'prestígio mantém oferta e selos');
   console.log('novidades III: ok');
 })();
+
+// pescaria e mercador itinerante
+(function () {
+  const assert = (c, m) => { if (!c) { console.log("FALHOU:", m); process.exitCode = 1; } };
+  const T = Date.UTC(2026, 10, 11, 9, 0, 0), rng = mulberry(7), hoje = diaDe(T);
+  let S = novoEstado(T); S.ts = T;
+  assert(pescar(S, hoje, 1, rng).erro === 'nivel', 'pescaria só a partir do nível 4');
+  S.nivel = 4; assert(pescaDisponivel(S, hoje) && !pescaPrecisaAnuncio(S, hoje), '1º lance do dia é grátis');
+  const c0 = S.coins, r1 = pescar(S, hoje, 1, rng); assert(r1.ok && r1.peixe.mult > 0 && S.coins === c0 + r1.coins, 'lance no centro pega peixe');
+  assert(pescaPrecisaAnuncio(S, hoje), 'lances seguintes pedem anúncio');
+  pescar(S, hoje, 0.5, rng); pescar(S, hoje, 0, rng); assert(pescar(S, hoje, 1, rng).erro === 'limite', '3 lances por dia');
+  assert(pescaDisponivel(S, hoje + 1) && S.pesca.total === 3, 'lances renovam no dia seguinte');
+  let botas = 0; for (let i = 0; i < 200; i++) if (peixeDoAcerto(0.05, rng).id === 'bota') botas++; assert(botas > 100, 'longe do centro quase sempre dá bota');
+  let dour = 0; for (let i = 0; i < 200; i++) if (peixeDoAcerto(0.95, rng).id === 'dourado') dour++; assert(dour > 50, 'no centro o dourado aparece');
+  // mercador
+  S = novoEstado(T); S.ts = T; S.nivel = 6;
+  const ini = Math.floor(T / MERC_CICLO) * MERC_CICLO, m = mercadorAgora(S, ini + 60000);
+  assert(m.aqui && m.ofertas.length === 3 && new Set(m.ofertas.map(o => o.id)).size === 3, 'mercador traz 3 ofertas diferentes');
+  assert(!mercadorAgora(S, ini + MERC_FICA + 1).aqui && mercadorAgora(S, ini + MERC_FICA + 1).volta > 0, 'mercador vai embora depois de 2 h');
+  S.coins = 1e9; S.gems = 999; S.eggs = S.eggs.map(() => null);
+  for (const o of m.ofertas) { const r = comprarMercador(S, o.id, ini + 60000); assert(r.ok, 'compra ' + o.id); assert(comprarMercador(S, o.id, ini + 60000).erro === 'ja_comprou', 'só 1 por visita: ' + o.id); }
+  const m2 = mercadorAgora(S, ini + MERC_CICLO + 60000); assert(m2.ofertas.every(o => !o.comprou), 'nova visita, ofertas novas');
+  S.nivel = 5; assert(!mercadorAgora(S, ini + 60000).aqui, 'mercador só a partir do nível 6');
+  console.log('pescaria e mercador: ok');
+})();
