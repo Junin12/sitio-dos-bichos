@@ -93,3 +93,15 @@ Passe da temporada (30 níveis, trilha premium ligada ao Passe), marcos de sequ�
 - No jogo: vizinhos que pedem para ver seus bichos (semanal), selos e bichos dourados (3% ao chocar ou polindo com gemas), cesta e safra da estação, oferta de iniciante (72 h), baú dos anúncios (5 e 10 por dia), visita ao sítio com bichos andando.
 - Online (migração 8): liga de guildas (bronze, prata, ouro), passe de guilda (+10% de moedas para todos, compra simulada), troca de bichos (1 por dia, até raridade 3), papo da guilda só com frases prontas e painel de métricas (`priv.painel_diario`, `priv.painel_retencao`, `priv.painel_niveis`, `priv.painel_recursos`: consulte no SQL Editor).
 - Publicação: pasta `app/` com Capacitor, AdMob, avisos e passo a passo em `app/PUBLICAR.md`; consentimento de anúncios no primeiro uso dentro do app; política de privacidade em `docs/privacidade.html` (preencha seus dados de contato); modo econômico também por bateria baixa.
+
+<!-- manutencao:inicio -->
+## Manutenção (resumo)
+
+> Resumo para manter o app. Atualizado em 14/11/2026. Visão de todos os apps: https://wiapps.com.br/documentacao/ (com senha).
+
+- **O que faz:** Gacha de pets com fazenda idle: choque ovos, colecione 40 animais reais e pré-históricos e cuide do sítio.
+- **No ar:** https://wiapps.com.br/sitio-dos-bichos/ · GitHub Pages: https://junin12.github.io/sitio-dos-bichos/
+- **Rodar no PC:** Abrir sitio-dos-bichos.html no navegador · node tests/simulacao.js e tests/e2e.mjs
+- **Publicar:** build.py gera docs/ → GitHub Pages. O cPanel recebe uma cópia pelo repositório wiapps-site.
+- **Chaves e senhas:** Supabase: endereço e chave **pública** em `config.online.json` (o projeto do Sítio é PRODUÇÃO). Nenhuma chave secreta no repositório. Nunca coloque o valor de uma chave neste arquivo.
+<!-- manutencao:fim -->
